@@ -1,0 +1,1 @@
+Settling fighter pay disputes on the ledger.
