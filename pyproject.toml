@@ -1,0 +1,26 @@
+[project]
+name = "fightpurse-ringledger"
+version = "0.1.0"
+description = "FightPurse MVP backend and platform workspace."
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi>=0.111.0",
+  "uvicorn[standard]>=0.30.0",
+  "sqlalchemy>=2.0.30",
+  "psycopg[binary]>=3.1.19",
+  "pydantic>=2.7.0",
+  "python-multipart>=0.0.9",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.2.0",
+  "hypothesis>=6.103.0",
+  "httpx>=0.27.0",
+  "ruff>=0.5.0",
+]
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+

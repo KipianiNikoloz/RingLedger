@@ -5,7 +5,7 @@ Escrow-based fighter purse settlement on XRPL Testnet, with promoter signing via
 ## Status
 
 - Baseline product and technical documentation are in place.
-- Implementation has not started yet (next slice is backend + database foundation).
+- Implementation has started with backend/database M1 foundation scaffolding.
 
 ## MVP Scope (Locked)
 
@@ -28,11 +28,12 @@ Escrow-based fighter purse settlement on XRPL Testnet, with promoter signing via
 
 ## Repository Layout
 
+- `backend/`: FastAPI service scaffold, domain modules, SQL schema, and initial test suite.
 - `docs/`: locked requirements, state machines, and implementation traceability.
 
 ## Implementation Roadmap (Current)
 
-1. M1: backend + database foundation (`R-02`, `R-03`, `R-04`, `R-07`).
+1. M1: backend + database foundation (`R-02`, `R-03`, `R-04`, `R-07`) - in progress.
 2. M2: escrow create prepare/confirm with XRPL validation + idempotency.
 3. M3: result entry and payout prepare/confirm with bonus fulfillment logic.
 4. M4: hardening (security, failure paths, regression/performance, operational readiness).
