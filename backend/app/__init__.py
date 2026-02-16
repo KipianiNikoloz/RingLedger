@@ -1,0 +1,2 @@
+"""FightPurse backend application package."""
+
