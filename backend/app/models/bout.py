@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from datetime import datetime
 import uuid
+from datetime import datetime
 
-from sqlalchemy import BIGINT, DateTime, Enum as SAEnum, ForeignKey, func
+from sqlalchemy import BIGINT, DateTime, ForeignKey, func
+from sqlalchemy import Enum as SAEnum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -37,7 +38,4 @@ class Bout(Base):
         SAEnum(BoutWinner, name="bout_winner", values_callable=lambda e: [x.value for x in e]),
         nullable=True,
     )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
-
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())

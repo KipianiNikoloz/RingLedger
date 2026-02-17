@@ -1,12 +1,6 @@
 from __future__ import annotations
 
-import sys
-from pathlib import Path
 import unittest
-
-BACKEND_ROOT = Path(__file__).resolve().parents[2]
-if str(BACKEND_ROOT) not in sys.path:
-    sys.path.insert(0, str(BACKEND_ROOT))
 
 from app.core.security import create_access_token, decode_access_token, hash_password, verify_password
 
@@ -33,4 +27,3 @@ class SecurityUnitTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

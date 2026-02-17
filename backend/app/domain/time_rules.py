@@ -35,4 +35,3 @@ def compute_finish_after(event_datetime_utc: datetime) -> datetime:
 
 def compute_bonus_cancel_after(event_datetime_utc: datetime) -> datetime:
     return ensure_utc(event_datetime_utc) + timedelta(days=7)
-

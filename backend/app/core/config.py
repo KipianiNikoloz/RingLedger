@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 import os
+from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
@@ -15,13 +15,10 @@ class Settings:
 def get_settings() -> Settings:
     return Settings(
         app_name=os.getenv("APP_NAME", "FightPurse API"),
-        database_url=os.getenv(
-            "DATABASE_URL", "postgresql+psycopg://fightpurse:fightpurse@localhost:5432/fightpurse"
-        ),
+        database_url=os.getenv("DATABASE_URL", "postgresql+psycopg://fightpurse:fightpurse@localhost:5432/fightpurse"),
         jwt_secret=os.getenv("JWT_SECRET", "change-me-in-production"),
         jwt_exp_minutes=int(os.getenv("JWT_EXP_MINUTES", "60")),
     )
 
 
 settings = get_settings()
-

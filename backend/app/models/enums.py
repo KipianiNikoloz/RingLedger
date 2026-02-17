@@ -37,4 +37,3 @@ class EscrowStatus(StrEnum):
 class BoutWinner(StrEnum):
     A = "A"
     B = "B"
-

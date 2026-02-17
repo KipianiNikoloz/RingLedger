@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import uuid
 from dataclasses import dataclass
 from datetime import datetime
-import uuid
 
 from sqlalchemy.orm import Session
 
@@ -101,4 +101,3 @@ class BoutService:
         self.session.commit()
         self.session.refresh(bout)
         return bout
-

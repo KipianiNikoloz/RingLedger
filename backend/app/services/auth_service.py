@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 import uuid
+from dataclasses import dataclass
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -46,4 +46,3 @@ class AuthService:
             secret_key=settings.jwt_secret,
             expires_minutes=settings.jwt_exp_minutes,
         )
-

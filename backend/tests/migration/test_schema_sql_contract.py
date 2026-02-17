@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from pathlib import Path
 import unittest
+from pathlib import Path
 
 
 class SchemaSqlContractTests(unittest.TestCase):
@@ -21,4 +21,3 @@ class SchemaSqlContractTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
