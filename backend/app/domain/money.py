@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from decimal import Decimal, ROUND_DOWN
+from decimal import ROUND_DOWN, Decimal
 
 DROP_SCALE = Decimal("1000000")
 MAX_DROPS = 9_223_372_036_854_775_807  # signed BIGINT max
@@ -29,4 +29,3 @@ def xrp_to_drops(xrp: str | Decimal) -> int:
 def drops_to_xrp(drops: int) -> Decimal:
     clean_drops = ensure_valid_drops(drops)
     return Decimal(clean_drops) / DROP_SCALE
-

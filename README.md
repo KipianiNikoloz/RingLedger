@@ -25,11 +25,13 @@ Escrow-based fighter purse settlement on XRPL Testnet, with promoter signing via
 - Requirements baseline: `docs/requirements-matrix.md`
 - Lifecycle contract: `docs/state-machines.md`
 - Requirement traceability: `docs/traceability-matrix.md`
+- CI/CD and dependency automation: `docs/ci-cd.md`
 
 ## Repository Layout
 
 - `backend/`: FastAPI service scaffold, domain modules, SQL schema, and initial test suite.
 - `docs/`: locked requirements, state machines, and implementation traceability.
+- `.github/`: CI/CD workflow and Dependabot automation.
 
 ## Implementation Roadmap (Current)
 
@@ -43,3 +45,9 @@ Escrow-based fighter purse settlement on XRPL Testnet, with promoter signing via
 - Implement in small vertical slices with atomic commits.
 - Every code/config/schema change must include matching tests and documentation updates.
 - Maintain traceability: requirement -> implementation -> tests -> docs.
+
+## Automation
+
+- CI/CD workflow enforces compile checks, formatting, linting, tests, and secret scanning.
+- Delivery artifact is generated on successful pushes to `main`/`master`.
+- Dependabot opens weekly PRs for GitHub Actions and Python dependency updates.

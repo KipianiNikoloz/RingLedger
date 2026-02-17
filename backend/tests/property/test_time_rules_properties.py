@@ -1,14 +1,8 @@
 from __future__ import annotations
 
 import random
-import sys
-from datetime import UTC, datetime
-from pathlib import Path
 import unittest
-
-BACKEND_ROOT = Path(__file__).resolve().parents[2]
-if str(BACKEND_ROOT) not in sys.path:
-    sys.path.insert(0, str(BACKEND_ROOT))
+from datetime import UTC, datetime
 
 from app.domain.time_rules import from_ripple_epoch, to_ripple_epoch
 
@@ -24,4 +18,3 @@ class TimePropertyTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

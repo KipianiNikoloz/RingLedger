@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
 import base64
 import hashlib
 import hmac
 import json
 import secrets
+from datetime import UTC, datetime, timedelta
 
 PBKDF2_ITERATIONS = 390_000
 
@@ -24,10 +24,7 @@ def hash_password(password: str, *, salt: bytes | None = None) -> str:
         raise ValueError("password_too_short")
     local_salt = salt or secrets.token_bytes(16)
     digest = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), local_salt, PBKDF2_ITERATIONS)
-    return (
-        f"pbkdf2_sha256${PBKDF2_ITERATIONS}$"
-        f"{local_salt.hex()}${digest.hex()}"
-    )
+    return f"pbkdf2_sha256${PBKDF2_ITERATIONS}${local_salt.hex()}${digest.hex()}"
 
 
 def verify_password(password: str, encoded_hash: str) -> bool:
@@ -38,9 +35,7 @@ def verify_password(password: str, encoded_hash: str) -> bool:
     if algorithm != "pbkdf2_sha256":
         return False
     rounds = int(iter_raw)
-    computed = hashlib.pbkdf2_hmac(
-        "sha256", password.encode("utf-8"), bytes.fromhex(salt_hex), rounds
-    ).hex()
+    computed = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), bytes.fromhex(salt_hex), rounds).hex()
     return hmac.compare_digest(computed, hash_hex)
 
 
@@ -87,4 +82,3 @@ def decode_access_token(token: str, *, secret_key: str, now: datetime | None = N
     if current_ts >= int(payload["exp"]):
         raise ValueError("token_expired")
     return payload
-

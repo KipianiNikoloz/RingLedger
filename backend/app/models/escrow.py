@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from datetime import datetime
 import uuid
+from datetime import datetime
 
-from sqlalchemy import BIGINT, DateTime, Enum as SAEnum, ForeignKey, Integer, String, UniqueConstraint, func
+from sqlalchemy import BIGINT, DateTime, ForeignKey, Integer, String, UniqueConstraint, func
+from sqlalchemy import Enum as SAEnum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -13,9 +14,7 @@ from app.models.enums import EscrowKind, EscrowStatus
 
 class Escrow(Base):
     __tablename__ = "escrows"
-    __table_args__ = (
-        UniqueConstraint("bout_id", "kind", name="uq_escrow_bout_kind"),
-    )
+    __table_args__ = (UniqueConstraint("bout_id", "kind", name="uq_escrow_bout_kind"),)
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     bout_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("bouts.id"), nullable=False, index=True)
@@ -47,7 +46,4 @@ class Escrow(Base):
     failure_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
     failure_reason: Mapped[str | None] = mapped_column(String(1024), nullable=True)
 
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, server_default=func.now()
-    )
-
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())

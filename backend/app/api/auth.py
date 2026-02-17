@@ -37,4 +37,3 @@ def login(payload: LoginRequest, session: Session = Depends(get_session)) -> Tok
 
     token = service.issue_access_token(user_id=user.id, email=user.email, role=user.role)
     return TokenResponse(access_token=token)
-
