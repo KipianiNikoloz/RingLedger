@@ -1,6 +1,7 @@
 # RingLedger MVP State Machines
 
 Date locked: 2026-02-16
+Last implementation sync: 2026-02-17
 
 ## Global Invariants
 
@@ -75,11 +76,11 @@ Date locked: 2026-02-16
 | Endpoint | Primary State Effects | Notes |
 |---|---|---|
 | `POST /bouts` | creates bout in `draft`; creates 4 escrows in `planned` | No ledger transition yet |
-| `POST /bouts/{id}/escrows/prepare` | no state transition | Generates unsigned tx payloads |
-| `POST /bouts/{id}/escrows/confirm` | escrow `planned -> created`; bout `draft -> escrows_created` when all 4 done | Requires idempotency and ledger validation |
-| `POST /bouts/{id}/result` | bout `escrows_created -> result_entered` | Admin only |
-| `POST /bouts/{id}/payouts/prepare` | no state transition | Generates unsigned finish/cancel payloads |
-| `POST /bouts/{id}/payouts/confirm` | escrow `created -> finished/cancelled`; bout enters `payouts_in_progress`; may reach `closed` | Requires idempotency and ledger validation |
+| `POST /bouts/{bout_id}/escrows/prepare` | no state transition | Generates unsigned tx payloads |
+| `POST /bouts/{bout_id}/escrows/confirm` | escrow `planned -> created`; bout `draft -> escrows_created` when all 4 done | Requires idempotency and ledger validation |
+| `POST /bouts/{bout_id}/result` | bout `escrows_created -> result_entered` | Admin only |
+| `POST /bouts/{bout_id}/payouts/prepare` | no state transition | Generates unsigned finish/cancel payloads |
+| `POST /bouts/{bout_id}/payouts/confirm` | escrow `created -> finished/cancelled`; bout enters `payouts_in_progress`; may reach `closed` | Requires idempotency and ledger validation |
 
 ## Failure Path Contract
 
@@ -87,3 +88,4 @@ Date locked: 2026-02-16
 - `tec/tem`: no transition; persisted failure classification; manual or gated retry.
 - Confirmation timeout: no optimistic transition; remains safe prior state with retry path.
 - Invalid confirmation/field mismatch: reject, audit, and classify as security/integrity failure.
+- Idempotency payload collision: reject with deterministic conflict response and no state transition.
