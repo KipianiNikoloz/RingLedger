@@ -1,4 +1,4 @@
-# FightPurse Backend (M1 Foundation)
+# RingLedger Backend (M1 Foundation)
 
 ## Current Scope
 
@@ -24,5 +24,5 @@
 
 ## Notes
 
-- The environment used for this implementation does not have external packages installed.
-- Code and tests are scaffolded for the declared stack; dependency install and full test execution are required in CI/local dev environment.
+- Use the project virtual environment for local commands (`.\venv\Scripts\python.exe ...`) to ensure FastAPI/SQLAlchemy/dev tooling are available.
+- Current suite entrypoint: `python -m unittest discover -s backend/tests -p "test_*.py"`.

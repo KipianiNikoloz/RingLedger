@@ -1,4 +1,4 @@
-# CI/CD and Dependency Automation
+# RingLedger CI/CD and Dependency Automation
 
 Last updated: 2026-02-16
 
@@ -63,4 +63,3 @@ python -m unittest discover -s backend/tests -p "test_*.py"
 - Secret scanning blocks merges when leaks are detected.
 - Default/demo values (for example local JWT secrets) must never be used in production deployments.
 - Runtime production secrets must come from deployment environment secret stores, not from repository files.
-

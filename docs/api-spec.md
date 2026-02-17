@@ -1,4 +1,4 @@
-# FightPurse API Spec (M1 Foundation)
+# RingLedger API Spec (M1 Foundation)
 
 Last updated: 2026-02-16
 

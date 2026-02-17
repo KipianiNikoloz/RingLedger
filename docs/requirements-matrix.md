@@ -1,4 +1,4 @@
-# FightPurse MVP Requirements Matrix
+# RingLedger MVP Requirements Matrix
 
 Date locked: 2026-02-16
 
