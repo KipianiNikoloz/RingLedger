@@ -1,4 +1,4 @@
-# FightPurse Schema Docs (M1 Foundation)
+# RingLedger Schema Docs (M1 Foundation)
 
 Last updated: 2026-02-16  
 Schema SQL file: `backend/sql/001_init_schema.sql`

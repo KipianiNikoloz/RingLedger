@@ -1,4 +1,4 @@
-# FightPurse MVP State Machines
+# RingLedger MVP State Machines
 
 Date locked: 2026-02-16
 

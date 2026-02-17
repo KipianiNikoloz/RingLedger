@@ -1,11 +1,11 @@
-# FightPurse (RingLedger)
+# RingLedger
 
 Escrow-based fighter purse settlement on XRPL Testnet, with promoter signing via Xaman and backend-enforced lifecycle/security invariants.
 
 ## Status
 
 - Baseline product and technical documentation are in place.
-- Implementation has started with backend/database M1 foundation scaffolding.
+- Backend/database M1 foundation is complete with executable unit/integration/property/contract/security/migration tests.
 
 ## MVP Scope (Locked)
 
@@ -35,8 +35,8 @@ Escrow-based fighter purse settlement on XRPL Testnet, with promoter signing via
 
 ## Implementation Roadmap (Current)
 
-1. M1: backend + database foundation (`R-02`, `R-03`, `R-04`, `R-07`) - in progress.
-2. M2: escrow create prepare/confirm with XRPL validation + idempotency.
+1. M1: backend + database foundation (`R-02`, `R-03`, `R-04`, `R-07`) - complete.
+2. M2: escrow create prepare/confirm with XRPL validation + idempotency - next.
 3. M3: result entry and payout prepare/confirm with bonus fulfillment logic.
 4. M4: hardening (security, failure paths, regression/performance, operational readiness).
 
