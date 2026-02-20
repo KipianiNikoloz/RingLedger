@@ -10,6 +10,8 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 import app.models  # noqa: F401
+from app.core.config import settings
+from app.core.security import create_access_token
 from app.db.base import Base
 from app.db.session import get_session
 from app.main import create_app
@@ -33,7 +35,7 @@ class EscrowConfirmIntegrationTests(unittest.TestCase):
         Base.metadata.create_all(bind=self.engine)
         self.SessionLocal = sessionmaker(bind=self.engine, autoflush=False, autocommit=False, future=True)
 
-        self.bout_id = self._seed_bout()
+        self.bout_id, self.promoter_user_id, self.promoter_email = self._seed_bout()
 
         self.init_db_patcher = patch("app.main.init_db")
         self.init_db_patcher.start()
@@ -50,7 +52,10 @@ class EscrowConfirmIntegrationTests(unittest.TestCase):
         self.engine.dispose()
 
     def test_prepare_returns_unsigned_escrow_create_payloads(self) -> None:
-        response = self.client.post(f"/bouts/{self.bout_id}/escrows/prepare")
+        response = self.client.post(
+            f"/bouts/{self.bout_id}/escrows/prepare",
+            headers=self._promoter_headers(),
+        )
         self.assertEqual(response.status_code, 200)
         body = response.json()
         self.assertEqual(body["bout_id"], str(self.bout_id))
@@ -85,7 +90,7 @@ class EscrowConfirmIntegrationTests(unittest.TestCase):
             payload = self._build_confirm_payload(kind=kind, tx_hash=tx_hash, offer_sequence=offer_sequence)
             response = self.client.post(
                 f"/bouts/{self.bout_id}/escrows/confirm",
-                headers={"Idempotency-Key": f"confirm-{kind.value}"},
+                headers=self._promoter_headers({"Idempotency-Key": f"confirm-{kind.value}"}),
                 json=payload,
             )
             self.assertEqual(response.status_code, 200)
@@ -115,14 +120,14 @@ class EscrowConfirmIntegrationTests(unittest.TestCase):
         )
         response_one = self.client.post(
             f"/bouts/{self.bout_id}/escrows/confirm",
-            headers={"Idempotency-Key": "replay-key"},
+            headers=self._promoter_headers({"Idempotency-Key": "replay-key"}),
             json=payload,
         )
         self.assertEqual(response_one.status_code, 200)
 
         response_two = self.client.post(
             f"/bouts/{self.bout_id}/escrows/confirm",
-            headers={"Idempotency-Key": "replay-key"},
+            headers=self._promoter_headers({"Idempotency-Key": "replay-key"}),
             json=payload,
         )
         self.assertEqual(response_two.status_code, 200)
@@ -132,7 +137,7 @@ class EscrowConfirmIntegrationTests(unittest.TestCase):
         payload_collision["tx_hash"] = "TX00000999"
         response_three = self.client.post(
             f"/bouts/{self.bout_id}/escrows/confirm",
-            headers={"Idempotency-Key": "replay-key"},
+            headers=self._promoter_headers({"Idempotency-Key": "replay-key"}),
             json=payload_collision,
         )
         self.assertEqual(response_three.status_code, 409)
@@ -159,7 +164,7 @@ class EscrowConfirmIntegrationTests(unittest.TestCase):
         )
         response = self.client.post(
             f"/bouts/{self.bout_id}/escrows/confirm",
-            headers={"Idempotency-Key": "invalid-confirm"},
+            headers=self._promoter_headers({"Idempotency-Key": "invalid-confirm"}),
             json=payload,
         )
         self.assertEqual(response.status_code, 422)
@@ -167,7 +172,7 @@ class EscrowConfirmIntegrationTests(unittest.TestCase):
 
         replay = self.client.post(
             f"/bouts/{self.bout_id}/escrows/confirm",
-            headers={"Idempotency-Key": "invalid-confirm"},
+            headers=self._promoter_headers({"Idempotency-Key": "invalid-confirm"}),
             json=payload,
         )
         self.assertEqual(replay.status_code, 422)
@@ -197,9 +202,10 @@ class EscrowConfirmIntegrationTests(unittest.TestCase):
         finally:
             session.close()
 
-    def _seed_bout(self) -> uuid.UUID:
+    def _seed_bout(self) -> tuple[uuid.UUID, uuid.UUID, str]:
         with Session(self.engine) as session:
-            promoter_id = self._insert_user(session, "promoter.m2@example.test", UserRole.PROMOTER)
+            promoter_email = "promoter.m2@example.test"
+            promoter_id = self._insert_user(session, promoter_email, UserRole.PROMOTER)
             fighter_a_id = self._insert_user(session, "fighter.m2.a@example.test", UserRole.FIGHTER)
             fighter_b_id = self._insert_user(session, "fighter.m2.b@example.test", UserRole.FIGHTER)
             service = BoutService(session=session)
@@ -216,7 +222,7 @@ class EscrowConfirmIntegrationTests(unittest.TestCase):
                 bonus_a_drops=250_000,
                 bonus_b_drops=250_000,
             )
-            return bout.id
+            return bout.id, promoter_id, promoter_email
 
     @staticmethod
     def _event_datetime():
@@ -256,6 +262,19 @@ class EscrowConfirmIntegrationTests(unittest.TestCase):
                 "cancel_after_ripple": escrow.cancel_after_ripple,
                 "condition_hex": escrow.condition_hex,
             }
+
+    def _promoter_headers(self, extra: dict[str, str] | None = None) -> dict[str, str]:
+        token = create_access_token(
+            subject=str(self.promoter_user_id),
+            email=self.promoter_email,
+            role=UserRole.PROMOTER.value,
+            secret_key=settings.jwt_secret,
+            expires_minutes=settings.jwt_exp_minutes,
+        )
+        headers = {"Authorization": f"Bearer {token}"}
+        if extra:
+            headers.update(extra)
+        return headers
 
 
 if __name__ == "__main__":

@@ -34,6 +34,11 @@ class EscrowStatus(StrEnum):
     FAILED = "failed"
 
 
+class EscrowCloseAction(StrEnum):
+    FINISH = "finish"
+    CANCEL = "cancel"
+
+
 class BoutWinner(StrEnum):
     A = "A"
     B = "B"

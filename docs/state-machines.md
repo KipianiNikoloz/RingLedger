@@ -1,12 +1,13 @@
 # RingLedger MVP State Machines
 
 Date locked: 2026-02-16
-Last implementation sync: 2026-02-17
+Last implementation sync: 2026-02-18
 
 ## Global Invariants
 
 - Transition authority is backend only.
 - Transition trigger requires validated XRPL transaction success (`tesSUCCESS`) where on-ledger activity is involved.
+- Protected bout lifecycle endpoints require JWT bearer auth with backend role checks.
 - Frontend state is advisory; backend performs final state-guard checks.
 - Illegal transitions must return deterministic errors and emit audit events.
 
@@ -76,11 +77,11 @@ Last implementation sync: 2026-02-17
 | Endpoint | Primary State Effects | Notes |
 |---|---|---|
 | `POST /bouts` | creates bout in `draft`; creates 4 escrows in `planned` | No ledger transition yet |
-| `POST /bouts/{bout_id}/escrows/prepare` | no state transition | Generates unsigned tx payloads |
-| `POST /bouts/{bout_id}/escrows/confirm` | escrow `planned -> created`; bout `draft -> escrows_created` when all 4 done | Requires idempotency and ledger validation |
-| `POST /bouts/{bout_id}/result` | bout `escrows_created -> result_entered` | Admin only |
-| `POST /bouts/{bout_id}/payouts/prepare` | no state transition | Generates unsigned finish/cancel payloads |
-| `POST /bouts/{bout_id}/payouts/confirm` | escrow `created -> finished/cancelled`; bout enters `payouts_in_progress`; may reach `closed` | Requires idempotency and ledger validation |
+| `POST /bouts/{bout_id}/escrows/prepare` | no state transition | Promoter JWT required; generates unsigned tx payloads |
+| `POST /bouts/{bout_id}/escrows/confirm` | escrow `planned -> created`; bout `draft -> escrows_created` when all 4 done | Promoter JWT + idempotency + ledger validation |
+| `POST /bouts/{bout_id}/result` | bout `escrows_created -> result_entered` | Admin JWT required |
+| `POST /bouts/{bout_id}/payouts/prepare` | no state transition | Promoter JWT required; generates unsigned finish/cancel payloads |
+| `POST /bouts/{bout_id}/payouts/confirm` | escrow `created -> finished/cancelled`; bout enters `payouts_in_progress`; may reach `closed` | Promoter JWT + idempotency + ledger validation |
 
 ## Failure Path Contract
 

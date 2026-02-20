@@ -5,6 +5,14 @@ from app.schemas.escrow import (
     EscrowPrepareItem,
     EscrowPrepareResponse,
 )
+from app.schemas.payout import (
+    BoutResultRequest,
+    BoutResultResponse,
+    PayoutConfirmRequest,
+    PayoutConfirmResponse,
+    PayoutPrepareItem,
+    PayoutPrepareResponse,
+)
 
 __all__ = [
     "LoginRequest",
@@ -15,4 +23,10 @@ __all__ = [
     "EscrowPrepareResponse",
     "EscrowConfirmRequest",
     "EscrowConfirmResponse",
+    "BoutResultRequest",
+    "BoutResultResponse",
+    "PayoutPrepareItem",
+    "PayoutPrepareResponse",
+    "PayoutConfirmRequest",
+    "PayoutConfirmResponse",
 ]

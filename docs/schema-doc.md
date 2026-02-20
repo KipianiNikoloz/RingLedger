@@ -1,6 +1,6 @@
-# RingLedger Schema Docs (M1 Foundation)
+# RingLedger Schema Docs (M3 Lifecycle)
 
-Last updated: 2026-02-16  
+Last updated: 2026-02-18  
 Schema SQL file: `backend/sql/001_init_schema.sql`
 
 ## Enums
@@ -68,6 +68,7 @@ Schema SQL file: `backend/sql/001_init_schema.sql`
 - Constraints:
   - one escrow per (`bout_id`, `kind`)
   - non-negative `amount_drops`
+  - bonus escrows store platform-generated `condition_hex` and fulfillment secret (`encrypted_preimage_hex`) for winner payout validation
 
 ### `audit_log`
 

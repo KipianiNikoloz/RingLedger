@@ -1,17 +1,28 @@
-# RingLedger API Spec (M2 Escrow Create Flow)
+# RingLedger API Spec (M3 Result + Payout Flow)
 
-Last updated: 2026-02-17
+Last updated: 2026-02-18
 
 ## Scope
 
-This document captures currently implemented API surface through M2 escrow-create prepare/confirm.
+This document captures the implemented API surface through M3:
+
+- Auth: register/login (email/password -> JWT)
+- Escrow create prepare/confirm
+- Result entry
+- Payout prepare/confirm
 
 ## Base Behavior
 
 - Content type: `application/json`
 - Auth mode: JWT bearer token (email/password login only)
 - Money fields: drops (`integer`) only
-- Confirm idempotency: `Idempotency-Key` header required on `POST /bouts/{bout_id}/escrows/confirm`
+- Protected routes: all `POST /bouts/*` routes require `Authorization: Bearer <jwt>`
+- Role guards:
+  - `POST /bouts/{bout_id}/result` requires `admin`
+  - all other `POST /bouts/*` routes require `promoter`
+- Confirm idempotency:
+  - `POST /bouts/{bout_id}/escrows/confirm` requires `Idempotency-Key`
+  - `POST /bouts/{bout_id}/payouts/confirm` requires `Idempotency-Key`
 
 ## Endpoints
 
@@ -29,16 +40,6 @@ This document captures currently implemented API surface through M2 escrow-creat
 ### `POST /auth/register`
 
 - Purpose: create user account with role.
-- Request body:
-
-```json
-{
-  "email": "fighter@example.com",
-  "password": "minimum-eight-chars",
-  "role": "fighter"
-}
-```
-
 - Response `201`:
 
 ```json
@@ -54,15 +55,6 @@ This document captures currently implemented API surface through M2 escrow-creat
 ### `POST /auth/login`
 
 - Purpose: issue access token.
-- Request body:
-
-```json
-{
-  "email": "fighter@example.com",
-  "password": "minimum-eight-chars"
-}
-```
-
 - Response `200`:
 
 ```json
@@ -76,7 +68,7 @@ This document captures currently implemented API surface through M2 escrow-creat
 
 ### `POST /bouts/{bout_id}/escrows/prepare`
 
-- Purpose: generate unsigned XRPL `EscrowCreate` payloads for the bout escrow set.
+- Purpose: generate unsigned XRPL `EscrowCreate` payloads for all 4 escrows.
 - Response `200`:
 
 ```json
@@ -85,45 +77,31 @@ This document captures currently implemented API surface through M2 escrow-creat
   "escrows": [
     {
       "escrow_id": "uuid",
-      "escrow_kind": "show_a",
+      "escrow_kind": "bonus_a",
       "unsigned_tx": {
         "TransactionType": "EscrowCreate",
         "Account": "rPromoter...",
         "Destination": "rFighter...",
-        "Amount": "1000000",
-        "FinishAfter": 823000000
+        "Amount": "250000",
+        "FinishAfter": 823000000,
+        "CancelAfter": 823604800,
+        "Condition": "ABCDEF..."
       }
     }
   ]
 }
 ```
 
+- Error `401`: missing/invalid bearer token.
+- Error `403`: caller role is not promoter.
 - Error `404`: bout not found.
 - Error `409`: prepare not allowed in current state.
-- Error `422`: escrow planning set invalid.
+- Error `422`: escrow plan invalid.
 
 ### `POST /bouts/{bout_id}/escrows/confirm`
 
-- Purpose: validate confirmed EscrowCreate result and apply `planned -> created` transition.
+- Purpose: validate confirmed `EscrowCreate` result and apply `planned -> created`.
 - Required header: `Idempotency-Key: <client-generated-key>`
-- Request body:
-
-```json
-{
-  "escrow_kind": "show_a",
-  "tx_hash": "TX00000001",
-  "offer_sequence": 1001,
-  "validated": true,
-  "engine_result": "tesSUCCESS",
-  "owner_address": "rPromoter...",
-  "destination_address": "rFighter...",
-  "amount_drops": 1000000,
-  "finish_after_ripple": 823000000,
-  "cancel_after_ripple": null,
-  "condition_hex": null
-}
-```
-
 - Response `200`:
 
 ```json
@@ -139,20 +117,142 @@ This document captures currently implemented API surface through M2 escrow-creat
 ```
 
 - Error `400`: missing idempotency header or malformed request.
+- Error `401`: missing/invalid bearer token.
+- Error `403`: caller role is not promoter.
 - Error `404`: bout or escrow not found.
 - Error `409`: state conflict, or idempotency key reused with different payload.
-- Error `422`: ledger confirmation failed validation (not validated, non-`tesSUCCESS`, or field mismatch).
+- Error `422`: ledger confirmation failed validation.
 
-#### Confirm Idempotency Contract
+### `POST /bouts/{bout_id}/result`
 
-- First request with a new `(scope, Idempotency-Key)` persists both operation result and response payload.
+- Purpose: set winner (`A`/`B`) and move `escrows_created -> result_entered`.
+- Role: admin only.
+- Request body:
+
+```json
+{
+  "winner": "A"
+}
+```
+
+- Response `200`:
+
+```json
+{
+  "bout_id": "uuid",
+  "bout_status": "result_entered",
+  "winner": "A"
+}
+```
+
+- Error `401`: missing/invalid bearer token.
+- Error `403`: caller role is not admin.
+- Error `404`: bout not found.
+- Error `409`: result entry not allowed in current state.
+
+### `POST /bouts/{bout_id}/payouts/prepare`
+
+- Purpose: generate unsigned payout payloads for outstanding escrows:
+  - `EscrowFinish` for `show_a` and `show_b`
+  - `EscrowFinish` for winner bonus (with platform fulfillment)
+  - `EscrowCancel` for loser bonus
+- Role: promoter.
+- Response `200`:
+
+```json
+{
+  "bout_id": "uuid",
+  "bout_status": "result_entered",
+  "escrows": [
+    {
+      "escrow_id": "uuid",
+      "escrow_kind": "bonus_a",
+      "action": "finish",
+      "unsigned_tx": {
+        "TransactionType": "EscrowFinish",
+        "Account": "rPromoter...",
+        "Owner": "rPromoter...",
+        "OfferSequence": 6003,
+        "Fulfillment": "A1B2..."
+      }
+    },
+    {
+      "escrow_id": "uuid",
+      "escrow_kind": "bonus_b",
+      "action": "cancel",
+      "unsigned_tx": {
+        "TransactionType": "EscrowCancel",
+        "Account": "rPromoter...",
+        "Owner": "rPromoter...",
+        "OfferSequence": 6004
+      }
+    }
+  ]
+}
+```
+
+- Error `401`: missing/invalid bearer token.
+- Error `403`: caller role is not promoter.
+- Error `404`: bout not found.
+- Error `409`: payout prepare not allowed in current state.
+- Error `422`: payout setup invalid.
+
+### `POST /bouts/{bout_id}/payouts/confirm`
+
+- Purpose: validate confirmed payout tx and apply escrow close transition:
+  - `created -> finished` for show/winner bonus
+  - `created -> cancelled` for loser bonus
+- Required header: `Idempotency-Key: <client-generated-key>`
+- Role: promoter.
+- Request body (finish example):
+
+```json
+{
+  "escrow_kind": "bonus_a",
+  "tx_hash": "TXPAYOUT0003",
+  "validated": true,
+  "engine_result": "tesSUCCESS",
+  "transaction_type": "EscrowFinish",
+  "owner_address": "rPromoter...",
+  "offer_sequence": 6003,
+  "close_time_ripple": 823000100,
+  "fulfillment_hex": "A1B2..."
+}
+```
+
+- Response `200`:
+
+```json
+{
+  "bout_id": "uuid",
+  "escrow_id": "uuid",
+  "escrow_kind": "bonus_a",
+  "escrow_status": "finished",
+  "bout_status": "closed",
+  "tx_hash": "TXPAYOUT0003"
+}
+```
+
+- Error `400`: missing idempotency header or malformed request.
+- Error `401`: missing/invalid bearer token.
+- Error `403`: caller role is not promoter.
+- Error `404`: bout or escrow not found.
+- Error `409`: state conflict, or idempotency key reused with different payload.
+- Error `422`: ledger confirmation failed validation (timing, tx type, offer sequence, fulfillment, or `tesSUCCESS` mismatch).
+
+## Confirm Idempotency Contract
+
+- First request with a new `(scope, Idempotency-Key)` persists operation result and response payload.
 - Replay with same key and identical request body returns stored status/body.
 - Replay with same key and different request body is rejected deterministically with `409`.
+- Implemented scopes:
+  - `escrow_create_confirm:{bout_id}`
+  - `payout_confirm:{bout_id}`
 
 ## Explicit Non-Supported Auth Routes
 
 - No wallet login endpoint exists in MVP.
-- No XRPL address login is accepted.
+- No XRPL address login endpoint exists.
 
 ## Planned Next Endpoints (Not Implemented Yet)
 
@@ -160,6 +260,3 @@ This document captures currently implemented API surface through M2 escrow-creat
 - `POST /bouts`
 - `GET /bouts`
 - `GET /bouts/{id}`
-- `POST /bouts/{id}/result`
-- `POST /bouts/{id}/payouts/prepare`
-- `POST /bouts/{id}/payouts/confirm`

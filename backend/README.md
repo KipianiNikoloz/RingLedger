@@ -1,4 +1,4 @@
-# RingLedger Backend (M2 Escrow Create Flow)
+# RingLedger Backend (M3 Result + Payout Flow)
 
 ## Current Scope
 
@@ -7,17 +7,21 @@
 - Auth endpoints:
   - `POST /auth/register`
   - `POST /auth/login`
-- Escrow create endpoints:
+- Protected bout lifecycle endpoints (`Authorization: Bearer <jwt>` required):
   - `POST /bouts/{bout_id}/escrows/prepare`
   - `POST /bouts/{bout_id}/escrows/confirm` (`Idempotency-Key` required)
+  - `POST /bouts/{bout_id}/result` (admin-only)
+  - `POST /bouts/{bout_id}/payouts/prepare`
+  - `POST /bouts/{bout_id}/payouts/confirm` (`Idempotency-Key` required)
 - Core domain utilities:
   - money conversion and drop validation
   - time rules and Ripple epoch conversion
-- XRPL create transaction behavior:
-  - unsigned EscrowCreate payload generation
-  - validated-ledger confirmation field checks (`tesSUCCESS` + invariant matching)
-- Replay-safe idempotency storage and mismatch rejection for confirm calls
-- Audit logging for escrow confirm success/rejection outcomes
+- crypto-condition preimage/condition/fulfillment helpers for bonus escrow control
+- XRPL transaction behavior:
+  - unsigned `EscrowCreate`, `EscrowFinish`, and `EscrowCancel` payload generation
+  - validated-ledger confirmation checks (`tesSUCCESS` + invariant/timing/offer-sequence matching)
+- Replay-safe idempotency storage and mismatch rejection for confirm calls (`escrows/confirm` and `payouts/confirm`)
+- Audit logging for escrow create/payout and bout lifecycle outcomes
 - PostgreSQL schema foundation in `sql/001_init_schema.sql`
 
 ## Structure
@@ -25,6 +29,7 @@
 - `app/api/`: route definitions
 - `app/services/`: service-layer business logic
 - `app/middleware/`: request guard helpers (idempotency header enforcement)
+- `app/crypto_conditions/`: bonus preimage/condition/fulfillment helpers
 - `app/models/`: SQLAlchemy models and enums
 - `app/domain/`: pure domain utilities
 - `app/core/`: config and security helpers
