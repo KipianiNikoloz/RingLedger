@@ -6,6 +6,7 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
+from app.crypto_conditions import generate_preimage_hex, make_condition_hex, make_fulfillment_hex
 from app.domain.time_rules import (
     compute_bonus_cancel_after,
     compute_finish_after,
@@ -39,6 +40,12 @@ class BoutService:
         cancel_after = compute_bonus_cancel_after(event_datetime_utc)
         finish_after_ripple = to_ripple_epoch(finish_after)
         cancel_after_ripple = to_ripple_epoch(cancel_after)
+        bonus_a_preimage = generate_preimage_hex()
+        bonus_b_preimage = generate_preimage_hex()
+        bonus_a_fulfillment = make_fulfillment_hex(bonus_a_preimage)
+        bonus_b_fulfillment = make_fulfillment_hex(bonus_b_preimage)
+        bonus_a_condition = make_condition_hex(bonus_a_fulfillment)
+        bonus_b_condition = make_condition_hex(bonus_b_fulfillment)
 
         bout = Bout(
             promoter_user_id=promoter_user_id,
@@ -85,6 +92,8 @@ class BoutService:
                 amount_drops=bonus_a_drops,
                 finish_after_ripple=finish_after_ripple,
                 cancel_after_ripple=cancel_after_ripple,
+                condition_hex=bonus_a_condition,
+                encrypted_preimage_hex=bonus_a_fulfillment,
             ),
             Escrow(
                 bout_id=bout.id,
@@ -95,6 +104,8 @@ class BoutService:
                 amount_drops=bonus_b_drops,
                 finish_after_ripple=finish_after_ripple,
                 cancel_after_ripple=cancel_after_ripple,
+                condition_hex=bonus_b_condition,
+                encrypted_preimage_hex=bonus_b_fulfillment,
             ),
         ]
         self.session.add_all(escrows)

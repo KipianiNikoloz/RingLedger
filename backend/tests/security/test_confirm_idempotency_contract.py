@@ -11,6 +11,8 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 import app.models  # noqa: F401
+from app.core.config import settings
+from app.core.security import create_access_token
 from app.db.base import Base
 from app.db.session import get_session
 from app.main import create_app
@@ -30,7 +32,7 @@ class ConfirmIdempotencySecurityTests(unittest.TestCase):
         )
         Base.metadata.create_all(bind=self.engine)
         self.SessionLocal = sessionmaker(bind=self.engine, autoflush=False, autocommit=False, future=True)
-        self.bout_id = self._seed_bout()
+        self.bout_id, self.promoter_user_id, self.promoter_email = self._seed_bout()
 
         self.init_db_patcher = patch("app.main.init_db")
         self.init_db_patcher.start()
@@ -48,7 +50,11 @@ class ConfirmIdempotencySecurityTests(unittest.TestCase):
 
     def test_confirm_requires_idempotency_key_header(self) -> None:
         payload = self._confirm_payload()
-        response = self.client.post(f"/bouts/{self.bout_id}/escrows/confirm", json=payload)
+        response = self.client.post(
+            f"/bouts/{self.bout_id}/escrows/confirm",
+            headers=self._promoter_headers(),
+            json=payload,
+        )
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()["detail"], "Idempotency-Key header is required.")
 
@@ -59,9 +65,10 @@ class ConfirmIdempotencySecurityTests(unittest.TestCase):
         finally:
             session.close()
 
-    def _seed_bout(self) -> uuid.UUID:
+    def _seed_bout(self) -> tuple[uuid.UUID, uuid.UUID, str]:
         with Session(self.engine) as session:
-            promoter_id = self._insert_user(session, "promoter.security@example.test", UserRole.PROMOTER)
+            promoter_email = "promoter.security@example.test"
+            promoter_id = self._insert_user(session, promoter_email, UserRole.PROMOTER)
             fighter_a_id = self._insert_user(session, "fighter.security.a@example.test", UserRole.FIGHTER)
             fighter_b_id = self._insert_user(session, "fighter.security.b@example.test", UserRole.FIGHTER)
             service = BoutService(session=session)
@@ -78,7 +85,7 @@ class ConfirmIdempotencySecurityTests(unittest.TestCase):
                 bonus_a_drops=100_000,
                 bonus_b_drops=100_000,
             )
-            return bout.id
+            return bout.id, promoter_id, promoter_email
 
     @staticmethod
     def _insert_user(session: Session, email: str, role: UserRole) -> uuid.UUID:
@@ -106,6 +113,16 @@ class ConfirmIdempotencySecurityTests(unittest.TestCase):
                 "cancel_after_ripple": escrow.cancel_after_ripple,
                 "condition_hex": escrow.condition_hex,
             }
+
+    def _promoter_headers(self) -> dict[str, str]:
+        token = create_access_token(
+            subject=str(self.promoter_user_id),
+            email=self.promoter_email,
+            role=UserRole.PROMOTER.value,
+            secret_key=settings.jwt_secret,
+            expires_minutes=settings.jwt_exp_minutes,
+        )
+        return {"Authorization": f"Bearer {token}"}
 
 
 if __name__ == "__main__":
