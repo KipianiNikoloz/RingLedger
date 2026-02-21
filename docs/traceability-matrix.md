@@ -96,6 +96,24 @@ Goal: enforce consistent transaction boundaries and selective persistence abstra
 | UoW/repository regression coverage | `backend/tests/unit/test_uow.py`, `backend/tests/unit/test_persistence_repositories.py`, `backend/tests/unit/test_bout_escrow_planning.py` |
 | Lifecycle/idempotency parity verification | `backend/tests/integration/test_escrow_confirm_flow.py`, `backend/tests/integration/test_payout_flow.py`, `backend/tests/security/test_confirm_idempotency_contract.py` |
 
+## Mandatory Pre-Closeout Migration Auth Modernization Slice (Planned)
+
+Goal: enforce Alembic migration authority and proven auth-library adoption without changing locked auth/state contracts.
+
+| Focus Req IDs | Required Modernization Targets | Planned Test Targets | Documentation Targets | Status |
+|---|---|---|---|---|
+| R-01, R-08, R-09, R-11 | Adopt Alembic as authoritative schema evolution system; define deterministic revision policy; require upgrade plus downgrade validation; define startup/runtime migration safety policy | Migration forward/backward tests, integration parity tests for lifecycle/idempotency behavior, regression suite updates | `docs/alembic-adoption-plan.md`, `docs/schema-doc.md`, `docs/ci-cd.md`, `docs/traceability-matrix.md` | planned |
+| R-02, R-10, R-12 | Replace bespoke auth primitives with proven maintained auth library while preserving email/password plus JWT and forbidding wallet-login routes | Auth regression tests (register/login/token/role guards/failure cases), security tests (authz/replay/secret leakage), API contract regression | `docs/auth-library-adoption-plan.md`, `docs/api-spec.md`, `docs/ci-cd.md`, `backend/README.md` | planned |
+
+## Increment 3.6 Deliverables (Planned)
+
+| Item | Evidence Target |
+|---|---|
+| Alembic authority package with revision naming and rollback governance | `docs/alembic-adoption-plan.md`, `docs/schema-doc.md` |
+| Auth-library selection and migration package with objective criteria | `docs/auth-library-adoption-plan.md` |
+| CI/CD gate policy updates for migration/auth modernization | `docs/ci-cd.md` |
+| Contract stability statement for modernization step | `docs/api-spec.md`, `docs/state-machines.md` |
+
 ## Test Evidence (Current)
 
 | Command | Result | Notes |
@@ -111,6 +129,10 @@ Goal: enforce consistent transaction boundaries and selective persistence abstra
 
 Target: hardening for operational readiness and residual risk reduction.
 
+- Execute mandatory pre-closeout migration/auth modernization:
+  - Alembic as authoritative migration system with rollback-safe governance
+  - proven maintained auth-library adoption replacing bespoke auth primitives
+  - no unapproved API or lifecycle semantic changes
 - Implement Xaman integration and non-custodial signing handoff completion (`R-06`).
 - Add failure taxonomy coverage for declined signing, `tec/tem`, and timeout outcomes (`R-12`).
 - Add remaining frontend + e2e journey coverage for MVP critical paths (`R-01`, `R-10`).

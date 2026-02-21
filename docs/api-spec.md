@@ -20,6 +20,16 @@ This document captures the implemented API surface through M3:
   - no status-code contract changes
 - Any contract change is out of scope for this refactor and requires explicit docs/traceability updates.
 
+## Mandatory Migration Auth Modernization Note (Pre-M4 Closeout)
+
+- Planned modernization scope: Alembic migration authority and proven auth-library adoption.
+- Contract stability expectations during this step:
+  - no endpoint path changes
+  - no request/response schema changes
+  - no auth mode expansion beyond email/password plus JWT
+  - no wallet-login route additions
+- Any API contract change remains out of scope unless explicitly versioned and documented.
+
 ## Base Behavior
 
 - Content type: `application/json`

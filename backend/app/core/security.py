@@ -1,33 +1,30 @@
 from __future__ import annotations
 
-import base64
 import hashlib
 import hmac
-import json
 import secrets
 from datetime import UTC, datetime, timedelta
 
+import jwt
+from jwt import DecodeError, InvalidSignatureError, InvalidTokenError
+from passlib.context import CryptContext
+
 PBKDF2_ITERATIONS = 390_000
+JWT_ALGORITHM = "HS256"
+PASSWORD_CONTEXT = CryptContext(
+    schemes=["pbkdf2_sha256"],
+    deprecated="auto",
+    pbkdf2_sha256__default_rounds=PBKDF2_ITERATIONS,
+)
 
 
-def _b64url_encode(raw: bytes) -> str:
-    return base64.urlsafe_b64encode(raw).decode("ascii").rstrip("=")
-
-
-def _b64url_decode(token: str) -> bytes:
-    padding = "=" * ((4 - len(token) % 4) % 4)
-    return base64.urlsafe_b64decode(token + padding)
-
-
-def hash_password(password: str, *, salt: bytes | None = None) -> str:
-    if len(password) < 8:
-        raise ValueError("password_too_short")
+def _legacy_hash_password(password: str, *, salt: bytes | None = None) -> str:
     local_salt = salt or secrets.token_bytes(16)
     digest = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), local_salt, PBKDF2_ITERATIONS)
     return f"pbkdf2_sha256${PBKDF2_ITERATIONS}${local_salt.hex()}${digest.hex()}"
 
 
-def verify_password(password: str, encoded_hash: str) -> bool:
+def _verify_legacy_password(password: str, encoded_hash: str) -> bool:
     try:
         algorithm, iter_raw, salt_hex, hash_hex = encoded_hash.split("$", 3)
     except ValueError:
@@ -37,6 +34,25 @@ def verify_password(password: str, encoded_hash: str) -> bool:
     rounds = int(iter_raw)
     computed = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), bytes.fromhex(salt_hex), rounds).hex()
     return hmac.compare_digest(computed, hash_hex)
+
+
+def hash_password(password: str, *, salt: bytes | None = None) -> str:
+    if len(password) < 8:
+        raise ValueError("password_too_short")
+
+    # Preserve deterministic salt support for compatibility tests and legacy tooling.
+    if salt is not None:
+        return _legacy_hash_password(password, salt=salt)
+    return PASSWORD_CONTEXT.hash(password)
+
+
+def verify_password(password: str, encoded_hash: str) -> bool:
+    if encoded_hash.startswith("pbkdf2_sha256$"):
+        return _verify_legacy_password(password, encoded_hash)
+    try:
+        return PASSWORD_CONTEXT.verify(password, encoded_hash)
+    except (ValueError, TypeError):
+        return False
 
 
 def create_access_token(
@@ -50,7 +66,6 @@ def create_access_token(
 ) -> str:
     issued_at = now or datetime.now(UTC)
     expires_at = issued_at + timedelta(minutes=expires_minutes)
-    header = {"alg": "HS256", "typ": "JWT"}
     payload = {
         "sub": subject,
         "email": email,
@@ -58,27 +73,33 @@ def create_access_token(
         "iat": int(issued_at.timestamp()),
         "exp": int(expires_at.timestamp()),
     }
-    header_enc = _b64url_encode(json.dumps(header, separators=(",", ":"), sort_keys=True).encode("utf-8"))
-    payload_enc = _b64url_encode(json.dumps(payload, separators=(",", ":"), sort_keys=True).encode("utf-8"))
-    message = f"{header_enc}.{payload_enc}".encode("ascii")
-    signature = hmac.new(secret_key.encode("utf-8"), message, hashlib.sha256).digest()
-    return f"{header_enc}.{payload_enc}.{_b64url_encode(signature)}"
+    return jwt.encode(payload, secret_key, algorithm=JWT_ALGORITHM)
 
 
 def decode_access_token(token: str, *, secret_key: str, now: datetime | None = None) -> dict[str, str | int]:
-    parts = token.split(".")
-    if len(parts) != 3:
+    if token.count(".") != 2:
         raise ValueError("invalid_token_format")
+    try:
+        payload = jwt.decode(
+            token,
+            secret_key,
+            algorithms=[JWT_ALGORITHM],
+            options={"require": ["sub", "email", "role", "iat", "exp"], "verify_exp": False},
+        )
+    except InvalidSignatureError as exc:
+        raise ValueError("invalid_token_signature") from exc
+    except DecodeError as exc:
+        raise ValueError("invalid_token_format") from exc
+    except InvalidTokenError as exc:
+        raise ValueError("invalid_token") from exc
 
-    header_enc, payload_enc, sig_enc = parts
-    expected_signature = hmac.new(
-        secret_key.encode("utf-8"), f"{header_enc}.{payload_enc}".encode("ascii"), hashlib.sha256
-    ).digest()
-    if not hmac.compare_digest(expected_signature, _b64url_decode(sig_enc)):
-        raise ValueError("invalid_token_signature")
+    try:
+        exp_ts = int(payload["exp"])
+    except (TypeError, ValueError, KeyError) as exc:
+        raise ValueError("invalid_token") from exc
 
-    payload = json.loads(_b64url_decode(payload_enc).decode("utf-8"))
     current_ts = int((now or datetime.now(UTC)).timestamp())
-    if current_ts >= int(payload["exp"]):
+    if current_ts >= exp_ts:
         raise ValueError("token_expired")
+
     return payload

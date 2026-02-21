@@ -1,6 +1,6 @@
 # RingLedger CI/CD and Dependency Automation
 
-Last updated: 2026-02-16
+Last updated: 2026-02-21
 
 ## Objectives
 
@@ -57,6 +57,21 @@ ruff format --check backend
 ruff check backend
 python -m unittest discover -s backend/tests -p "test_*.py"
 ```
+
+## Mandatory Modernization Gates (Pre-M4 Closeout)
+
+The following verification gates are mandatory for migration/auth modernization acceptance:
+
+- Alembic migration governance gates:
+  - revision metadata required for each schema change.
+  - upgrade and downgrade validation evidence required in CI/test reports.
+  - no production policy allowing unsafe implicit startup migrations.
+- Auth-library modernization gates:
+  - objective library selection record with maintenance/security/compatibility criteria.
+  - auth regression coverage for register/login/token/role guards/failure paths.
+  - security checks for replay/authz/secret leakage parity.
+
+These gates are additive to existing quality and secret-scan requirements.
 
 ## Security Notes
 

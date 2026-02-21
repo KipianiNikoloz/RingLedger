@@ -49,6 +49,18 @@ Implemented clean architecture hardening:
 - Preserve all API contracts, lifecycle semantics, and MVP invariants (`R-01`..`R-12`).
 - Explicitly reject a generic repository-per-table CRUD abstraction.
 
+## Mandatory Next Increment (Pre-M4 Closeout)
+
+This modernization is required before hardening closeout:
+
+- Adopt Alembic as authoritative migration system for schema evolution.
+- Require deterministic revision governance and tested upgrade plus downgrade paths.
+- Replace bespoke auth primitives with a proven maintained auth library.
+- Preserve locked auth constraints:
+  - email/password plus JWT only
+  - no wallet-based login
+- Preserve API contracts and lifecycle semantics unless explicitly versioned and documented.
+
 ## Notes
 
 - Use the project virtual environment for local commands (`.\venv\Scripts\python.exe ...`) to ensure FastAPI/SQLAlchemy/dev tooling are available.
