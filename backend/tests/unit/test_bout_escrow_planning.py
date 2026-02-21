@@ -12,8 +12,6 @@ class _RecordingSession:
     def __init__(self) -> None:
         self.added: list[object] = []
         self.added_all: list[object] = []
-        self.commit_calls = 0
-        self.refresh_calls = 0
 
     def add(self, value: object) -> None:
         self.added.append(value)
@@ -25,12 +23,6 @@ class _RecordingSession:
 
     def add_all(self, values: list[object]) -> None:
         self.added_all.extend(values)
-
-    def commit(self) -> None:
-        self.commit_calls += 1
-
-    def refresh(self, _value: object) -> None:
-        self.refresh_calls += 1
 
 
 class BoutEscrowPlanningUnitTests(unittest.TestCase):
@@ -57,8 +49,6 @@ class BoutEscrowPlanningUnitTests(unittest.TestCase):
         )
 
         self.assertIsNotNone(bout.id)
-        self.assertEqual(session.commit_calls, 1)
-        self.assertEqual(session.refresh_calls, 1)
         self.assertEqual(len(session.added_all), 4)
 
         escrows = session.added_all

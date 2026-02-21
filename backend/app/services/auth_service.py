@@ -24,8 +24,7 @@ class AuthService:
 
         user = User(email=normalized_email, password_hash=hash_password(password), role=role)
         self.session.add(user)
-        self.session.commit()
-        self.session.refresh(user)
+        self.session.flush()
         return user
 
     def authenticate_user(self, *, email: str, password: str) -> User | None:

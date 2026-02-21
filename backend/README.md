@@ -36,6 +36,19 @@
 - `app/db/`: database session and init helpers
 - `tests/`: unit/property/contract/security/migration tests
 
+## Mandatory Pre-M4 Refactor (Implemented)
+
+Implemented clean architecture hardening:
+
+- Standardize transaction ownership with a lightweight Unit of Work for create/result/confirm flows.
+- Introduce selective repositories only where duplicated query/state-loading logic is reduced:
+  - `Bout`
+  - `Escrow`
+  - `IdempotencyKey`
+  - `AuditLog`
+- Preserve all API contracts, lifecycle semantics, and MVP invariants (`R-01`..`R-12`).
+- Explicitly reject a generic repository-per-table CRUD abstraction.
+
 ## Notes
 
 - Use the project virtual environment for local commands (`.\venv\Scripts\python.exe ...`) to ensure FastAPI/SQLAlchemy/dev tooling are available.

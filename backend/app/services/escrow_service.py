@@ -5,13 +5,15 @@ import uuid
 from dataclasses import dataclass, field
 from typing import Any
 
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models.audit_log import AuditLog
 from app.models.bout import Bout
 from app.models.enums import BoutStatus, EscrowKind, EscrowStatus
 from app.models.escrow import Escrow
+from app.repositories.audit_log_repository import AuditLogRepository
+from app.repositories.bout_repository import BoutRepository
+from app.repositories.escrow_repository import EscrowRepository
 from app.services.xrpl_escrow_service import EscrowCreateConfirmation, XrplEscrowService, XrplEscrowValidationError
 
 _ESCROW_KIND_ORDER = {
@@ -27,15 +29,23 @@ _EXPECTED_ESCROW_KINDS = set(_ESCROW_KIND_ORDER)
 class EscrowService:
     session: Session
     xrpl_service: XrplEscrowService = field(default_factory=XrplEscrowService)
+    bouts: BoutRepository = field(init=False)
+    escrows: EscrowRepository = field(init=False)
+    audit_logs: AuditLogRepository = field(init=False)
+
+    def __post_init__(self) -> None:
+        self.bouts = BoutRepository(session=self.session)
+        self.escrows = EscrowRepository(session=self.session)
+        self.audit_logs = AuditLogRepository(session=self.session)
 
     def prepare_escrow_create_payloads(self, *, bout_id: uuid.UUID) -> tuple[Bout, list[dict[str, Any]]]:
-        bout = self.session.get(Bout, bout_id)
+        bout = self.bouts.get(bout_id=bout_id)
         if bout is None:
             raise ValueError("bout_not_found")
         if bout.status not in {BoutStatus.DRAFT, BoutStatus.ESCROWS_CREATED}:
             raise ValueError("bout_not_preparable_for_escrow_create")
 
-        escrows = self.session.scalars(select(Escrow).where(Escrow.bout_id == bout_id)).all()
+        escrows = self.escrows.list_for_bout(bout_id=bout_id)
         escrows.sort(key=lambda escrow: _ESCROW_KIND_ORDER[escrow.kind])
         if {escrow.kind for escrow in escrows} != _EXPECTED_ESCROW_KINDS:
             raise ValueError("bout_escrow_set_invalid")
@@ -60,18 +70,13 @@ class EscrowService:
         escrow_kind: EscrowKind,
         confirmation: EscrowCreateConfirmation,
     ) -> tuple[Bout, Escrow]:
-        bout = self.session.get(Bout, bout_id)
+        bout = self.bouts.get(bout_id=bout_id)
         if bout is None:
             raise ValueError("bout_not_found")
         if bout.status != BoutStatus.DRAFT:
             raise ValueError("bout_not_in_draft_state")
 
-        escrow = self.session.scalar(
-            select(Escrow).where(
-                Escrow.bout_id == bout_id,
-                Escrow.kind == escrow_kind,
-            )
-        )
+        escrow = self.escrows.get_for_bout_kind(bout_id=bout_id, escrow_kind=escrow_kind)
         if escrow is None:
             raise ValueError("escrow_not_found")
         if escrow.status != EscrowStatus.PLANNED:
@@ -112,7 +117,7 @@ class EscrowService:
             },
         )
 
-        escrows = self.session.scalars(select(Escrow).where(Escrow.bout_id == bout_id)).all()
+        escrows = self.escrows.list_for_bout(bout_id=bout_id)
         if {item.kind for item in escrows} == _EXPECTED_ESCROW_KINDS and all(
             item.status == EscrowStatus.CREATED for item in escrows
         ):
@@ -136,8 +141,8 @@ class EscrowService:
         outcome: str,
         details: dict[str, Any],
     ) -> None:
-        self.session.add(
-            AuditLog(
+        self.audit_logs.add(
+            audit_log=AuditLog(
                 actor_user_id=None,
                 action=action,
                 entity_type=entity_type,

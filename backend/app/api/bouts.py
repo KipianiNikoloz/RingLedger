@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.api.dependencies import RequestActor, require_role
 from app.db.session import get_session
+from app.db.uow import SqlAlchemyUnitOfWork
 from app.middleware.idempotency import build_confirm_scope, require_idempotency_key
 from app.models.enums import UserRole
 from app.schemas.escrow import (
@@ -119,6 +120,7 @@ def confirm_escrow_create(
     _actor: RequestActor = Depends(require_role(UserRole.PROMOTER)),
     session: Session = Depends(get_session),
 ) -> EscrowConfirmResponse | JSONResponse:
+    uow = SqlAlchemyUnitOfWork(session=session)
     key = require_idempotency_key(idempotency_key)
     idem = IdempotencyService(session=session)
     request_payload = payload.model_dump(mode="json")
@@ -128,6 +130,7 @@ def confirm_escrow_create(
     try:
         replay = idem.load_replay(scope=scope, idempotency_key=key, request_hash=request_hash)
     except IdempotencyKeyMismatchError as exc:
+        uow.rollback()
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Idempotency-Key was already used with a different request payload.",
@@ -167,12 +170,12 @@ def confirm_escrow_create(
             response_body=body,
         )
         _commit_or_raise_persistence_error(
-            session=session,
+            uow=uow,
             detail="Escrow confirmation could not be persisted safely.",
         )
         raise HTTPException(status_code=code, detail=body["detail"]) from exc
     except Exception:
-        session.rollback()
+        uow.rollback()
         raise
 
     response = EscrowConfirmResponse(
@@ -193,7 +196,7 @@ def confirm_escrow_create(
         response_body=response.model_dump(mode="json"),
     )
     _commit_or_raise_persistence_error(
-        session=session,
+        uow=uow,
         detail="Escrow confirmation could not be persisted safely.",
     )
     return response
@@ -206,6 +209,7 @@ def enter_bout_result(
     actor: RequestActor = Depends(require_role(UserRole.ADMIN)),
     session: Session = Depends(get_session),
 ) -> BoutResultResponse:
+    uow = SqlAlchemyUnitOfWork(session=session)
     service = PayoutService(session=session)
     try:
         bout = service.enter_bout_result(
@@ -214,10 +218,14 @@ def enter_bout_result(
             actor_user_id=actor.user_id,
         )
     except ValueError as exc:
+        uow.rollback()
         code, body = _map_result_error(str(exc))
         raise HTTPException(status_code=code, detail=body["detail"]) from exc
+    except Exception:
+        uow.rollback()
+        raise
 
-    _commit_or_raise_persistence_error(session=session, detail="Bout result could not be persisted safely.")
+    _commit_or_raise_persistence_error(uow=uow, detail="Bout result could not be persisted safely.")
     return BoutResultResponse(
         bout_id=str(bout.id),
         bout_status=bout.status,
@@ -261,6 +269,7 @@ def confirm_payout(
     _actor: RequestActor = Depends(require_role(UserRole.PROMOTER)),
     session: Session = Depends(get_session),
 ) -> PayoutConfirmResponse | JSONResponse:
+    uow = SqlAlchemyUnitOfWork(session=session)
     key = require_idempotency_key(idempotency_key)
     idem = IdempotencyService(session=session)
     request_payload = payload.model_dump(mode="json")
@@ -270,6 +279,7 @@ def confirm_payout(
     try:
         replay = idem.load_replay(scope=scope, idempotency_key=key, request_hash=request_hash)
     except IdempotencyKeyMismatchError as exc:
+        uow.rollback()
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Idempotency-Key was already used with a different request payload.",
@@ -307,12 +317,12 @@ def confirm_payout(
             response_body=body,
         )
         _commit_or_raise_persistence_error(
-            session=session,
+            uow=uow,
             detail="Payout confirmation could not be persisted safely.",
         )
         raise HTTPException(status_code=code, detail=body["detail"]) from exc
     except Exception:
-        session.rollback()
+        uow.rollback()
         raise
 
     response = PayoutConfirmResponse(
@@ -332,7 +342,7 @@ def confirm_payout(
         response_body=response.model_dump(mode="json"),
     )
     _commit_or_raise_persistence_error(
-        session=session,
+        uow=uow,
         detail="Payout confirmation could not be persisted safely.",
     )
     return response
@@ -396,9 +406,9 @@ def _store_idempotent_result(
     )
 
 
-def _commit_or_raise_persistence_error(*, session: Session, detail: str) -> None:
+def _commit_or_raise_persistence_error(*, uow: SqlAlchemyUnitOfWork, detail: str) -> None:
     try:
-        session.commit()
+        uow.commit()
     except IntegrityError as exc:
-        session.rollback()
+        uow.rollback()
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=detail) from exc

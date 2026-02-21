@@ -1,6 +1,6 @@
 # RingLedger API Spec (M3 Result + Payout Flow)
 
-Last updated: 2026-02-18
+Last updated: 2026-02-21
 
 ## Scope
 
@@ -10,6 +10,15 @@ This document captures the implemented API surface through M3:
 - Escrow create prepare/confirm
 - Result entry
 - Payout prepare/confirm
+
+## Mandatory Architecture Hardening Note (Pre-M4 Closeout)
+
+- Implemented refactor scope: internal persistence-boundary hardening with lightweight Unit of Work and selective repositories.
+- No API contract changes were introduced by this step:
+  - no endpoint path changes
+  - no request/response schema changes
+  - no status-code contract changes
+- Any contract change is out of scope for this refactor and requires explicit docs/traceability updates.
 
 ## Base Behavior
 

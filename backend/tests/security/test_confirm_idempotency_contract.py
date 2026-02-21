@@ -85,6 +85,7 @@ class ConfirmIdempotencySecurityTests(unittest.TestCase):
                 bonus_a_drops=100_000,
                 bonus_b_drops=100_000,
             )
+            session.commit()
             return bout.id, promoter_id, promoter_email
 
     @staticmethod

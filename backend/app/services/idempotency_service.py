@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models.idempotency_key import IdempotencyKey
+from app.repositories.idempotency_key_repository import IdempotencyKeyRepository
 
 
 class IdempotencyKeyMismatchError(ValueError):
@@ -24,6 +24,10 @@ class IdempotencyReplay:
 @dataclass
 class IdempotencyService:
     session: Session
+    idempotency_keys: IdempotencyKeyRepository = field(init=False)
+
+    def __post_init__(self) -> None:
+        self.idempotency_keys = IdempotencyKeyRepository(session=self.session)
 
     @staticmethod
     def hash_request_payload(payload: dict[str, Any]) -> str:
@@ -37,12 +41,7 @@ class IdempotencyService:
         idempotency_key: str,
         request_hash: str,
     ) -> IdempotencyReplay | None:
-        existing = self.session.scalar(
-            select(IdempotencyKey).where(
-                IdempotencyKey.scope == scope,
-                IdempotencyKey.idempotency_key == idempotency_key,
-            )
-        )
+        existing = self.idempotency_keys.get(scope=scope, idempotency_key=idempotency_key)
         if existing is None:
             return None
         if existing.request_hash != request_hash:
@@ -62,8 +61,8 @@ class IdempotencyService:
         status_code: int,
         response_body: dict[str, Any],
     ) -> None:
-        self.session.add(
-            IdempotencyKey(
+        self.idempotency_keys.add(
+            idempotency_key=IdempotencyKey(
                 scope=scope,
                 idempotency_key=idempotency_key,
                 request_hash=request_hash,
