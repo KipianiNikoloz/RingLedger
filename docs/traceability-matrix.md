@@ -1,7 +1,7 @@
 # RingLedger MVP Traceability Matrix
 
 Date initialized: 2026-02-16  
-Last updated: 2026-02-18  
+Last updated: 2026-02-21  
 Purpose: enforce requirement -> implementation -> tests -> docs linkage from first increment.
 
 ## Status Legend
@@ -77,6 +77,25 @@ Purpose: enforce requirement -> implementation -> tests -> docs linkage from fir
 | Authz/security coverage for protected bout routes | `backend/tests/security/test_bout_role_guards.py` |
 | Lifespan startup migration from deprecated FastAPI startup hook | `backend/app/main.py`, `backend/tests/integration/test_stack_bootstrap.py` |
 
+## Mandatory Pre-Closeout Architecture Hardening Slice (Completed)
+
+Goal: enforce consistent transaction boundaries and selective persistence abstractions without changing API or lifecycle semantics.
+
+| Focus Req IDs | Implemented Refactor Targets | Test Targets | Documentation Targets | Status |
+|---|---|---|---|---|
+| R-08, R-09 | Lightweight Unit of Work for write-path transaction ownership (`backend/app/db/uow.py`) and atomic confirm persistence in `backend/app/api/bouts.py` + `backend/app/api/auth.py` | Unit/integration regression for commit ownership, replay/collision idempotency parity, and rollback safety (`backend/tests/unit/test_uow.py`, `backend/tests/integration/test_escrow_confirm_flow.py`, `backend/tests/integration/test_payout_flow.py`) | `docs/clean-architecture-refactor-plan.md`, `docs/api-spec.md`, `docs/state-machines.md`, `backend/README.md` | done |
+| R-10, R-11, R-12 | Selective repositories for `Bout`, `Escrow`, `IdempotencyKey`, `AuditLog` (`backend/app/repositories/*.py`) with service-layer adoption in `backend/app/services/*.py` | Unit/security/failure-path regression for behavior parity (`backend/tests/unit/test_persistence_repositories.py`, `backend/tests/security/test_bout_role_guards.py`, `backend/tests/security/test_confirm_idempotency_contract.py`) | `docs/clean-architecture-refactor-plan.md`, `docs/traceability-matrix.md`, `docs/state-machines.md` | done |
+
+## Increment 3.5 Deliverables (Completed)
+
+| Item | Evidence |
+|---|---|
+| Session-backed Unit of Work with explicit commit/rollback ownership | `backend/app/db/uow.py`, `backend/app/api/auth.py`, `backend/app/api/bouts.py` |
+| Selective repositories for persistence duplication reduction | `backend/app/repositories/bout_repository.py`, `backend/app/repositories/escrow_repository.py`, `backend/app/repositories/idempotency_key_repository.py`, `backend/app/repositories/audit_log_repository.py` |
+| Service refactor to repository-backed data access and external transaction boundaries | `backend/app/services/bout_service.py`, `backend/app/services/escrow_service.py`, `backend/app/services/payout_service.py`, `backend/app/services/idempotency_service.py`, `backend/app/services/auth_service.py` |
+| UoW/repository regression coverage | `backend/tests/unit/test_uow.py`, `backend/tests/unit/test_persistence_repositories.py`, `backend/tests/unit/test_bout_escrow_planning.py` |
+| Lifecycle/idempotency parity verification | `backend/tests/integration/test_escrow_confirm_flow.py`, `backend/tests/integration/test_payout_flow.py`, `backend/tests/security/test_confirm_idempotency_contract.py` |
+
 ## Test Evidence (Current)
 
 | Command | Result | Notes |
@@ -84,7 +103,7 @@ Purpose: enforce requirement -> implementation -> tests -> docs linkage from fir
 | `.\venv\Scripts\python.exe -m compileall backend/app backend/tests` | pass | Syntax validation completed for all backend and test modules. |
 | `.\venv\Scripts\python.exe -m ruff check backend` | pass | Lint gate is clean across backend sources/tests. |
 | `.\venv\Scripts\python.exe -m ruff format --check backend` | pass | Formatting gate is clean. |
-| `.\venv\Scripts\python.exe -m unittest discover -s backend/tests -p "test_*.py"` | pass (`44` run, `0` skipped) | Includes escrow create + payout prepare/confirm lifecycle flows, idempotency replay/collision, role guards, crypto-condition handling, and invalid-confirmation failure-path coverage. |
+| `.\venv\Scripts\python.exe -m unittest discover -s backend/tests -p "test_*.py"` | pass (`48` run, `0` skipped) | Includes escrow create + payout prepare/confirm lifecycle flows, idempotency replay/collision, role guards, crypto-condition handling, invalid-confirmation failure-path coverage, and new UnitOfWork/repository refactor regression coverage. |
 | GitHub Actions quality/secret-scan/delivery jobs | configured | Enforced in `.github/workflows/ci-cd.yml`; executes on PR/push in GitHub runtime. |
 | Dependabot weekly update streams | configured | Enforced in `.github/dependabot.yml` for `pip` and `github-actions`. |
 

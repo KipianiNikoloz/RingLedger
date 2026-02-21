@@ -96,6 +96,7 @@ class BoutRoleGuardsSecurityTests(unittest.TestCase):
                 bonus_a_drops=200_000,
                 bonus_b_drops=200_000,
             )
+            session.commit()
             return bout.id, promoter_id, promoter_email, admin_id, admin_email
 
     def _payout_confirm_payload(self, *, escrow_kind: EscrowKind) -> dict[str, object]:

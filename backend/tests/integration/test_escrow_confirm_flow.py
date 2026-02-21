@@ -222,6 +222,7 @@ class EscrowConfirmIntegrationTests(unittest.TestCase):
                 bonus_a_drops=250_000,
                 bonus_b_drops=250_000,
             )
+            session.commit()
             return bout.id, promoter_id, promoter_email
 
     @staticmethod

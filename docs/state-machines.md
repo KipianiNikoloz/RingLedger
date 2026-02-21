@@ -1,7 +1,14 @@
 # RingLedger MVP State Machines
 
 Date locked: 2026-02-16
-Last implementation sync: 2026-02-18
+Last implementation sync: 2026-02-21
+
+## Mandatory Architecture Hardening Note (Pre-M4 Closeout)
+
+- A clean architecture refactor has been completed before hardening closeout.
+- The refactor scope is persistence-boundary hardening only: lightweight Unit of Work plus selective repositories.
+- The refactor does not change state definitions, transition legality, endpoint-to-state mapping, or guard semantics in this document.
+- Any change to lifecycle semantics remains out of scope and requires explicit requirement and ADR updates.
 
 ## Global Invariants
 

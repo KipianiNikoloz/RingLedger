@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 
 from sqlalchemy.orm import Session
@@ -15,11 +15,19 @@ from app.domain.time_rules import (
 from app.models.bout import Bout
 from app.models.enums import EscrowKind, EscrowStatus
 from app.models.escrow import Escrow
+from app.repositories.bout_repository import BoutRepository
+from app.repositories.escrow_repository import EscrowRepository
 
 
 @dataclass
 class BoutService:
     session: Session
+    bouts: BoutRepository = field(init=False)
+    escrows: EscrowRepository = field(init=False)
+
+    def __post_init__(self) -> None:
+        self.bouts = BoutRepository(session=self.session)
+        self.escrows = EscrowRepository(session=self.session)
 
     def create_bout_draft(
         self,
@@ -59,7 +67,7 @@ class BoutService:
             bonus_a_drops=bonus_a_drops,
             bonus_b_drops=bonus_b_drops,
         )
-        self.session.add(bout)
+        self.bouts.add(bout=bout)
         self.session.flush()
 
         escrows = [
@@ -108,7 +116,5 @@ class BoutService:
                 encrypted_preimage_hex=bonus_b_fulfillment,
             ),
         ]
-        self.session.add_all(escrows)
-        self.session.commit()
-        self.session.refresh(bout)
+        self.escrows.add_many(escrows=escrows)
         return bout

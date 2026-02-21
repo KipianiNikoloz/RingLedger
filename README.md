@@ -8,6 +8,7 @@ Escrow-based fighter purse settlement on XRPL Testnet, with promoter signing via
 - Backend/database M1 foundation is complete with executable unit/integration/property/contract/security/migration tests.
 - M2 escrow create prepare/confirm flow is implemented with validated XRPL confirmation checks and confirm-endpoint idempotency.
 - M3 result entry + payout prepare/confirm flow is implemented with JWT role guards, payout idempotency, timing guards, and winner-bonus fulfillment validation.
+- Mandatory pre-closeout architecture hardening is implemented: lightweight Unit of Work + selective repositories, with no API/state-machine semantic changes.
 
 ## MVP Scope (Locked)
 
@@ -28,6 +29,7 @@ Escrow-based fighter purse settlement on XRPL Testnet, with promoter signing via
 - Lifecycle contract: `docs/state-machines.md`
 - Requirement traceability: `docs/traceability-matrix.md`
 - CI/CD and dependency automation: `docs/ci-cd.md`
+- Clean architecture refactor plan: `docs/clean-architecture-refactor-plan.md`
 
 ## Repository Layout
 
@@ -40,7 +42,8 @@ Escrow-based fighter purse settlement on XRPL Testnet, with promoter signing via
 1. M1: backend + database foundation (`R-02`, `R-03`, `R-04`, `R-07`) - complete.
 2. M2: escrow create prepare/confirm with XRPL validation + idempotency - complete.
 3. M3: result entry and payout prepare/confirm with bonus fulfillment logic - complete.
-4. M4: hardening (security, failure paths, regression/performance, operational readiness) - next.
+4. M3.5 (mandatory): clean architecture hardening of persistence boundaries (Unit of Work + selective repositories) with behavior parity proof - complete.
+5. M4: hardening closeout (security, failure paths, regression/performance, operational readiness) - next.
 
 ## Delivery Rules
 

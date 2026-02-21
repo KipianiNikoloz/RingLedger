@@ -5,13 +5,15 @@ import uuid
 from dataclasses import dataclass, field
 from typing import Any
 
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models.audit_log import AuditLog
 from app.models.bout import Bout
 from app.models.enums import BoutStatus, BoutWinner, EscrowKind, EscrowStatus
 from app.models.escrow import Escrow
+from app.repositories.audit_log_repository import AuditLogRepository
+from app.repositories.bout_repository import BoutRepository
+from app.repositories.escrow_repository import EscrowRepository
 from app.services.xrpl_escrow_service import (
     EscrowPayoutAction,
     EscrowPayoutConfirmation,
@@ -26,6 +28,14 @@ _EXPECTED_ESCROW_KINDS = {EscrowKind.SHOW_A, EscrowKind.SHOW_B, EscrowKind.BONUS
 class PayoutService:
     session: Session
     xrpl_service: XrplEscrowService = field(default_factory=XrplEscrowService)
+    bouts: BoutRepository = field(init=False)
+    escrows: EscrowRepository = field(init=False)
+    audit_logs: AuditLogRepository = field(init=False)
+
+    def __post_init__(self) -> None:
+        self.bouts = BoutRepository(session=self.session)
+        self.escrows = EscrowRepository(session=self.session)
+        self.audit_logs = AuditLogRepository(session=self.session)
 
     def enter_bout_result(
         self,
@@ -34,7 +44,7 @@ class PayoutService:
         winner: BoutWinner,
         actor_user_id: uuid.UUID,
     ) -> Bout:
-        bout = self.session.get(Bout, bout_id)
+        bout = self.bouts.get(bout_id=bout_id)
         if bout is None:
             raise ValueError("bout_not_found")
         if bout.status != BoutStatus.ESCROWS_CREATED:
@@ -53,7 +63,7 @@ class PayoutService:
         return bout
 
     def prepare_payout_payloads(self, *, bout_id: uuid.UUID) -> tuple[Bout, list[dict[str, Any]]]:
-        bout = self.session.get(Bout, bout_id)
+        bout = self.bouts.get(bout_id=bout_id)
         if bout is None:
             raise ValueError("bout_not_found")
         if bout.status not in {BoutStatus.RESULT_ENTERED, BoutStatus.PAYOUTS_IN_PROGRESS}:
@@ -110,7 +120,7 @@ class PayoutService:
         escrow_kind: EscrowKind,
         confirmation: EscrowPayoutConfirmation,
     ) -> tuple[Bout, Escrow]:
-        bout = self.session.get(Bout, bout_id)
+        bout = self.bouts.get(bout_id=bout_id)
         if bout is None:
             raise ValueError("bout_not_found")
         if bout.status not in {BoutStatus.RESULT_ENTERED, BoutStatus.PAYOUTS_IN_PROGRESS}:
@@ -118,12 +128,7 @@ class PayoutService:
         if bout.winner is None:
             raise ValueError("bout_winner_not_set")
 
-        escrow = self.session.scalar(
-            select(Escrow).where(
-                Escrow.bout_id == bout_id,
-                Escrow.kind == escrow_kind,
-            )
-        )
+        escrow = self.escrows.get_for_bout_kind(bout_id=bout_id, escrow_kind=escrow_kind)
         if escrow is None:
             raise ValueError("escrow_not_found")
         if escrow.status != EscrowStatus.CREATED:
@@ -209,7 +214,7 @@ class PayoutService:
         raise ValueError("escrow_kind_not_supported")
 
     def _load_escrows_by_kind(self, *, bout_id: uuid.UUID) -> dict[EscrowKind, Escrow]:
-        escrows = self.session.scalars(select(Escrow).where(Escrow.bout_id == bout_id)).all()
+        escrows = self.escrows.list_for_bout(bout_id=bout_id)
         escrows_by_kind = {item.kind: item for item in escrows}
         if set(escrows_by_kind) != _EXPECTED_ESCROW_KINDS:
             raise ValueError("bout_escrow_set_invalid")
@@ -225,8 +230,8 @@ class PayoutService:
         outcome: str,
         details: dict[str, Any],
     ) -> None:
-        self.session.add(
-            AuditLog(
+        self.audit_logs.add(
+            audit_log=AuditLog(
                 actor_user_id=actor_user_id,
                 action=action,
                 entity_type=entity_type,
