@@ -9,6 +9,7 @@ Escrow-based fighter purse settlement on XRPL Testnet, with promoter signing via
 - M2 escrow create prepare/confirm flow is implemented with validated XRPL confirmation checks and confirm-endpoint idempotency.
 - M3 result entry + payout prepare/confirm flow is implemented with JWT role guards, payout idempotency, timing guards, and winner-bonus fulfillment validation.
 - Mandatory pre-closeout architecture hardening is implemented: lightweight Unit of Work + selective repositories, with no API/state-machine semantic changes.
+- Mandatory pre-closeout modernization is now required: Alembic migration authority + proven auth-library adoption, with no unapproved contract drift.
 
 ## MVP Scope (Locked)
 
@@ -30,6 +31,8 @@ Escrow-based fighter purse settlement on XRPL Testnet, with promoter signing via
 - Requirement traceability: `docs/traceability-matrix.md`
 - CI/CD and dependency automation: `docs/ci-cd.md`
 - Clean architecture refactor plan: `docs/clean-architecture-refactor-plan.md`
+- Alembic adoption plan: `docs/alembic-adoption-plan.md`
+- Auth-library adoption plan: `docs/auth-library-adoption-plan.md`
 
 ## Repository Layout
 
@@ -43,7 +46,8 @@ Escrow-based fighter purse settlement on XRPL Testnet, with promoter signing via
 2. M2: escrow create prepare/confirm with XRPL validation + idempotency - complete.
 3. M3: result entry and payout prepare/confirm with bonus fulfillment logic - complete.
 4. M3.5 (mandatory): clean architecture hardening of persistence boundaries (Unit of Work + selective repositories) with behavior parity proof - complete.
-5. M4: hardening closeout (security, failure paths, regression/performance, operational readiness) - next.
+5. M3.6 (mandatory): migration/auth modernization (Alembic authority + proven auth library) with parity proof - next.
+6. M4: hardening closeout (security, failure paths, regression/performance, operational readiness) - blocked until M3.6 completion.
 
 ## Delivery Rules
 

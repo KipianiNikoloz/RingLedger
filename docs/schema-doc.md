@@ -1,7 +1,18 @@
 # RingLedger Schema Docs (M3 Lifecycle)
 
-Last updated: 2026-02-18  
+Last updated: 2026-02-21  
 Schema SQL file: `backend/sql/001_init_schema.sql`
+
+## Migration Governance
+
+- Alembic is the authoritative schema evolution system.
+- SQL bootstrap files are reference artifacts for baseline understanding, not production migration orchestration.
+- `create_all` is not an approved production schema evolution mechanism.
+- Every schema change requires:
+  - Alembic revision metadata following deterministic naming conventions.
+  - tested upgrade and downgrade evidence.
+  - traceability updates in the same increment.
+- Runtime deployment policy must avoid unsafe implicit production migrations.
 
 ## Enums
 
