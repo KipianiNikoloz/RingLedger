@@ -150,7 +150,11 @@ This document captures the implemented API surface through M4 slice A:
 - Error `403`: caller role is not promoter.
 - Error `404`: bout or escrow not found.
 - Error `409`: state conflict, or idempotency key reused with different payload.
-- Error `422`: ledger confirmation failed validation.
+- Error `422`: deterministic failure taxonomy without state transition:
+  - `Signing was declined; no state transition was applied.`
+  - `Confirmation timed out or remained unvalidated; no state transition was applied.`
+  - `Ledger transaction was rejected with tec/tem; no state transition was applied.`
+  - `Ledger confirmation failed validation.`
 
 ### `POST /bouts/{bout_id}/result`
 
@@ -276,7 +280,11 @@ This document captures the implemented API surface through M4 slice A:
 - Error `403`: caller role is not promoter.
 - Error `404`: bout or escrow not found.
 - Error `409`: state conflict, or idempotency key reused with different payload.
-- Error `422`: ledger confirmation failed validation (timing, tx type, offer sequence, fulfillment, or `tesSUCCESS` mismatch).
+- Error `422`: deterministic failure taxonomy without state transition:
+  - `Signing was declined; no state transition was applied.`
+  - `Confirmation timed out or remained unvalidated; no state transition was applied.`
+  - `Ledger transaction was rejected with tec/tem; no state transition was applied.`
+  - `Ledger confirmation failed validation.` for invariant mismatch (timing, tx type, offer sequence, fulfillment).
 
 ## Confirm Idempotency Contract
 

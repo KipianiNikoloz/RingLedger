@@ -17,6 +17,7 @@ from app.db.base import Base
 from app.db.session import get_session
 from app.integrations.xaman_service import XamanIntegrationError
 from app.main import create_app
+from app.models.audit_log import AuditLog
 from app.models.bout import Bout
 from app.models.enums import BoutStatus, EscrowKind, EscrowStatus, UserRole
 from app.models.escrow import Escrow
@@ -197,6 +198,89 @@ class PayoutFlowIntegrationTests(unittest.TestCase):
         self.assertEqual(confirm_response.status_code, 422)
         self.assertEqual(confirm_response.json()["detail"], "Ledger confirmation failed validation.")
 
+    def test_payout_confirm_rejects_declined_signing_with_failure_classification(self) -> None:
+        result_response = self.client.post(
+            f"/bouts/{self.bout_id}/result",
+            headers=self._auth_headers(self.admin_user_id, self.admin_email, UserRole.ADMIN),
+            json={"winner": "A"},
+        )
+        self.assertEqual(result_response.status_code, 200)
+
+        payload = self._build_confirm_payload(
+            escrow_kind=EscrowKind.SHOW_A,
+            tx_hash="TXPAYOUTDECLINE1",
+            transaction_type="EscrowFinish",
+            validated=False,
+            engine_result="declined",
+        )
+        response = self.client.post(
+            f"/bouts/{self.bout_id}/payouts/confirm",
+            headers=self._auth_headers(
+                self.promoter_user_id,
+                self.promoter_email,
+                UserRole.PROMOTER,
+                extra={"Idempotency-Key": "payout-declined"},
+            ),
+            json=payload,
+        )
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.json()["detail"], "Signing was declined; no state transition was applied.")
+
+        with Session(self.engine) as session:
+            escrow = session.scalar(
+                select(Escrow).where(Escrow.bout_id == self.bout_id, Escrow.kind == EscrowKind.SHOW_A)
+            )
+            assert escrow is not None
+            self.assertEqual(escrow.status, EscrowStatus.CREATED)
+            self.assertEqual(escrow.failure_code, "signing_declined")
+
+    def test_payout_confirm_rejects_tec_tem_with_failure_classification(self) -> None:
+        result_response = self.client.post(
+            f"/bouts/{self.bout_id}/result",
+            headers=self._auth_headers(self.admin_user_id, self.admin_email, UserRole.ADMIN),
+            json={"winner": "A"},
+        )
+        self.assertEqual(result_response.status_code, 200)
+
+        payload = self._build_confirm_payload(
+            escrow_kind=EscrowKind.SHOW_B,
+            tx_hash="TXPAYOUTTEC1",
+            transaction_type="EscrowFinish",
+            validated=True,
+            engine_result="temMALFORMED",
+        )
+        response = self.client.post(
+            f"/bouts/{self.bout_id}/payouts/confirm",
+            headers=self._auth_headers(
+                self.promoter_user_id,
+                self.promoter_email,
+                UserRole.PROMOTER,
+                extra={"Idempotency-Key": "payout-tec-tem"},
+            ),
+            json=payload,
+        )
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(
+            response.json()["detail"],
+            "Ledger transaction was rejected with tec/tem; no state transition was applied.",
+        )
+
+        with Session(self.engine) as session:
+            escrow = session.scalar(
+                select(Escrow).where(Escrow.bout_id == self.bout_id, Escrow.kind == EscrowKind.SHOW_B)
+            )
+            assert escrow is not None
+            self.assertEqual(escrow.status, EscrowStatus.CREATED)
+            self.assertEqual(escrow.failure_code, "ledger_tec_tem")
+            audit = session.scalar(
+                select(AuditLog).where(
+                    AuditLog.action == "escrow_payout_confirm",
+                    AuditLog.entity_id == str(escrow.id),
+                    AuditLog.outcome == "rejected",
+                )
+            )
+            self.assertIsNotNone(audit)
+
     def test_payout_confirm_supports_idempotent_replay_and_payload_collision_rejection(self) -> None:
         result_response = self.client.post(
             f"/bouts/{self.bout_id}/result",
@@ -290,6 +374,8 @@ class PayoutFlowIntegrationTests(unittest.TestCase):
         tx_hash: str,
         transaction_type: str,
         close_time_offset: int = 0,
+        validated: bool = True,
+        engine_result: str = "tesSUCCESS",
     ) -> dict[str, object]:
         with Session(self.engine) as session:
             escrow = session.scalar(
@@ -307,8 +393,8 @@ class PayoutFlowIntegrationTests(unittest.TestCase):
             return {
                 "escrow_kind": escrow.kind.value,
                 "tx_hash": tx_hash,
-                "validated": True,
-                "engine_result": "tesSUCCESS",
+                "validated": validated,
+                "engine_result": engine_result,
                 "transaction_type": transaction_type,
                 "owner_address": escrow.owner_address,
                 "offer_sequence": escrow.offer_sequence,

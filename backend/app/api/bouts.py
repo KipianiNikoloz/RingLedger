@@ -42,14 +42,12 @@ _ESCROW_CREATE_CONFLICT_ERRORS = {
     "escrow_not_planned",
 }
 _ESCROW_CREATE_UNPROCESSABLE_CONFIRMATION_ERRORS = {
-    "ledger_tx_not_validated",
-    "ledger_tx_not_success",
-    "ledger_owner_address_mismatch",
-    "ledger_destination_address_mismatch",
-    "ledger_amount_mismatch",
-    "ledger_finish_after_mismatch",
-    "ledger_cancel_after_mismatch",
-    "ledger_condition_mismatch",
+    "invalid_confirmation",
+    "signing_declined",
+    "confirmation_timeout",
+    "ledger_tec_tem",
+    "ledger_not_success",
+    "ledger_not_validated",
 }
 _RESULT_CONFLICT_ERRORS = {
     "bout_not_in_escrows_created_state",
@@ -65,16 +63,21 @@ _PAYOUT_CONFIRM_CONFLICT_ERRORS = {
     "bout_winner_not_set",
 }
 _PAYOUT_UNPROCESSABLE_CONFIRMATION_ERRORS = {
-    "ledger_tx_not_validated",
-    "ledger_tx_not_success",
-    "ledger_owner_address_mismatch",
-    "ledger_offer_sequence_mismatch",
-    "ledger_transaction_type_mismatch",
-    "ledger_finish_before_allowed",
-    "ledger_cancel_before_allowed",
-    "ledger_cancel_after_missing",
-    "ledger_fulfillment_mismatch",
-    "ledger_unexpected_fulfillment",
+    "invalid_confirmation",
+    "signing_declined",
+    "confirmation_timeout",
+    "ledger_tec_tem",
+    "ledger_not_success",
+    "ledger_not_validated",
+}
+
+_CONFIRMATION_FAILURE_DETAILS: dict[str, str] = {
+    "signing_declined": "Signing was declined; no state transition was applied.",
+    "confirmation_timeout": "Confirmation timed out or remained unvalidated; no state transition was applied.",
+    "ledger_tec_tem": "Ledger transaction was rejected with tec/tem; no state transition was applied.",
+    "ledger_not_success": "Ledger transaction did not succeed; no state transition was applied.",
+    "ledger_not_validated": "Ledger transaction was not validated; no state transition was applied.",
+    "invalid_confirmation": "Ledger confirmation failed validation.",
 }
 
 
@@ -368,7 +371,9 @@ def _map_escrow_create_confirm_error(error_code: str) -> tuple[int, dict[str, An
     if error_code in _ESCROW_CREATE_CONFLICT_ERRORS:
         return status.HTTP_409_CONFLICT, {"detail": "Escrow confirmation is not allowed in current state."}
     if error_code in _ESCROW_CREATE_UNPROCESSABLE_CONFIRMATION_ERRORS:
-        return status.HTTP_422_UNPROCESSABLE_CONTENT, {"detail": "Ledger confirmation failed validation."}
+        return status.HTTP_422_UNPROCESSABLE_CONTENT, {
+            "detail": _CONFIRMATION_FAILURE_DETAILS.get(error_code, "Ledger confirmation failed validation.")
+        }
     return status.HTTP_400_BAD_REQUEST, {"detail": "Escrow confirmation request is invalid."}
 
 
@@ -396,7 +401,9 @@ def _map_payout_confirm_error(error_code: str) -> tuple[int, dict[str, Any]]:
     if error_code in _PAYOUT_CONFIRM_CONFLICT_ERRORS:
         return status.HTTP_409_CONFLICT, {"detail": "Payout confirmation is not allowed in current state."}
     if error_code in _PAYOUT_UNPROCESSABLE_CONFIRMATION_ERRORS:
-        return status.HTTP_422_UNPROCESSABLE_CONTENT, {"detail": "Ledger confirmation failed validation."}
+        return status.HTTP_422_UNPROCESSABLE_CONTENT, {
+            "detail": _CONFIRMATION_FAILURE_DETAILS.get(error_code, "Ledger confirmation failed validation.")
+        }
     if error_code in {"winner_bonus_fulfillment_missing", "bout_escrow_set_invalid"}:
         return status.HTTP_422_UNPROCESSABLE_CONTENT, {"detail": "Payout setup is invalid."}
     return status.HTTP_400_BAD_REQUEST, {"detail": "Payout confirmation request is invalid."}

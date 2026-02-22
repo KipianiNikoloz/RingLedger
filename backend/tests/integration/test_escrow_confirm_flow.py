@@ -181,6 +181,7 @@ class EscrowConfirmIntegrationTests(unittest.TestCase):
             tx_hash="TX00000021",
             offer_sequence=2221,
             validated=False,
+            engine_result="timeout",
         )
         response = self.client.post(
             f"/bouts/{self.bout_id}/escrows/confirm",
@@ -188,7 +189,10 @@ class EscrowConfirmIntegrationTests(unittest.TestCase):
             json=payload,
         )
         self.assertEqual(response.status_code, 422)
-        self.assertEqual(response.json()["detail"], "Ledger confirmation failed validation.")
+        self.assertEqual(
+            response.json()["detail"],
+            "Confirmation timed out or remained unvalidated; no state transition was applied.",
+        )
 
         replay = self.client.post(
             f"/bouts/{self.bout_id}/escrows/confirm",
@@ -204,7 +208,7 @@ class EscrowConfirmIntegrationTests(unittest.TestCase):
             )
             assert escrow is not None
             self.assertEqual(escrow.status, EscrowStatus.PLANNED)
-            self.assertEqual(escrow.failure_code, "invalid_confirmation")
+            self.assertEqual(escrow.failure_code, "confirmation_timeout")
 
             audit = session.scalar(
                 select(AuditLog).where(
@@ -214,6 +218,57 @@ class EscrowConfirmIntegrationTests(unittest.TestCase):
                 )
             )
             self.assertIsNotNone(audit)
+
+    def test_confirm_rejects_declined_signing_with_explicit_failure_classification(self) -> None:
+        payload = self._build_confirm_payload(
+            kind=EscrowKind.SHOW_A,
+            tx_hash="TX00000031",
+            offer_sequence=3331,
+            validated=False,
+            engine_result="declined",
+        )
+        response = self.client.post(
+            f"/bouts/{self.bout_id}/escrows/confirm",
+            headers=self._promoter_headers({"Idempotency-Key": "declined-confirm"}),
+            json=payload,
+        )
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.json()["detail"], "Signing was declined; no state transition was applied.")
+
+        with Session(self.engine) as session:
+            escrow = session.scalar(
+                select(Escrow).where(Escrow.bout_id == self.bout_id, Escrow.kind == EscrowKind.SHOW_A)
+            )
+            assert escrow is not None
+            self.assertEqual(escrow.status, EscrowStatus.PLANNED)
+            self.assertEqual(escrow.failure_code, "signing_declined")
+
+    def test_confirm_rejects_tec_tem_with_explicit_failure_classification(self) -> None:
+        payload = self._build_confirm_payload(
+            kind=EscrowKind.BONUS_A,
+            tx_hash="TX00000041",
+            offer_sequence=4441,
+            validated=True,
+            engine_result="tecUNFUNDED_PAYMENT",
+        )
+        response = self.client.post(
+            f"/bouts/{self.bout_id}/escrows/confirm",
+            headers=self._promoter_headers({"Idempotency-Key": "tec-tem-confirm"}),
+            json=payload,
+        )
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(
+            response.json()["detail"],
+            "Ledger transaction was rejected with tec/tem; no state transition was applied.",
+        )
+
+        with Session(self.engine) as session:
+            escrow = session.scalar(
+                select(Escrow).where(Escrow.bout_id == self.bout_id, Escrow.kind == EscrowKind.BONUS_A)
+            )
+            assert escrow is not None
+            self.assertEqual(escrow.status, EscrowStatus.PLANNED)
+            self.assertEqual(escrow.failure_code, "ledger_tec_tem")
 
     def _override_get_session(self) -> Session:
         session = self.SessionLocal()

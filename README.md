@@ -11,6 +11,7 @@ Escrow-based fighter purse settlement on XRPL Testnet, with promoter signing via
 - Mandatory pre-closeout architecture hardening is implemented: lightweight Unit of Work + selective repositories, with no API/state-machine semantic changes.
 - Mandatory pre-closeout modernization is implemented: Alembic migration authority + proven auth-library adoption, with no unapproved contract drift.
 - M4 hardening has started with backend Xaman sign-request integration for non-custodial promoter signing flows.
+- M4 failure-taxonomy slice has started: explicit declined/timeout/`tec`/`tem` confirm handling with persisted/audited classification and no unsafe transitions.
 
 ## MVP Scope (Locked)
 

@@ -98,8 +98,8 @@ Last implementation sync: 2026-02-22
 
 ## Failure Path Contract
 
-- Signing declined: no transition; audited as non-fatal retryable action.
-- `tec/tem`: no transition; persisted failure classification; manual or gated retry.
-- Confirmation timeout: no optimistic transition; remains safe prior state with retry path.
-- Invalid confirmation/field mismatch: reject, audit, and classify as security/integrity failure.
+- Signing declined: no transition; persisted `failure_code=signing_declined`; audited as retryable action.
+- `tec/tem`: no transition; persisted `failure_code=ledger_tec_tem`; manual or gated retry.
+- Confirmation timeout/unvalidated: no optimistic transition; persisted `failure_code=confirmation_timeout`; retry path remains.
+- Invalid confirmation/field mismatch: reject, audit, and persist `failure_code=invalid_confirmation`.
 - Idempotency payload collision: reject with deterministic conflict response and no state transition.

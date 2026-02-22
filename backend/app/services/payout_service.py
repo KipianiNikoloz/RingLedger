@@ -14,6 +14,7 @@ from app.models.escrow import Escrow
 from app.repositories.audit_log_repository import AuditLogRepository
 from app.repositories.bout_repository import BoutRepository
 from app.repositories.escrow_repository import EscrowRepository
+from app.services.failure_taxonomy import build_failure_reason, classify_confirmation_failure
 from app.services.xrpl_escrow_service import (
     EscrowPayoutAction,
     EscrowPayoutConfirmation,
@@ -144,8 +145,18 @@ class PayoutService:
                 expected_fulfillment_hex=expected_fulfillment,
             )
         except XrplEscrowValidationError as exc:
-            escrow.failure_code = "invalid_confirmation"
-            escrow.failure_reason = str(exc)
+            validation_error = str(exc)
+            failure_code = classify_confirmation_failure(
+                validation_error=validation_error,
+                validated=confirmation.validated,
+                engine_result=confirmation.engine_result,
+            )
+            escrow.failure_code = failure_code
+            escrow.failure_reason = build_failure_reason(
+                validation_error=validation_error,
+                validated=confirmation.validated,
+                engine_result=confirmation.engine_result,
+            )
             self._append_audit_entry(
                 actor_user_id=None,
                 action="escrow_payout_confirm",
@@ -153,12 +164,14 @@ class PayoutService:
                 entity_id=str(escrow.id),
                 outcome="rejected",
                 details={
-                    "reason": str(exc),
+                    "reason": escrow.failure_reason,
+                    "failure_code": failure_code,
+                    "validation_error": validation_error,
                     "escrow_kind": escrow.kind.value,
                     "tx_hash": confirmation.tx_hash,
                 },
             )
-            raise ValueError(str(exc)) from exc
+            raise ValueError(failure_code) from exc
 
         if expected_action == EscrowPayoutAction.FINISH:
             escrow.status = EscrowStatus.FINISHED

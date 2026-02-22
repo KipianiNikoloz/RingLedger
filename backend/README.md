@@ -23,6 +23,9 @@
 - Xaman signing integration behavior:
   - prepare endpoints return per-transaction sign-request metadata (`payload_id`, deep link, QR URL)
   - backend remains non-custodial and never stores promoter private keys
+- Explicit confirm failure taxonomy behavior:
+  - `signing_declined`, `confirmation_timeout`, `ledger_tec_tem`, `invalid_confirmation`
+  - failures are persisted/audited and never advance state
 - Replay-safe idempotency storage and mismatch rejection for confirm calls (`escrows/confirm` and `payouts/confirm`)
 - Audit logging for escrow create/payout and bout lifecycle outcomes
 - Alembic-governed PostgreSQL schema evolution with baseline revision
@@ -70,7 +73,7 @@ Implemented modernization scope:
 - Continue residual hardening scope for operational readiness and risk burn-down.
 - Focus areas:
   - Xaman integration hardening completion (`R-06`) after initial sign-request contract delivery
-  - failure taxonomy expansion for declined signing, `tec/tem`, and timeout paths (`R-12`)
+  - failure taxonomy expansion after initial declined/timeout/`tec`/`tem` delivery (`R-12`)
   - e2e/frontend journey coverage (`R-01`, `R-10`)
   - regression/performance baselines and runbook completion
 

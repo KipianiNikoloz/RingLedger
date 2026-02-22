@@ -127,6 +127,17 @@ Goal: enforce Alembic migration authority and proven auth-library adoption witho
 | Unit validation for stub/api Xaman service behavior | `backend/tests/unit/test_xaman_service.py` |
 | M4 slice contract documentation | `docs/xaman-signing-contract.md`, `docs/api-spec.md`, `backend/README.md`, `README.md` |
 
+## Increment 4 Slice B Deliverables (In Progress)
+
+| Item | Evidence |
+|---|---|
+| Explicit confirm failure taxonomy service | `backend/app/services/failure_taxonomy.py` |
+| Escrow confirm persistence/audit classification | `backend/app/services/escrow_service.py` |
+| Payout confirm persistence/audit classification | `backend/app/services/payout_service.py` |
+| Deterministic confirm error surfacing for decline/timeout/tec-tem | `backend/app/api/bouts.py`, `docs/api-spec.md` |
+| Escrow failure-path regression coverage | `backend/tests/integration/test_escrow_confirm_flow.py` |
+| Payout failure-path regression coverage | `backend/tests/integration/test_payout_flow.py` |
+
 ## Test Evidence (Current)
 
 | Command | Result | Notes |
@@ -134,7 +145,7 @@ Goal: enforce Alembic migration authority and proven auth-library adoption witho
 | `.\venv\Scripts\python.exe -m compileall backend/app backend/tests` | pass | Syntax validation completed for all backend and test modules. |
 | `.\venv\Scripts\python.exe -m ruff check backend` | pass | Lint gate is clean across backend sources/tests. |
 | `.\venv\Scripts\python.exe -m ruff format --check backend` | pass | Formatting gate is clean. |
-| `.\venv\Scripts\python.exe -m pytest backend/tests -q` | pass (`61 passed`) | Includes migration/auth modernization regression plus M4 Xaman integration coverage (`test_xaman_service`, prepare-flow sign-request/failure-path integration assertions). |
+| `.\venv\Scripts\python.exe -m pytest backend/tests -q` | pass (`65 passed`) | Includes migration/auth modernization regression plus M4 slice coverage for Xaman integration and explicit failure taxonomy (`declined`, `timeout`, `tec/tem`) in escrow/payout confirm flows. |
 | `.\venv\Scripts\python.exe -m alembic -c backend/alembic.ini history` | pass | Confirms deterministic baseline revision head: `202602220000_baseline_schema`. |
 | GitHub Actions quality/secret-scan/delivery jobs | configured | Enforced in `.github/workflows/ci-cd.yml`; executes on PR/push in GitHub runtime. |
 | Dependabot weekly update streams | configured | Enforced in `.github/dependabot.yml` for `pip` and `github-actions`. |
@@ -145,6 +156,6 @@ Target: hardening for operational readiness and residual risk reduction.
 
 - M3.6 modernization is complete and accepted (see `docs/m3.6-modernization-acceptance-memo.md`).
 - Continue Xaman integration hardening after initial backend sign-request contract delivery (`R-06`).
-- Add failure taxonomy coverage for declined signing, `tec/tem`, and timeout outcomes (`R-12`).
+- Continue failure taxonomy hardening after initial declined/timeout/`tec`/`tem` classification delivery (`R-12`).
 - Add remaining frontend + e2e journey coverage for MVP critical paths (`R-01`, `R-10`).
 - Add regression/performance suites and operational runbooks aligned to gate thresholds.
