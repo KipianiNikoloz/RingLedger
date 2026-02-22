@@ -1,6 +1,17 @@
 # RingLedger Auth Library Adoption Plan (Mandatory Pre-M4 Closeout)
 
-Last updated: 2026-02-21
+Last updated: 2026-02-22
+
+## Execution Status
+
+- Completed in M3.6 on 2026-02-22.
+- Selected libraries:
+  - `passlib` for password hashing.
+  - `PyJWT` for JWT token handling.
+- Implementation evidence:
+  - Runtime primitives: `backend/app/core/security.py`
+  - Dependency manifest: `pyproject.toml`
+  - Contract/regression tests: `backend/tests/unit/test_security.py`, `backend/tests/unit/test_api_dependencies_auth.py`, `backend/tests/security/test_auth_mode_contract.py`, `backend/tests/contract/test_auth_api_contract.py`
 
 ## Purpose
 
@@ -62,4 +73,3 @@ This is maintainability/safety hardening, not feature expansion.
 - Technical rollback: revert to prior auth implementation path behind controlled release rollback procedure.
 - Operational rollback: halt rollout, revoke affected tokens per runbook, restore last known good auth path.
 - Documentation rollback: record rollback trigger, impact, and corrective actions in traceability and security records.
-

@@ -5,12 +5,14 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from app.models.enums import BoutStatus, EscrowKind, EscrowStatus
+from app.schemas.xaman import XamanSignRequestView
 
 
 class EscrowPrepareItem(BaseModel):
     escrow_id: str
     escrow_kind: EscrowKind
     unsigned_tx: dict[str, Any]
+    xaman_sign_request: XamanSignRequestView | None = None
 
 
 class EscrowPrepareResponse(BaseModel):

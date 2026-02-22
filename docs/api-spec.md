@@ -1,15 +1,16 @@
-# RingLedger API Spec (M3 Result + Payout Flow)
+# RingLedger API Spec (M4 Slice A In Progress)
 
-Last updated: 2026-02-21
+Last updated: 2026-02-22
 
 ## Scope
 
-This document captures the implemented API surface through M3:
+This document captures the implemented API surface through M4 slice A:
 
 - Auth: register/login (email/password -> JWT)
 - Escrow create prepare/confirm
 - Result entry
 - Payout prepare/confirm
+- Xaman signing request envelopes for promoter prepare flows
 
 ## Mandatory Architecture Hardening Note (Pre-M4 Closeout)
 
@@ -22,13 +23,13 @@ This document captures the implemented API surface through M3:
 
 ## Mandatory Migration Auth Modernization Note (Pre-M4 Closeout)
 
-- Planned modernization scope: Alembic migration authority and proven auth-library adoption.
-- Contract stability expectations during this step:
+- Implemented modernization scope: Alembic migration authority and proven auth-library adoption.
+- Contract stability outcomes from this step:
   - no endpoint path changes
   - no request/response schema changes
   - no auth mode expansion beyond email/password plus JWT
   - no wallet-login route additions
-- Any API contract change remains out of scope unless explicitly versioned and documented.
+- API contract remained stable; any future contract change remains out of scope unless explicitly versioned and documented.
 
 ## Base Behavior
 
@@ -88,6 +89,7 @@ This document captures the implemented API surface through M3:
 ### `POST /bouts/{bout_id}/escrows/prepare`
 
 - Purpose: generate unsigned XRPL `EscrowCreate` payloads for all 4 escrows.
+- Returns per-item Xaman sign request metadata so promoter signing is initiated in Xaman.
 - Response `200`:
 
 ```json
@@ -105,6 +107,13 @@ This document captures the implemented API surface through M3:
         "FinishAfter": 823000000,
         "CancelAfter": 823604800,
         "Condition": "ABCDEF..."
+      },
+      "xaman_sign_request": {
+        "payload_id": "uuid",
+        "deep_link_url": "xumm://payload/uuid",
+        "qr_png_url": "https://xumm.app/sign/uuid/qr.png",
+        "websocket_status_url": "wss://xumm.app/sign/uuid",
+        "mode": "stub"
       }
     }
   ]
@@ -116,6 +125,7 @@ This document captures the implemented API surface through M3:
 - Error `404`: bout not found.
 - Error `409`: prepare not allowed in current state.
 - Error `422`: escrow plan invalid.
+- Error `502`: Xaman signing request preparation failed.
 
 ### `POST /bouts/{bout_id}/escrows/confirm`
 
@@ -176,6 +186,7 @@ This document captures the implemented API surface through M3:
   - `EscrowFinish` for winner bonus (with platform fulfillment)
   - `EscrowCancel` for loser bonus
 - Role: promoter.
+- Returns per-item Xaman sign request metadata so promoter signing is initiated in Xaman.
 - Response `200`:
 
 ```json
@@ -193,6 +204,13 @@ This document captures the implemented API surface through M3:
         "Owner": "rPromoter...",
         "OfferSequence": 6003,
         "Fulfillment": "A1B2..."
+      },
+      "xaman_sign_request": {
+        "payload_id": "uuid",
+        "deep_link_url": "xumm://payload/uuid",
+        "qr_png_url": "https://xumm.app/sign/uuid/qr.png",
+        "websocket_status_url": "wss://xumm.app/sign/uuid",
+        "mode": "stub"
       }
     },
     {
@@ -215,6 +233,7 @@ This document captures the implemented API surface through M3:
 - Error `404`: bout not found.
 - Error `409`: payout prepare not allowed in current state.
 - Error `422`: payout setup invalid.
+- Error `502`: Xaman signing request preparation failed.
 
 ### `POST /bouts/{bout_id}/payouts/confirm`
 

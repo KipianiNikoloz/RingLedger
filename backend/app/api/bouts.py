@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from app.api.dependencies import RequestActor, require_role
 from app.db.session import get_session
 from app.db.uow import SqlAlchemyUnitOfWork
+from app.integrations.xaman_service import XamanIntegrationError, XamanService
 from app.middleware.idempotency import build_confirm_scope, require_idempotency_key
 from app.models.enums import UserRole
 from app.schemas.escrow import (
@@ -28,6 +29,7 @@ from app.schemas.payout import (
     PayoutPrepareItem,
     PayoutPrepareResponse,
 )
+from app.schemas.xaman import XamanSignRequestView
 from app.services.escrow_service import EscrowService
 from app.services.idempotency_service import IdempotencyKeyMismatchError, IdempotencyService
 from app.services.payout_service import PayoutService
@@ -83,6 +85,7 @@ def prepare_escrow_create_payloads(
     session: Session = Depends(get_session),
 ) -> EscrowPrepareResponse:
     service = EscrowService(session=session)
+    xaman = XamanService.from_settings()
     try:
         bout, items = service.prepare_escrow_create_payloads(bout_id=bout_id)
     except ValueError as exc:
@@ -106,6 +109,11 @@ def prepare_escrow_create_payloads(
                 escrow_id=item["escrow_id"],
                 escrow_kind=item["escrow_kind"],
                 unsigned_tx=item["unsigned_tx"],
+                xaman_sign_request=_create_xaman_sign_request_view(
+                    xaman=xaman,
+                    tx_json=item["unsigned_tx"],
+                    reference=f"escrow_create_prepare:{bout.id}:{item['escrow_id']}",
+                ),
             )
             for item in items
         ],
@@ -240,6 +248,7 @@ def prepare_payout_payloads(
     session: Session = Depends(get_session),
 ) -> PayoutPrepareResponse:
     service = PayoutService(session=session)
+    xaman = XamanService.from_settings()
     try:
         bout, items = service.prepare_payout_payloads(bout_id=bout_id)
     except ValueError as exc:
@@ -255,6 +264,11 @@ def prepare_payout_payloads(
                 escrow_kind=item["escrow_kind"],
                 action=item["action"],
                 unsigned_tx=item["unsigned_tx"],
+                xaman_sign_request=_create_xaman_sign_request_view(
+                    xaman=xaman,
+                    tx_json=item["unsigned_tx"],
+                    reference=f"payout_prepare:{bout.id}:{item['escrow_id']}:{item['action']}",
+                ),
             )
             for item in items
         ],
@@ -412,3 +426,25 @@ def _commit_or_raise_persistence_error(*, uow: SqlAlchemyUnitOfWork, detail: str
     except IntegrityError as exc:
         uow.rollback()
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=detail) from exc
+
+
+def _create_xaman_sign_request_view(
+    *,
+    xaman: XamanService,
+    tx_json: dict[str, Any],
+    reference: str,
+) -> XamanSignRequestView:
+    try:
+        sign_request = xaman.create_sign_request(tx_json=tx_json, reference=reference)
+    except XamanIntegrationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Xaman signing request could not be prepared.",
+        ) from exc
+    return XamanSignRequestView(
+        payload_id=sign_request.payload_id,
+        deep_link_url=sign_request.deep_link_url,
+        qr_png_url=sign_request.qr_png_url,
+        websocket_status_url=sign_request.websocket_status_url,
+        mode=sign_request.mode,
+    )

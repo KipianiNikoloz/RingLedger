@@ -1,7 +1,7 @@
 # RingLedger MVP State Machines
 
 Date locked: 2026-02-16
-Last implementation sync: 2026-02-21
+Last implementation sync: 2026-02-22
 
 ## Mandatory Architecture Hardening Note (Pre-M4 Closeout)
 
@@ -9,6 +9,12 @@ Last implementation sync: 2026-02-21
 - The refactor scope is persistence-boundary hardening only: lightweight Unit of Work plus selective repositories.
 - The refactor does not change state definitions, transition legality, endpoint-to-state mapping, or guard semantics in this document.
 - Any change to lifecycle semantics remains out of scope and requires explicit requirement and ADR updates.
+
+## Mandatory Migration Auth Modernization Note (Pre-M4 Closeout)
+
+- Alembic migration authority and proven auth-library adoption have been implemented.
+- This modernization changes infrastructure and persistence/auth internals only.
+- No state definitions, transition legality, endpoint-to-state mapping, or guard semantics changed in this document.
 
 ## Global Invariants
 

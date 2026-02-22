@@ -1,6 +1,15 @@
 # RingLedger Alembic Adoption Plan (Mandatory Pre-M4 Closeout)
 
-Last updated: 2026-02-21
+Last updated: 2026-02-22
+
+## Execution Status
+
+- Completed in M3.6 on 2026-02-22.
+- Implementation evidence:
+  - Alembic config/env: `backend/alembic.ini`, `backend/alembic/env.py`, `backend/alembic/script.py.mako`
+  - Baseline revision: `backend/alembic/versions/202602220000_baseline_schema.py`
+  - Runtime migration policy: `backend/app/db/init_db.py`
+  - Validation tests: `backend/tests/migration/test_alembic_baseline_contract.py`
 
 ## Purpose
 
@@ -67,4 +76,3 @@ This is maintainability/safety hardening, not feature expansion.
 - Technical rollback: execute validated Alembic downgrade path to last known good revision.
 - Operational rollback: block further rollout, restore service via prior revision plus runbooked recovery checks.
 - Documentation rollback: record incident, revision pair, impact scope, and corrective actions in traceability and runbook artifacts.
-

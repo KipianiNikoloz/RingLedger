@@ -1,4 +1,4 @@
-# RingLedger Backend (M3 Result + Payout Flow)
+# RingLedger Backend (M4 Hardening In Progress)
 
 ## Current Scope
 
@@ -20,9 +20,12 @@
 - XRPL transaction behavior:
   - unsigned `EscrowCreate`, `EscrowFinish`, and `EscrowCancel` payload generation
   - validated-ledger confirmation checks (`tesSUCCESS` + invariant/timing/offer-sequence matching)
+- Xaman signing integration behavior:
+  - prepare endpoints return per-transaction sign-request metadata (`payload_id`, deep link, QR URL)
+  - backend remains non-custodial and never stores promoter private keys
 - Replay-safe idempotency storage and mismatch rejection for confirm calls (`escrows/confirm` and `payouts/confirm`)
 - Audit logging for escrow create/payout and bout lifecycle outcomes
-- PostgreSQL schema foundation in `sql/001_init_schema.sql`
+- Alembic-governed PostgreSQL schema evolution with baseline revision
 
 ## Structure
 
@@ -33,6 +36,7 @@
 - `app/models/`: SQLAlchemy models and enums
 - `app/domain/`: pure domain utilities
 - `app/core/`: config and security helpers
+- `app/integrations/`: Xaman sign-request integration boundary
 - `app/db/`: database session and init helpers
 - `tests/`: unit/property/contract/security/migration tests
 
@@ -49,9 +53,9 @@ Implemented clean architecture hardening:
 - Preserve all API contracts, lifecycle semantics, and MVP invariants (`R-01`..`R-12`).
 - Explicitly reject a generic repository-per-table CRUD abstraction.
 
-## Mandatory Next Increment (Pre-M4 Closeout)
+## Mandatory Modernization (Implemented Pre-M4 Closeout)
 
-This modernization is required before hardening closeout:
+Implemented modernization scope:
 
 - Adopt Alembic as authoritative migration system for schema evolution.
 - Require deterministic revision governance and tested upgrade plus downgrade paths.
@@ -61,7 +65,19 @@ This modernization is required before hardening closeout:
   - no wallet-based login
 - Preserve API contracts and lifecycle semantics unless explicitly versioned and documented.
 
+## Next Increment (M4 Hardening Closeout)
+
+- Continue residual hardening scope for operational readiness and risk burn-down.
+- Focus areas:
+  - Xaman integration hardening completion (`R-06`) after initial sign-request contract delivery
+  - failure taxonomy expansion for declined signing, `tec/tem`, and timeout paths (`R-12`)
+  - e2e/frontend journey coverage (`R-01`, `R-10`)
+  - regression/performance baselines and runbook completion
+
 ## Notes
 
 - Use the project virtual environment for local commands (`.\venv\Scripts\python.exe ...`) to ensure FastAPI/SQLAlchemy/dev tooling are available.
-- Current suite entrypoint: `python -m unittest discover -s backend/tests -p "test_*.py"`.
+- Current suite entrypoint: `python -m pytest backend/tests -q`.
+- Xaman integration runtime mode is controlled by `XAMAN_MODE`:
+  - `stub` (default): deterministic non-network sign-request envelopes for local/CI.
+  - `api`: calls Xaman API using `XAMAN_API_KEY` and `XAMAN_API_SECRET`.

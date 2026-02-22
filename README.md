@@ -9,7 +9,8 @@ Escrow-based fighter purse settlement on XRPL Testnet, with promoter signing via
 - M2 escrow create prepare/confirm flow is implemented with validated XRPL confirmation checks and confirm-endpoint idempotency.
 - M3 result entry + payout prepare/confirm flow is implemented with JWT role guards, payout idempotency, timing guards, and winner-bonus fulfillment validation.
 - Mandatory pre-closeout architecture hardening is implemented: lightweight Unit of Work + selective repositories, with no API/state-machine semantic changes.
-- Mandatory pre-closeout modernization is now required: Alembic migration authority + proven auth-library adoption, with no unapproved contract drift.
+- Mandatory pre-closeout modernization is implemented: Alembic migration authority + proven auth-library adoption, with no unapproved contract drift.
+- M4 hardening has started with backend Xaman sign-request integration for non-custodial promoter signing flows.
 
 ## MVP Scope (Locked)
 
@@ -33,6 +34,8 @@ Escrow-based fighter purse settlement on XRPL Testnet, with promoter signing via
 - Clean architecture refactor plan: `docs/clean-architecture-refactor-plan.md`
 - Alembic adoption plan: `docs/alembic-adoption-plan.md`
 - Auth-library adoption plan: `docs/auth-library-adoption-plan.md`
+- M3.6 modernization acceptance memo: `docs/m3.6-modernization-acceptance-memo.md`
+- Xaman signing contract: `docs/xaman-signing-contract.md`
 
 ## Repository Layout
 
@@ -46,8 +49,8 @@ Escrow-based fighter purse settlement on XRPL Testnet, with promoter signing via
 2. M2: escrow create prepare/confirm with XRPL validation + idempotency - complete.
 3. M3: result entry and payout prepare/confirm with bonus fulfillment logic - complete.
 4. M3.5 (mandatory): clean architecture hardening of persistence boundaries (Unit of Work + selective repositories) with behavior parity proof - complete.
-5. M3.6 (mandatory): migration/auth modernization (Alembic authority + proven auth library) with parity proof - next.
-6. M4: hardening closeout (security, failure paths, regression/performance, operational readiness) - blocked until M3.6 completion.
+5. M3.6 (mandatory): migration/auth modernization (Alembic authority + proven auth library) with parity proof - complete.
+6. M4: hardening closeout (security, failure paths, regression/performance, operational readiness) - in progress.
 
 ## Delivery Rules
 

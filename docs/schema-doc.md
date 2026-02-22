@@ -1,7 +1,8 @@
-# RingLedger Schema Docs (M3 Lifecycle)
+# RingLedger Schema Docs (M3.6 Migration Modernization)
 
-Last updated: 2026-02-21  
-Schema SQL file: `backend/sql/001_init_schema.sql`
+Last updated: 2026-02-22  
+Schema SQL reference file: `backend/sql/001_init_schema.sql`  
+Alembic baseline revision: `backend/alembic/versions/202602220000_baseline_schema.py`
 
 ## Migration Governance
 

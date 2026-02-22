@@ -3,7 +3,7 @@ from __future__ import annotations
 import unittest
 import uuid
 from datetime import UTC, datetime
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, select
@@ -15,6 +15,7 @@ from app.core.config import settings
 from app.core.security import create_access_token
 from app.db.base import Base
 from app.db.session import get_session
+from app.integrations.xaman_service import XamanIntegrationError
 from app.main import create_app
 from app.models.bout import Bout
 from app.models.enums import BoutStatus, EscrowKind, EscrowStatus, UserRole
@@ -67,6 +68,13 @@ class PayoutFlowIntegrationTests(unittest.TestCase):
         )
         self.assertEqual(prepare_response.status_code, 200)
         prepare_body = prepare_response.json()
+        for item in prepare_body["escrows"]:
+            sign_request = item.get("xaman_sign_request")
+            self.assertIsInstance(sign_request, dict)
+            self.assertIn("payload_id", sign_request)
+            self.assertTrue(sign_request["deep_link_url"].startswith("xumm://payload/"))
+            self.assertTrue(sign_request["qr_png_url"].startswith("https://xumm.app/sign/"))
+            self.assertEqual(sign_request["mode"], "stub")
         actions = {item["escrow_kind"]: item["action"] for item in prepare_body["escrows"]}
         self.assertEqual(
             actions,
@@ -142,6 +150,25 @@ class PayoutFlowIntegrationTests(unittest.TestCase):
             self.assertEqual(status_by_kind[EscrowKind.SHOW_A], EscrowStatus.FINISHED)
             self.assertEqual(status_by_kind[EscrowKind.SHOW_B], EscrowStatus.FINISHED)
             self.assertEqual(status_by_kind[EscrowKind.BONUS_A], EscrowStatus.FINISHED)
+
+    def test_payout_prepare_returns_502_when_xaman_sign_request_fails(self) -> None:
+        result_response = self.client.post(
+            f"/bouts/{self.bout_id}/result",
+            headers=self._auth_headers(self.admin_user_id, self.admin_email, UserRole.ADMIN),
+            json={"winner": "A"},
+        )
+        self.assertEqual(result_response.status_code, 200)
+
+        xaman_mock = Mock()
+        xaman_mock.create_sign_request.side_effect = XamanIntegrationError("xaman_api_connection_error")
+        with patch("app.api.bouts.XamanService.from_settings", return_value=xaman_mock):
+            response = self.client.post(
+                f"/bouts/{self.bout_id}/payouts/prepare",
+                headers=self._auth_headers(self.promoter_user_id, self.promoter_email, UserRole.PROMOTER),
+            )
+
+        self.assertEqual(response.status_code, 502)
+        self.assertEqual(response.json()["detail"], "Xaman signing request could not be prepared.")
 
     def test_loser_bonus_cancel_before_cancel_after_is_rejected(self) -> None:
         result_response = self.client.post(

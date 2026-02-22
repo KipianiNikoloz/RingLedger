@@ -5,6 +5,7 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from app.models.enums import BoutStatus, BoutWinner, EscrowCloseAction, EscrowKind, EscrowStatus
+from app.schemas.xaman import XamanSignRequestView
 
 
 class BoutResultRequest(BaseModel):
@@ -22,6 +23,7 @@ class PayoutPrepareItem(BaseModel):
     escrow_kind: EscrowKind
     action: EscrowCloseAction
     unsigned_tx: dict[str, Any]
+    xaman_sign_request: XamanSignRequestView | None = None
 
 
 class PayoutPrepareResponse(BaseModel):

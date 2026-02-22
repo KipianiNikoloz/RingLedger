@@ -12,6 +12,11 @@ class Settings:
     db_auto_migrate_on_startup: bool
     jwt_secret: str
     jwt_exp_minutes: int
+    xaman_mode: str
+    xaman_api_base_url: str
+    xaman_api_key: str | None
+    xaman_api_secret: str | None
+    xaman_timeout_seconds: int
 
 
 def _parse_bool(value: str) -> bool:
@@ -26,6 +31,7 @@ def _parse_bool(value: str) -> bool:
 def get_settings() -> Settings:
     app_env = os.getenv("APP_ENV", "development").strip().lower()
     auto_migrate_default = "true" if app_env in {"development", "dev", "local", "test"} else "false"
+    xaman_mode = os.getenv("XAMAN_MODE", "stub").strip().lower()
     return Settings(
         app_name=os.getenv("APP_NAME", "FightPurse API"),
         app_env=app_env,
@@ -33,6 +39,11 @@ def get_settings() -> Settings:
         db_auto_migrate_on_startup=_parse_bool(os.getenv("DB_AUTO_MIGRATE_ON_STARTUP", auto_migrate_default)),
         jwt_secret=os.getenv("JWT_SECRET", "change-me-in-production-min-32-chars"),
         jwt_exp_minutes=int(os.getenv("JWT_EXP_MINUTES", "60")),
+        xaman_mode=xaman_mode,
+        xaman_api_base_url=os.getenv("XAMAN_API_BASE_URL", "https://xumm.app").strip(),
+        xaman_api_key=os.getenv("XAMAN_API_KEY") or None,
+        xaman_api_secret=os.getenv("XAMAN_API_SECRET") or None,
+        xaman_timeout_seconds=int(os.getenv("XAMAN_TIMEOUT_SECONDS", "10")),
     )
 
 

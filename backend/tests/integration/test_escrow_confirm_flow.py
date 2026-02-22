@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest
 import uuid
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, func, select
@@ -14,6 +14,7 @@ from app.core.config import settings
 from app.core.security import create_access_token
 from app.db.base import Base
 from app.db.session import get_session
+from app.integrations.xaman_service import XamanIntegrationError
 from app.main import create_app
 from app.models.audit_log import AuditLog
 from app.models.bout import Bout
@@ -60,6 +61,13 @@ class EscrowConfirmIntegrationTests(unittest.TestCase):
         body = response.json()
         self.assertEqual(body["bout_id"], str(self.bout_id))
         self.assertEqual(len(body["escrows"]), 4)
+        for item in body["escrows"]:
+            sign_request = item.get("xaman_sign_request")
+            self.assertIsInstance(sign_request, dict)
+            self.assertIn("payload_id", sign_request)
+            self.assertTrue(sign_request["deep_link_url"].startswith("xumm://payload/"))
+            self.assertTrue(sign_request["qr_png_url"].startswith("https://xumm.app/sign/"))
+            self.assertEqual(sign_request["mode"], "stub")
 
         payloads = {item["escrow_kind"]: item["unsigned_tx"] for item in body["escrows"]}
         self.assertEqual(
@@ -77,6 +85,18 @@ class EscrowConfirmIntegrationTests(unittest.TestCase):
         self.assertNotIn("CancelAfter", payloads[EscrowKind.SHOW_B.value])
         self.assertIn("CancelAfter", payloads[EscrowKind.BONUS_A.value])
         self.assertIn("CancelAfter", payloads[EscrowKind.BONUS_B.value])
+
+    def test_prepare_returns_502_when_xaman_sign_request_fails(self) -> None:
+        xaman_mock = Mock()
+        xaman_mock.create_sign_request.side_effect = XamanIntegrationError("xaman_api_connection_error")
+        with patch("app.api.bouts.XamanService.from_settings", return_value=xaman_mock):
+            response = self.client.post(
+                f"/bouts/{self.bout_id}/escrows/prepare",
+                headers=self._promoter_headers(),
+            )
+
+        self.assertEqual(response.status_code, 502)
+        self.assertEqual(response.json()["detail"], "Xaman signing request could not be prepared.")
 
     def test_confirm_transitions_all_escrows_and_marks_bout_escrows_created(self) -> None:
         confirmations = [
