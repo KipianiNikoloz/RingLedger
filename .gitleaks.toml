@@ -1,0 +1,12 @@
+title = "RingLedger gitleaks config"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "False positive in docs language from M4 slice introduction sentence"
+paths = ['''docs/xaman-signing-contract\.md''']
+regexes = [
+  '''This slice hardens `R-06` without changing auth mode, payout/escrow state semantics, or confirm idempotency behavior\.''',
+]
+

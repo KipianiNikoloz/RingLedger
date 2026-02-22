@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from app.api.dependencies import RequestActor, require_role
 from app.db.session import get_session
 from app.db.uow import SqlAlchemyUnitOfWork
+from app.integrations.xaman_service import XamanIntegrationError, XamanService
 from app.middleware.idempotency import build_confirm_scope, require_idempotency_key
 from app.models.enums import UserRole
 from app.schemas.escrow import (
@@ -28,9 +29,12 @@ from app.schemas.payout import (
     PayoutPrepareItem,
     PayoutPrepareResponse,
 )
+from app.schemas.signing import SigningReconcileRequest, SigningReconcileResponse
+from app.schemas.xaman import XamanSignRequestView
 from app.services.escrow_service import EscrowService
 from app.services.idempotency_service import IdempotencyKeyMismatchError, IdempotencyService
 from app.services.payout_service import PayoutService
+from app.services.signing_reconciliation_service import SigningReconciliationService
 from app.services.xrpl_escrow_service import EscrowCreateConfirmation, EscrowPayoutConfirmation
 
 router = APIRouter(prefix="/bouts", tags=["bouts"])
@@ -40,14 +44,12 @@ _ESCROW_CREATE_CONFLICT_ERRORS = {
     "escrow_not_planned",
 }
 _ESCROW_CREATE_UNPROCESSABLE_CONFIRMATION_ERRORS = {
-    "ledger_tx_not_validated",
-    "ledger_tx_not_success",
-    "ledger_owner_address_mismatch",
-    "ledger_destination_address_mismatch",
-    "ledger_amount_mismatch",
-    "ledger_finish_after_mismatch",
-    "ledger_cancel_after_mismatch",
-    "ledger_condition_mismatch",
+    "invalid_confirmation",
+    "signing_declined",
+    "confirmation_timeout",
+    "ledger_tec_tem",
+    "ledger_not_success",
+    "ledger_not_validated",
 }
 _RESULT_CONFLICT_ERRORS = {
     "bout_not_in_escrows_created_state",
@@ -63,16 +65,25 @@ _PAYOUT_CONFIRM_CONFLICT_ERRORS = {
     "bout_winner_not_set",
 }
 _PAYOUT_UNPROCESSABLE_CONFIRMATION_ERRORS = {
-    "ledger_tx_not_validated",
-    "ledger_tx_not_success",
-    "ledger_owner_address_mismatch",
-    "ledger_offer_sequence_mismatch",
-    "ledger_transaction_type_mismatch",
-    "ledger_finish_before_allowed",
-    "ledger_cancel_before_allowed",
-    "ledger_cancel_after_missing",
-    "ledger_fulfillment_mismatch",
-    "ledger_unexpected_fulfillment",
+    "invalid_confirmation",
+    "signing_declined",
+    "confirmation_timeout",
+    "ledger_tec_tem",
+    "ledger_not_success",
+    "ledger_not_validated",
+}
+_SIGNING_RECONCILIATION_NOT_FOUND_ERRORS = {
+    "bout_not_found",
+    "escrow_not_found",
+}
+
+_CONFIRMATION_FAILURE_DETAILS: dict[str, str] = {
+    "signing_declined": "Signing was declined; no state transition was applied.",
+    "confirmation_timeout": "Confirmation timed out or remained unvalidated; no state transition was applied.",
+    "ledger_tec_tem": "Ledger transaction was rejected with tec/tem; no state transition was applied.",
+    "ledger_not_success": "Ledger transaction did not succeed; no state transition was applied.",
+    "ledger_not_validated": "Ledger transaction was not validated; no state transition was applied.",
+    "invalid_confirmation": "Ledger confirmation failed validation.",
 }
 
 
@@ -83,6 +94,7 @@ def prepare_escrow_create_payloads(
     session: Session = Depends(get_session),
 ) -> EscrowPrepareResponse:
     service = EscrowService(session=session)
+    xaman = XamanService.from_settings()
     try:
         bout, items = service.prepare_escrow_create_payloads(bout_id=bout_id)
     except ValueError as exc:
@@ -106,6 +118,11 @@ def prepare_escrow_create_payloads(
                 escrow_id=item["escrow_id"],
                 escrow_kind=item["escrow_kind"],
                 unsigned_tx=item["unsigned_tx"],
+                xaman_sign_request=_create_xaman_sign_request_view(
+                    xaman=xaman,
+                    tx_json=item["unsigned_tx"],
+                    reference=f"escrow_create_prepare:{bout.id}:{item['escrow_id']}",
+                ),
             )
             for item in items
         ],
@@ -240,6 +257,7 @@ def prepare_payout_payloads(
     session: Session = Depends(get_session),
 ) -> PayoutPrepareResponse:
     service = PayoutService(session=session)
+    xaman = XamanService.from_settings()
     try:
         bout, items = service.prepare_payout_payloads(bout_id=bout_id)
     except ValueError as exc:
@@ -255,6 +273,11 @@ def prepare_payout_payloads(
                 escrow_kind=item["escrow_kind"],
                 action=item["action"],
                 unsigned_tx=item["unsigned_tx"],
+                xaman_sign_request=_create_xaman_sign_request_view(
+                    xaman=xaman,
+                    tx_json=item["unsigned_tx"],
+                    reference=f"payout_prepare:{bout.id}:{item['escrow_id']}:{item['action']}",
+                ),
             )
             for item in items
         ],
@@ -348,13 +371,107 @@ def confirm_payout(
     return response
 
 
+@router.post("/{bout_id}/escrows/signing/reconcile", response_model=SigningReconcileResponse)
+def reconcile_escrow_signing_status(
+    bout_id: uuid.UUID,
+    payload: SigningReconcileRequest,
+    actor: RequestActor = Depends(require_role(UserRole.PROMOTER)),
+    session: Session = Depends(get_session),
+) -> SigningReconcileResponse:
+    uow = SqlAlchemyUnitOfWork(session=session)
+    service = SigningReconciliationService(session=session)
+    try:
+        outcome = service.reconcile_escrow_create_signing(
+            bout_id=bout_id,
+            escrow_kind=payload.escrow_kind,
+            payload_id=payload.payload_id,
+            actor_user_id=actor.user_id,
+            observed_status=payload.observed_status,
+            observed_tx_hash=payload.observed_tx_hash,
+        )
+    except ValueError as exc:
+        uow.rollback()
+        code, body = _map_signing_reconcile_error(str(exc))
+        raise HTTPException(status_code=code, detail=body["detail"]) from exc
+    except XamanIntegrationError as exc:
+        uow.rollback()
+        code, body = _map_signing_reconcile_error(str(exc))
+        raise HTTPException(status_code=code, detail=body["detail"]) from exc
+    except Exception:
+        uow.rollback()
+        raise
+
+    _commit_or_raise_persistence_error(
+        uow=uow,
+        detail="Escrow signing reconciliation could not be persisted safely.",
+    )
+    return SigningReconcileResponse(
+        bout_id=str(outcome.bout.id),
+        escrow_id=str(outcome.escrow.id),
+        escrow_kind=outcome.escrow.kind,
+        escrow_status=outcome.escrow.status,
+        payload_id=outcome.payload_id,
+        signing_status=outcome.signing_status.value,
+        tx_hash=outcome.tx_hash,
+        failure_code=outcome.escrow.failure_code,
+    )
+
+
+@router.post("/{bout_id}/payouts/signing/reconcile", response_model=SigningReconcileResponse)
+def reconcile_payout_signing_status(
+    bout_id: uuid.UUID,
+    payload: SigningReconcileRequest,
+    actor: RequestActor = Depends(require_role(UserRole.PROMOTER)),
+    session: Session = Depends(get_session),
+) -> SigningReconcileResponse:
+    uow = SqlAlchemyUnitOfWork(session=session)
+    service = SigningReconciliationService(session=session)
+    try:
+        outcome = service.reconcile_payout_signing(
+            bout_id=bout_id,
+            escrow_kind=payload.escrow_kind,
+            payload_id=payload.payload_id,
+            actor_user_id=actor.user_id,
+            observed_status=payload.observed_status,
+            observed_tx_hash=payload.observed_tx_hash,
+        )
+    except ValueError as exc:
+        uow.rollback()
+        code, body = _map_signing_reconcile_error(str(exc))
+        raise HTTPException(status_code=code, detail=body["detail"]) from exc
+    except XamanIntegrationError as exc:
+        uow.rollback()
+        code, body = _map_signing_reconcile_error(str(exc))
+        raise HTTPException(status_code=code, detail=body["detail"]) from exc
+    except Exception:
+        uow.rollback()
+        raise
+
+    _commit_or_raise_persistence_error(
+        uow=uow,
+        detail="Payout signing reconciliation could not be persisted safely.",
+    )
+    return SigningReconcileResponse(
+        bout_id=str(outcome.bout.id),
+        escrow_id=str(outcome.escrow.id),
+        escrow_kind=outcome.escrow.kind,
+        escrow_status=outcome.escrow.status,
+        payload_id=outcome.payload_id,
+        signing_status=outcome.signing_status.value,
+        tx_hash=outcome.tx_hash,
+        failure_code=outcome.escrow.failure_code,
+    )
+
+
 def _map_escrow_create_confirm_error(error_code: str) -> tuple[int, dict[str, Any]]:
     if error_code in {"bout_not_found", "escrow_not_found"}:
         return status.HTTP_404_NOT_FOUND, {"detail": "Requested bout/escrow was not found."}
     if error_code in _ESCROW_CREATE_CONFLICT_ERRORS:
         return status.HTTP_409_CONFLICT, {"detail": "Escrow confirmation is not allowed in current state."}
     if error_code in _ESCROW_CREATE_UNPROCESSABLE_CONFIRMATION_ERRORS:
-        return status.HTTP_422_UNPROCESSABLE_CONTENT, {"detail": "Ledger confirmation failed validation."}
+        return status.HTTP_422_UNPROCESSABLE_CONTENT, {
+            "detail": _CONFIRMATION_FAILURE_DETAILS.get(error_code, "Ledger confirmation failed validation.")
+        }
     return status.HTTP_400_BAD_REQUEST, {"detail": "Escrow confirmation request is invalid."}
 
 
@@ -382,10 +499,29 @@ def _map_payout_confirm_error(error_code: str) -> tuple[int, dict[str, Any]]:
     if error_code in _PAYOUT_CONFIRM_CONFLICT_ERRORS:
         return status.HTTP_409_CONFLICT, {"detail": "Payout confirmation is not allowed in current state."}
     if error_code in _PAYOUT_UNPROCESSABLE_CONFIRMATION_ERRORS:
-        return status.HTTP_422_UNPROCESSABLE_CONTENT, {"detail": "Ledger confirmation failed validation."}
+        return status.HTTP_422_UNPROCESSABLE_CONTENT, {
+            "detail": _CONFIRMATION_FAILURE_DETAILS.get(error_code, "Ledger confirmation failed validation.")
+        }
     if error_code in {"winner_bonus_fulfillment_missing", "bout_escrow_set_invalid"}:
         return status.HTTP_422_UNPROCESSABLE_CONTENT, {"detail": "Payout setup is invalid."}
     return status.HTTP_400_BAD_REQUEST, {"detail": "Payout confirmation request is invalid."}
+
+
+def _map_signing_reconcile_error(error_code: str) -> tuple[int, dict[str, Any]]:
+    if error_code in _SIGNING_RECONCILIATION_NOT_FOUND_ERRORS:
+        return status.HTTP_404_NOT_FOUND, {"detail": "Requested bout/escrow was not found."}
+    if error_code == "xaman_observed_status_invalid":
+        return status.HTTP_400_BAD_REQUEST, {"detail": "Observed signing status is invalid."}
+    if error_code in {
+        "xaman_mode_invalid",
+        "xaman_api_credentials_missing",
+        "xaman_api_http_error",
+        "xaman_api_connection_error",
+        "xaman_api_invalid_json",
+        "xaman_api_invalid_response",
+    }:
+        return status.HTTP_502_BAD_GATEWAY, {"detail": "Xaman payload status could not be reconciled."}
+    return status.HTTP_400_BAD_REQUEST, {"detail": "Signing reconciliation request is invalid."}
 
 
 def _store_idempotent_result(
@@ -412,3 +548,25 @@ def _commit_or_raise_persistence_error(*, uow: SqlAlchemyUnitOfWork, detail: str
     except IntegrityError as exc:
         uow.rollback()
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=detail) from exc
+
+
+def _create_xaman_sign_request_view(
+    *,
+    xaman: XamanService,
+    tx_json: dict[str, Any],
+    reference: str,
+) -> XamanSignRequestView:
+    try:
+        sign_request = xaman.create_sign_request(tx_json=tx_json, reference=reference)
+    except XamanIntegrationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Xaman signing request could not be prepared.",
+        ) from exc
+    return XamanSignRequestView(
+        payload_id=sign_request.payload_id,
+        deep_link_url=sign_request.deep_link_url,
+        qr_png_url=sign_request.qr_png_url,
+        websocket_status_url=sign_request.websocket_status_url,
+        mode=sign_request.mode,
+    )

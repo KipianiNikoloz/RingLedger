@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest
 import uuid
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, func, select
@@ -14,6 +14,7 @@ from app.core.config import settings
 from app.core.security import create_access_token
 from app.db.base import Base
 from app.db.session import get_session
+from app.integrations.xaman_service import XamanIntegrationError
 from app.main import create_app
 from app.models.audit_log import AuditLog
 from app.models.bout import Bout
@@ -60,6 +61,13 @@ class EscrowConfirmIntegrationTests(unittest.TestCase):
         body = response.json()
         self.assertEqual(body["bout_id"], str(self.bout_id))
         self.assertEqual(len(body["escrows"]), 4)
+        for item in body["escrows"]:
+            sign_request = item.get("xaman_sign_request")
+            self.assertIsInstance(sign_request, dict)
+            self.assertIn("payload_id", sign_request)
+            self.assertTrue(sign_request["deep_link_url"].startswith("xumm://payload/"))
+            self.assertTrue(sign_request["qr_png_url"].startswith("https://xumm.app/sign/"))
+            self.assertEqual(sign_request["mode"], "stub")
 
         payloads = {item["escrow_kind"]: item["unsigned_tx"] for item in body["escrows"]}
         self.assertEqual(
@@ -77,6 +85,102 @@ class EscrowConfirmIntegrationTests(unittest.TestCase):
         self.assertNotIn("CancelAfter", payloads[EscrowKind.SHOW_B.value])
         self.assertIn("CancelAfter", payloads[EscrowKind.BONUS_A.value])
         self.assertIn("CancelAfter", payloads[EscrowKind.BONUS_B.value])
+
+    def test_prepare_returns_502_when_xaman_sign_request_fails(self) -> None:
+        xaman_mock = Mock()
+        xaman_mock.create_sign_request.side_effect = XamanIntegrationError("xaman_api_connection_error")
+        with patch("app.api.bouts.XamanService.from_settings", return_value=xaman_mock):
+            response = self.client.post(
+                f"/bouts/{self.bout_id}/escrows/prepare",
+                headers=self._promoter_headers(),
+            )
+
+        self.assertEqual(response.status_code, 502)
+        self.assertEqual(response.json()["detail"], "Xaman signing request could not be prepared.")
+
+    def test_signing_reconcile_declined_sets_failure_without_state_transition(self) -> None:
+        payload_id = self._prepare_payload_id(EscrowKind.SHOW_A)
+        response = self.client.post(
+            f"/bouts/{self.bout_id}/escrows/signing/reconcile",
+            headers=self._promoter_headers(),
+            json={
+                "escrow_kind": EscrowKind.SHOW_A.value,
+                "payload_id": payload_id,
+                "observed_status": "declined",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertEqual(body["signing_status"], "declined")
+        self.assertEqual(body["failure_code"], "signing_declined")
+        self.assertEqual(body["escrow_status"], EscrowStatus.PLANNED.value)
+
+        with Session(self.engine) as session:
+            escrow = session.scalar(
+                select(Escrow).where(Escrow.bout_id == self.bout_id, Escrow.kind == EscrowKind.SHOW_A)
+            )
+            assert escrow is not None
+            self.assertEqual(escrow.status, EscrowStatus.PLANNED)
+            self.assertEqual(escrow.failure_code, "signing_declined")
+            audit = session.scalar(
+                select(AuditLog).where(
+                    AuditLog.action == "escrow_signing_reconcile",
+                    AuditLog.entity_id == str(escrow.id),
+                    AuditLog.outcome == "rejected",
+                )
+            )
+            self.assertIsNotNone(audit)
+
+    def test_signing_reconcile_signed_clears_signing_failure_without_state_transition(self) -> None:
+        payload_id = self._prepare_payload_id(EscrowKind.SHOW_B)
+        first = self.client.post(
+            f"/bouts/{self.bout_id}/escrows/signing/reconcile",
+            headers=self._promoter_headers(),
+            json={
+                "escrow_kind": EscrowKind.SHOW_B.value,
+                "payload_id": payload_id,
+                "observed_status": "expired",
+            },
+        )
+        self.assertEqual(first.status_code, 200)
+        self.assertEqual(first.json()["failure_code"], "signing_expired")
+
+        second = self.client.post(
+            f"/bouts/{self.bout_id}/escrows/signing/reconcile",
+            headers=self._promoter_headers(),
+            json={
+                "escrow_kind": EscrowKind.SHOW_B.value,
+                "payload_id": payload_id,
+                "observed_status": "signed",
+                "observed_tx_hash": "ABC123",
+            },
+        )
+        self.assertEqual(second.status_code, 200)
+        self.assertEqual(second.json()["signing_status"], "signed")
+        self.assertIsNone(second.json()["failure_code"])
+        self.assertEqual(second.json()["tx_hash"], "ABC123")
+
+        with Session(self.engine) as session:
+            escrow = session.scalar(
+                select(Escrow).where(Escrow.bout_id == self.bout_id, Escrow.kind == EscrowKind.SHOW_B)
+            )
+            assert escrow is not None
+            self.assertEqual(escrow.status, EscrowStatus.PLANNED)
+            self.assertIsNone(escrow.failure_code)
+
+    def test_signing_reconcile_rejects_invalid_observed_status(self) -> None:
+        payload_id = self._prepare_payload_id(EscrowKind.BONUS_A)
+        response = self.client.post(
+            f"/bouts/{self.bout_id}/escrows/signing/reconcile",
+            headers=self._promoter_headers(),
+            json={
+                "escrow_kind": EscrowKind.BONUS_A.value,
+                "payload_id": payload_id,
+                "observed_status": "invalid-value",
+            },
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["detail"], "Observed signing status is invalid.")
 
     def test_confirm_transitions_all_escrows_and_marks_bout_escrows_created(self) -> None:
         confirmations = [
@@ -161,6 +265,7 @@ class EscrowConfirmIntegrationTests(unittest.TestCase):
             tx_hash="TX00000021",
             offer_sequence=2221,
             validated=False,
+            engine_result="timeout",
         )
         response = self.client.post(
             f"/bouts/{self.bout_id}/escrows/confirm",
@@ -168,7 +273,10 @@ class EscrowConfirmIntegrationTests(unittest.TestCase):
             json=payload,
         )
         self.assertEqual(response.status_code, 422)
-        self.assertEqual(response.json()["detail"], "Ledger confirmation failed validation.")
+        self.assertEqual(
+            response.json()["detail"],
+            "Confirmation timed out or remained unvalidated; no state transition was applied.",
+        )
 
         replay = self.client.post(
             f"/bouts/{self.bout_id}/escrows/confirm",
@@ -184,7 +292,7 @@ class EscrowConfirmIntegrationTests(unittest.TestCase):
             )
             assert escrow is not None
             self.assertEqual(escrow.status, EscrowStatus.PLANNED)
-            self.assertEqual(escrow.failure_code, "invalid_confirmation")
+            self.assertEqual(escrow.failure_code, "confirmation_timeout")
 
             audit = session.scalar(
                 select(AuditLog).where(
@@ -194,6 +302,57 @@ class EscrowConfirmIntegrationTests(unittest.TestCase):
                 )
             )
             self.assertIsNotNone(audit)
+
+    def test_confirm_rejects_declined_signing_with_explicit_failure_classification(self) -> None:
+        payload = self._build_confirm_payload(
+            kind=EscrowKind.SHOW_A,
+            tx_hash="TX00000031",
+            offer_sequence=3331,
+            validated=False,
+            engine_result="declined",
+        )
+        response = self.client.post(
+            f"/bouts/{self.bout_id}/escrows/confirm",
+            headers=self._promoter_headers({"Idempotency-Key": "declined-confirm"}),
+            json=payload,
+        )
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.json()["detail"], "Signing was declined; no state transition was applied.")
+
+        with Session(self.engine) as session:
+            escrow = session.scalar(
+                select(Escrow).where(Escrow.bout_id == self.bout_id, Escrow.kind == EscrowKind.SHOW_A)
+            )
+            assert escrow is not None
+            self.assertEqual(escrow.status, EscrowStatus.PLANNED)
+            self.assertEqual(escrow.failure_code, "signing_declined")
+
+    def test_confirm_rejects_tec_tem_with_explicit_failure_classification(self) -> None:
+        payload = self._build_confirm_payload(
+            kind=EscrowKind.BONUS_A,
+            tx_hash="TX00000041",
+            offer_sequence=4441,
+            validated=True,
+            engine_result="tecUNFUNDED_PAYMENT",
+        )
+        response = self.client.post(
+            f"/bouts/{self.bout_id}/escrows/confirm",
+            headers=self._promoter_headers({"Idempotency-Key": "tec-tem-confirm"}),
+            json=payload,
+        )
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(
+            response.json()["detail"],
+            "Ledger transaction was rejected with tec/tem; no state transition was applied.",
+        )
+
+        with Session(self.engine) as session:
+            escrow = session.scalar(
+                select(Escrow).where(Escrow.bout_id == self.bout_id, Escrow.kind == EscrowKind.BONUS_A)
+            )
+            assert escrow is not None
+            self.assertEqual(escrow.status, EscrowStatus.PLANNED)
+            self.assertEqual(escrow.failure_code, "ledger_tec_tem")
 
     def _override_get_session(self) -> Session:
         session = self.SessionLocal()
@@ -276,6 +435,15 @@ class EscrowConfirmIntegrationTests(unittest.TestCase):
         if extra:
             headers.update(extra)
         return headers
+
+    def _prepare_payload_id(self, escrow_kind: EscrowKind) -> str:
+        response = self.client.post(
+            f"/bouts/{self.bout_id}/escrows/prepare",
+            headers=self._promoter_headers(),
+        )
+        self.assertEqual(response.status_code, 200)
+        item = next(item for item in response.json()["escrows"] if item["escrow_kind"] == escrow_kind.value)
+        return item["xaman_sign_request"]["payload_id"]
 
 
 if __name__ == "__main__":

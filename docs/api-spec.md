@@ -1,15 +1,18 @@
-# RingLedger API Spec (M3 Result + Payout Flow)
+# RingLedger API Spec (M4 Slice D In Progress)
 
-Last updated: 2026-02-21
+Last updated: 2026-02-22
 
 ## Scope
 
-This document captures the implemented API surface through M3:
+This document captures the implemented API surface through M4 slice D:
 
 - Auth: register/login (email/password -> JWT)
 - Escrow create prepare/confirm
 - Result entry
 - Payout prepare/confirm
+- Xaman signing request envelopes for promoter prepare flows
+- Signing-status reconciliation endpoints for Xaman payload outcomes
+- Backend-driven frontend E2E consumer coverage for login-to-closeout and declined-signing failure journeys
 
 ## Mandatory Architecture Hardening Note (Pre-M4 Closeout)
 
@@ -22,13 +25,13 @@ This document captures the implemented API surface through M3:
 
 ## Mandatory Migration Auth Modernization Note (Pre-M4 Closeout)
 
-- Planned modernization scope: Alembic migration authority and proven auth-library adoption.
-- Contract stability expectations during this step:
+- Implemented modernization scope: Alembic migration authority and proven auth-library adoption.
+- Contract stability outcomes from this step:
   - no endpoint path changes
   - no request/response schema changes
   - no auth mode expansion beyond email/password plus JWT
   - no wallet-login route additions
-- Any API contract change remains out of scope unless explicitly versioned and documented.
+- API contract remained stable; any future contract change remains out of scope unless explicitly versioned and documented.
 
 ## Base Behavior
 
@@ -88,6 +91,7 @@ This document captures the implemented API surface through M3:
 ### `POST /bouts/{bout_id}/escrows/prepare`
 
 - Purpose: generate unsigned XRPL `EscrowCreate` payloads for all 4 escrows.
+- Returns per-item Xaman sign request metadata so promoter signing is initiated in Xaman.
 - Response `200`:
 
 ```json
@@ -105,6 +109,13 @@ This document captures the implemented API surface through M3:
         "FinishAfter": 823000000,
         "CancelAfter": 823604800,
         "Condition": "ABCDEF..."
+      },
+      "xaman_sign_request": {
+        "payload_id": "uuid",
+        "deep_link_url": "xumm://payload/uuid",
+        "qr_png_url": "https://xumm.app/sign/uuid/qr.png",
+        "websocket_status_url": "wss://xumm.app/sign/uuid",
+        "mode": "stub"
       }
     }
   ]
@@ -116,6 +127,47 @@ This document captures the implemented API surface through M3:
 - Error `404`: bout not found.
 - Error `409`: prepare not allowed in current state.
 - Error `422`: escrow plan invalid.
+- Error `502`: Xaman signing request preparation failed.
+
+### `POST /bouts/{bout_id}/escrows/signing/reconcile`
+
+- Purpose: reconcile Xaman payload status for escrow-create signing without mutating lifecycle state.
+- Role: promoter.
+- Request body:
+
+```json
+{
+  "escrow_kind": "show_a",
+  "payload_id": "uuid",
+  "observed_status": "declined",
+  "observed_tx_hash": null
+}
+```
+
+- Response `200`:
+
+```json
+{
+  "bout_id": "uuid",
+  "escrow_id": "uuid",
+  "escrow_kind": "show_a",
+  "escrow_status": "planned",
+  "payload_id": "uuid",
+  "signing_status": "declined",
+  "tx_hash": null,
+  "failure_code": "signing_declined"
+}
+```
+
+- Notes:
+  - This endpoint records signing outcome and audit metadata only.
+  - It never applies escrow/bout state transitions.
+
+- Error `400`: invalid observed status in stub reconciliation mode.
+- Error `401`: missing/invalid bearer token.
+- Error `403`: caller role is not promoter.
+- Error `404`: bout or escrow not found.
+- Error `502`: Xaman payload status could not be reconciled.
 
 ### `POST /bouts/{bout_id}/escrows/confirm`
 
@@ -140,7 +192,11 @@ This document captures the implemented API surface through M3:
 - Error `403`: caller role is not promoter.
 - Error `404`: bout or escrow not found.
 - Error `409`: state conflict, or idempotency key reused with different payload.
-- Error `422`: ledger confirmation failed validation.
+- Error `422`: deterministic failure taxonomy without state transition:
+  - `Signing was declined; no state transition was applied.`
+  - `Confirmation timed out or remained unvalidated; no state transition was applied.`
+  - `Ledger transaction was rejected with tec/tem; no state transition was applied.`
+  - `Ledger confirmation failed validation.`
 
 ### `POST /bouts/{bout_id}/result`
 
@@ -176,6 +232,7 @@ This document captures the implemented API surface through M3:
   - `EscrowFinish` for winner bonus (with platform fulfillment)
   - `EscrowCancel` for loser bonus
 - Role: promoter.
+- Returns per-item Xaman sign request metadata so promoter signing is initiated in Xaman.
 - Response `200`:
 
 ```json
@@ -193,6 +250,13 @@ This document captures the implemented API surface through M3:
         "Owner": "rPromoter...",
         "OfferSequence": 6003,
         "Fulfillment": "A1B2..."
+      },
+      "xaman_sign_request": {
+        "payload_id": "uuid",
+        "deep_link_url": "xumm://payload/uuid",
+        "qr_png_url": "https://xumm.app/sign/uuid/qr.png",
+        "websocket_status_url": "wss://xumm.app/sign/uuid",
+        "mode": "stub"
       }
     },
     {
@@ -215,6 +279,47 @@ This document captures the implemented API surface through M3:
 - Error `404`: bout not found.
 - Error `409`: payout prepare not allowed in current state.
 - Error `422`: payout setup invalid.
+- Error `502`: Xaman signing request preparation failed.
+
+### `POST /bouts/{bout_id}/payouts/signing/reconcile`
+
+- Purpose: reconcile Xaman payload status for payout signing without mutating lifecycle state.
+- Role: promoter.
+- Request body:
+
+```json
+{
+  "escrow_kind": "show_a",
+  "payload_id": "uuid",
+  "observed_status": "expired",
+  "observed_tx_hash": null
+}
+```
+
+- Response `200`:
+
+```json
+{
+  "bout_id": "uuid",
+  "escrow_id": "uuid",
+  "escrow_kind": "show_a",
+  "escrow_status": "created",
+  "payload_id": "uuid",
+  "signing_status": "expired",
+  "tx_hash": null,
+  "failure_code": "signing_expired"
+}
+```
+
+- Notes:
+  - This endpoint records signing outcome and audit metadata only.
+  - It never applies escrow/bout state transitions.
+
+- Error `400`: invalid observed status in stub reconciliation mode.
+- Error `401`: missing/invalid bearer token.
+- Error `403`: caller role is not promoter.
+- Error `404`: bout or escrow not found.
+- Error `502`: Xaman payload status could not be reconciled.
 
 ### `POST /bouts/{bout_id}/payouts/confirm`
 
@@ -257,7 +362,11 @@ This document captures the implemented API surface through M3:
 - Error `403`: caller role is not promoter.
 - Error `404`: bout or escrow not found.
 - Error `409`: state conflict, or idempotency key reused with different payload.
-- Error `422`: ledger confirmation failed validation (timing, tx type, offer sequence, fulfillment, or `tesSUCCESS` mismatch).
+- Error `422`: deterministic failure taxonomy without state transition:
+  - `Signing was declined; no state transition was applied.`
+  - `Confirmation timed out or remained unvalidated; no state transition was applied.`
+  - `Ledger transaction was rejected with tec/tem; no state transition was applied.`
+  - `Ledger confirmation failed validation.` for invariant mismatch (timing, tx type, offer sequence, fulfillment).
 
 ## Confirm Idempotency Contract
 
@@ -272,6 +381,18 @@ This document captures the implemented API surface through M3:
 
 - No wallet login endpoint exists in MVP.
 - No XRPL address login endpoint exists.
+
+## Frontend Consumer Coverage (Current)
+
+- Frontend contract coverage is currently enforced via backend-driven E2E API-consumer tests:
+  - `backend/tests/e2e/test_promoter_signing_flow.py`
+- Covered journeys:
+  - register/login + role-scoped access
+  - promoter escrow prepare/signing reconcile/confirm flow
+  - admin result entry
+  - promoter payout prepare/signing reconcile/confirm closeout flow
+  - declined-signing failure with deterministic `422` and idempotent replay parity
+- This preserves API and state semantics while UI implementation is still pending.
 
 ## Planned Next Endpoints (Not Implemented Yet)
 

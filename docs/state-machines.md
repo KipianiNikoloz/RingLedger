@@ -1,7 +1,7 @@
 # RingLedger MVP State Machines
 
 Date locked: 2026-02-16
-Last implementation sync: 2026-02-21
+Last implementation sync: 2026-02-22
 
 ## Mandatory Architecture Hardening Note (Pre-M4 Closeout)
 
@@ -9,6 +9,12 @@ Last implementation sync: 2026-02-21
 - The refactor scope is persistence-boundary hardening only: lightweight Unit of Work plus selective repositories.
 - The refactor does not change state definitions, transition legality, endpoint-to-state mapping, or guard semantics in this document.
 - Any change to lifecycle semantics remains out of scope and requires explicit requirement and ADR updates.
+
+## Mandatory Migration Auth Modernization Note (Pre-M4 Closeout)
+
+- Alembic migration authority and proven auth-library adoption have been implemented.
+- This modernization changes infrastructure and persistence/auth internals only.
+- No state definitions, transition legality, endpoint-to-state mapping, or guard semantics changed in this document.
 
 ## Global Invariants
 
@@ -85,15 +91,18 @@ Last implementation sync: 2026-02-21
 |---|---|---|
 | `POST /bouts` | creates bout in `draft`; creates 4 escrows in `planned` | No ledger transition yet |
 | `POST /bouts/{bout_id}/escrows/prepare` | no state transition | Promoter JWT required; generates unsigned tx payloads |
+| `POST /bouts/{bout_id}/escrows/signing/reconcile` | no state transition | Promoter JWT required; reconciles Xaman signing status and persists failure classification metadata only |
 | `POST /bouts/{bout_id}/escrows/confirm` | escrow `planned -> created`; bout `draft -> escrows_created` when all 4 done | Promoter JWT + idempotency + ledger validation |
 | `POST /bouts/{bout_id}/result` | bout `escrows_created -> result_entered` | Admin JWT required |
 | `POST /bouts/{bout_id}/payouts/prepare` | no state transition | Promoter JWT required; generates unsigned finish/cancel payloads |
+| `POST /bouts/{bout_id}/payouts/signing/reconcile` | no state transition | Promoter JWT required; reconciles Xaman signing status and persists failure classification metadata only |
 | `POST /bouts/{bout_id}/payouts/confirm` | escrow `created -> finished/cancelled`; bout enters `payouts_in_progress`; may reach `closed` | Promoter JWT + idempotency + ledger validation |
 
 ## Failure Path Contract
 
-- Signing declined: no transition; audited as non-fatal retryable action.
-- `tec/tem`: no transition; persisted failure classification; manual or gated retry.
-- Confirmation timeout: no optimistic transition; remains safe prior state with retry path.
-- Invalid confirmation/field mismatch: reject, audit, and classify as security/integrity failure.
+- Signing declined: no transition; persisted `failure_code=signing_declined`; audited as retryable action.
+- Signing expired: no transition; persisted `failure_code=signing_expired`; retry requires new signing attempt.
+- `tec/tem`: no transition; persisted `failure_code=ledger_tec_tem`; manual or gated retry.
+- Confirmation timeout/unvalidated: no optimistic transition; persisted `failure_code=confirmation_timeout`; retry path remains.
+- Invalid confirmation/field mismatch: reject, audit, and persist `failure_code=invalid_confirmation`.
 - Idempotency payload collision: reject with deterministic conflict response and no state transition.

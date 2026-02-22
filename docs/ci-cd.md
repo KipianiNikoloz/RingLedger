@@ -1,6 +1,6 @@
 # RingLedger CI/CD and Dependency Automation
 
-Last updated: 2026-02-21
+Last updated: 2026-02-22
 
 ## Objectives
 
@@ -27,7 +27,7 @@ Workflow file: `.github/workflows/ci-cd.yml`
    - syntax compile check: `python -m compileall backend/app backend/tests`
    - formatting gate: `ruff format --check backend`
    - lint gate: `ruff check backend`
-   - test gate: `python -m unittest discover -s backend/tests -p "test_*.py"`
+   - test gate: `python -m unittest discover -s backend/tests -p "test_*.py"` (includes unit/integration/contract/security/migration/e2e packages)
 2. `secret-scan`
    - full checkout history
    - `gitleaks` repository scan
@@ -55,7 +55,8 @@ Run these locally before opening/updating a PR:
 python -m compileall backend/app backend/tests
 ruff format --check backend
 ruff check backend
-python -m unittest discover -s backend/tests -p "test_*.py"
+python -m pytest backend/tests -q
+python -m alembic -c backend/alembic.ini history
 ```
 
 ## Mandatory Modernization Gates (Pre-M4 Closeout)
@@ -72,6 +73,11 @@ The following verification gates are mandatory for migration/auth modernization 
   - security checks for replay/authz/secret leakage parity.
 
 These gates are additive to existing quality and secret-scan requirements.
+
+Current evidence includes:
+
+- `python -m pytest backend/tests -q` passing with full backend suite (including M4 Xaman integration/reconciliation and backend-driven frontend E2E journeys).
+- `python -m alembic -c backend/alembic.ini history` showing baseline revision head.
 
 ## Security Notes
 
