@@ -1,10 +1,10 @@
-# RingLedger API Spec (M4 Slice C In Progress)
+# RingLedger API Spec (M4 Slice D In Progress)
 
 Last updated: 2026-02-22
 
 ## Scope
 
-This document captures the implemented API surface through M4 slice C:
+This document captures the implemented API surface through M4 slice D:
 
 - Auth: register/login (email/password -> JWT)
 - Escrow create prepare/confirm
@@ -12,6 +12,7 @@ This document captures the implemented API surface through M4 slice C:
 - Payout prepare/confirm
 - Xaman signing request envelopes for promoter prepare flows
 - Signing-status reconciliation endpoints for Xaman payload outcomes
+- Backend-driven frontend E2E consumer coverage for login-to-closeout and declined-signing failure journeys
 
 ## Mandatory Architecture Hardening Note (Pre-M4 Closeout)
 
@@ -380,6 +381,18 @@ This document captures the implemented API surface through M4 slice C:
 
 - No wallet login endpoint exists in MVP.
 - No XRPL address login endpoint exists.
+
+## Frontend Consumer Coverage (Current)
+
+- Frontend contract coverage is currently enforced via backend-driven E2E API-consumer tests:
+  - `backend/tests/e2e/test_promoter_signing_flow.py`
+- Covered journeys:
+  - register/login + role-scoped access
+  - promoter escrow prepare/signing reconcile/confirm flow
+  - admin result entry
+  - promoter payout prepare/signing reconcile/confirm closeout flow
+  - declined-signing failure with deterministic `422` and idempotent replay parity
+- This preserves API and state semantics while UI implementation is still pending.
 
 ## Planned Next Endpoints (Not Implemented Yet)
 

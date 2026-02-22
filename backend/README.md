@@ -28,6 +28,9 @@
 - Explicit confirm failure taxonomy behavior:
   - `signing_declined`, `signing_expired`, `confirmation_timeout`, `ledger_tec_tem`, `invalid_confirmation`
   - failures are persisted/audited and never advance state
+- Frontend-consumer contract coverage behavior:
+  - backend-driven E2E journey tests validate frontend-expected API contracts before React screens are implemented
+  - critical journeys cover login-to-closeout and declined-signing replay-safe handling
 - Replay-safe idempotency storage and mismatch rejection for confirm calls (`escrows/confirm` and `payouts/confirm`)
 - Audit logging for escrow create/payout and bout lifecycle outcomes
 - Alembic-governed PostgreSQL schema evolution with baseline revision
@@ -74,9 +77,9 @@ Implemented modernization scope:
 
 - Continue residual hardening scope for operational readiness and risk burn-down.
 - Focus areas:
-  - Xaman integration hardening completion (`R-06`) after initial sign-request contract delivery
+  - Xaman integration hardening completion (`R-06`) after sign-request and signing-status reconciliation delivery
   - failure taxonomy expansion after initial declined/timeout/`tec`/`tem` delivery (`R-12`)
-  - e2e/frontend journey coverage (`R-01`, `R-10`)
+  - expand from backend-driven frontend contract E2E coverage to implemented React screens and browser-level journeys (`R-01`, `R-10`)
   - regression/performance baselines and runbook completion
 
 ## Notes

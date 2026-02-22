@@ -1,4 +1,4 @@
-# RingLedger Xaman Signing Contract (M4 Slice C)
+# RingLedger Xaman Signing Contract (M4 Slice D)
 
 Last updated: 2026-02-22
 
@@ -6,7 +6,7 @@ Last updated: 2026-02-22
 
 Define backend responsibilities for non-custodial promoter signing with Xaman, including payload-status reconciliation.
 
-This slice hardens `R-06` without changing auth mode, payout/escrow state semantics, or confirm idempotency behavior.
+This slice hardens requirement `R-06` without changing the authentication model, escrow/payout state semantics, or confirm idempotency behavior.
 
 ## Backend Guarantees
 
@@ -72,3 +72,4 @@ Environment variables:
 - Unit: `backend/tests/unit/test_xaman_service.py`
 - Integration: `backend/tests/integration/test_escrow_confirm_flow.py`
 - Integration: `backend/tests/integration/test_payout_flow.py`
+- E2E frontend-consumer journey: `backend/tests/e2e/test_promoter_signing_flow.py`

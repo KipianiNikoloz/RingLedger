@@ -27,7 +27,7 @@ Workflow file: `.github/workflows/ci-cd.yml`
    - syntax compile check: `python -m compileall backend/app backend/tests`
    - formatting gate: `ruff format --check backend`
    - lint gate: `ruff check backend`
-   - test gate: `python -m unittest discover -s backend/tests -p "test_*.py"`
+   - test gate: `python -m unittest discover -s backend/tests -p "test_*.py"` (includes unit/integration/contract/security/migration/e2e packages)
 2. `secret-scan`
    - full checkout history
    - `gitleaks` repository scan
@@ -76,7 +76,7 @@ These gates are additive to existing quality and secret-scan requirements.
 
 Current evidence includes:
 
-- `python -m pytest backend/tests -q` passing with full backend suite (including M4 Xaman integration tests).
+- `python -m pytest backend/tests -q` passing with full backend suite (including M4 Xaman integration/reconciliation and backend-driven frontend E2E journeys).
 - `python -m alembic -c backend/alembic.ini history` showing baseline revision head.
 
 ## Security Notes

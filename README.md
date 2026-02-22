@@ -13,6 +13,7 @@ Escrow-based fighter purse settlement on XRPL Testnet, with promoter signing via
 - M4 hardening has started with backend Xaman sign-request integration for non-custodial promoter signing flows.
 - M4 failure-taxonomy slice has started: explicit declined/timeout/`tec`/`tem` confirm handling with persisted/audited classification and no unsafe transitions.
 - M4 signing-reconciliation slice has started: backend Xaman payload status reconciliation endpoints for declined/expired/signed outcomes with no lifecycle transition side effects.
+- M4 frontend-coverage slice has started: backend-driven frontend contract E2E journeys now cover login-to-closeout and declined-signing replay-safe failure behavior.
 
 ## MVP Scope (Locked)
 
