@@ -29,10 +29,12 @@ from app.schemas.payout import (
     PayoutPrepareItem,
     PayoutPrepareResponse,
 )
+from app.schemas.signing import SigningReconcileRequest, SigningReconcileResponse
 from app.schemas.xaman import XamanSignRequestView
 from app.services.escrow_service import EscrowService
 from app.services.idempotency_service import IdempotencyKeyMismatchError, IdempotencyService
 from app.services.payout_service import PayoutService
+from app.services.signing_reconciliation_service import SigningReconciliationService
 from app.services.xrpl_escrow_service import EscrowCreateConfirmation, EscrowPayoutConfirmation
 
 router = APIRouter(prefix="/bouts", tags=["bouts"])
@@ -69,6 +71,10 @@ _PAYOUT_UNPROCESSABLE_CONFIRMATION_ERRORS = {
     "ledger_tec_tem",
     "ledger_not_success",
     "ledger_not_validated",
+}
+_SIGNING_RECONCILIATION_NOT_FOUND_ERRORS = {
+    "bout_not_found",
+    "escrow_not_found",
 }
 
 _CONFIRMATION_FAILURE_DETAILS: dict[str, str] = {
@@ -365,6 +371,98 @@ def confirm_payout(
     return response
 
 
+@router.post("/{bout_id}/escrows/signing/reconcile", response_model=SigningReconcileResponse)
+def reconcile_escrow_signing_status(
+    bout_id: uuid.UUID,
+    payload: SigningReconcileRequest,
+    actor: RequestActor = Depends(require_role(UserRole.PROMOTER)),
+    session: Session = Depends(get_session),
+) -> SigningReconcileResponse:
+    uow = SqlAlchemyUnitOfWork(session=session)
+    service = SigningReconciliationService(session=session)
+    try:
+        outcome = service.reconcile_escrow_create_signing(
+            bout_id=bout_id,
+            escrow_kind=payload.escrow_kind,
+            payload_id=payload.payload_id,
+            actor_user_id=actor.user_id,
+            observed_status=payload.observed_status,
+            observed_tx_hash=payload.observed_tx_hash,
+        )
+    except ValueError as exc:
+        uow.rollback()
+        code, body = _map_signing_reconcile_error(str(exc))
+        raise HTTPException(status_code=code, detail=body["detail"]) from exc
+    except XamanIntegrationError as exc:
+        uow.rollback()
+        code, body = _map_signing_reconcile_error(str(exc))
+        raise HTTPException(status_code=code, detail=body["detail"]) from exc
+    except Exception:
+        uow.rollback()
+        raise
+
+    _commit_or_raise_persistence_error(
+        uow=uow,
+        detail="Escrow signing reconciliation could not be persisted safely.",
+    )
+    return SigningReconcileResponse(
+        bout_id=str(outcome.bout.id),
+        escrow_id=str(outcome.escrow.id),
+        escrow_kind=outcome.escrow.kind,
+        escrow_status=outcome.escrow.status,
+        payload_id=outcome.payload_id,
+        signing_status=outcome.signing_status.value,
+        tx_hash=outcome.tx_hash,
+        failure_code=outcome.escrow.failure_code,
+    )
+
+
+@router.post("/{bout_id}/payouts/signing/reconcile", response_model=SigningReconcileResponse)
+def reconcile_payout_signing_status(
+    bout_id: uuid.UUID,
+    payload: SigningReconcileRequest,
+    actor: RequestActor = Depends(require_role(UserRole.PROMOTER)),
+    session: Session = Depends(get_session),
+) -> SigningReconcileResponse:
+    uow = SqlAlchemyUnitOfWork(session=session)
+    service = SigningReconciliationService(session=session)
+    try:
+        outcome = service.reconcile_payout_signing(
+            bout_id=bout_id,
+            escrow_kind=payload.escrow_kind,
+            payload_id=payload.payload_id,
+            actor_user_id=actor.user_id,
+            observed_status=payload.observed_status,
+            observed_tx_hash=payload.observed_tx_hash,
+        )
+    except ValueError as exc:
+        uow.rollback()
+        code, body = _map_signing_reconcile_error(str(exc))
+        raise HTTPException(status_code=code, detail=body["detail"]) from exc
+    except XamanIntegrationError as exc:
+        uow.rollback()
+        code, body = _map_signing_reconcile_error(str(exc))
+        raise HTTPException(status_code=code, detail=body["detail"]) from exc
+    except Exception:
+        uow.rollback()
+        raise
+
+    _commit_or_raise_persistence_error(
+        uow=uow,
+        detail="Payout signing reconciliation could not be persisted safely.",
+    )
+    return SigningReconcileResponse(
+        bout_id=str(outcome.bout.id),
+        escrow_id=str(outcome.escrow.id),
+        escrow_kind=outcome.escrow.kind,
+        escrow_status=outcome.escrow.status,
+        payload_id=outcome.payload_id,
+        signing_status=outcome.signing_status.value,
+        tx_hash=outcome.tx_hash,
+        failure_code=outcome.escrow.failure_code,
+    )
+
+
 def _map_escrow_create_confirm_error(error_code: str) -> tuple[int, dict[str, Any]]:
     if error_code in {"bout_not_found", "escrow_not_found"}:
         return status.HTTP_404_NOT_FOUND, {"detail": "Requested bout/escrow was not found."}
@@ -407,6 +505,23 @@ def _map_payout_confirm_error(error_code: str) -> tuple[int, dict[str, Any]]:
     if error_code in {"winner_bonus_fulfillment_missing", "bout_escrow_set_invalid"}:
         return status.HTTP_422_UNPROCESSABLE_CONTENT, {"detail": "Payout setup is invalid."}
     return status.HTTP_400_BAD_REQUEST, {"detail": "Payout confirmation request is invalid."}
+
+
+def _map_signing_reconcile_error(error_code: str) -> tuple[int, dict[str, Any]]:
+    if error_code in _SIGNING_RECONCILIATION_NOT_FOUND_ERRORS:
+        return status.HTTP_404_NOT_FOUND, {"detail": "Requested bout/escrow was not found."}
+    if error_code == "xaman_observed_status_invalid":
+        return status.HTTP_400_BAD_REQUEST, {"detail": "Observed signing status is invalid."}
+    if error_code in {
+        "xaman_mode_invalid",
+        "xaman_api_credentials_missing",
+        "xaman_api_http_error",
+        "xaman_api_connection_error",
+        "xaman_api_invalid_json",
+        "xaman_api_invalid_response",
+    }:
+        return status.HTTP_502_BAD_GATEWAY, {"detail": "Xaman payload status could not be reconciled."}
+    return status.HTTP_400_BAD_REQUEST, {"detail": "Signing reconciliation request is invalid."}
 
 
 def _store_idempotent_result(

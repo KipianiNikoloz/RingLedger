@@ -16,12 +16,18 @@ class BoutEscrowApiContractTests(unittest.TestCase):
         self.assertTrue(
             any(path == "/bouts/{bout_id}/escrows/confirm" and "POST" in methods for path, methods in routes)
         )
+        self.assertTrue(
+            any(path == "/bouts/{bout_id}/escrows/signing/reconcile" and "POST" in methods for path, methods in routes)
+        )
         self.assertTrue(any(path == "/bouts/{bout_id}/result" and "POST" in methods for path, methods in routes))
         self.assertTrue(
             any(path == "/bouts/{bout_id}/payouts/prepare" and "POST" in methods for path, methods in routes)
         )
         self.assertTrue(
             any(path == "/bouts/{bout_id}/payouts/confirm" and "POST" in methods for path, methods in routes)
+        )
+        self.assertTrue(
+            any(path == "/bouts/{bout_id}/payouts/signing/reconcile" and "POST" in methods for path, methods in routes)
         )
 
 

@@ -98,6 +98,90 @@ class EscrowConfirmIntegrationTests(unittest.TestCase):
         self.assertEqual(response.status_code, 502)
         self.assertEqual(response.json()["detail"], "Xaman signing request could not be prepared.")
 
+    def test_signing_reconcile_declined_sets_failure_without_state_transition(self) -> None:
+        payload_id = self._prepare_payload_id(EscrowKind.SHOW_A)
+        response = self.client.post(
+            f"/bouts/{self.bout_id}/escrows/signing/reconcile",
+            headers=self._promoter_headers(),
+            json={
+                "escrow_kind": EscrowKind.SHOW_A.value,
+                "payload_id": payload_id,
+                "observed_status": "declined",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertEqual(body["signing_status"], "declined")
+        self.assertEqual(body["failure_code"], "signing_declined")
+        self.assertEqual(body["escrow_status"], EscrowStatus.PLANNED.value)
+
+        with Session(self.engine) as session:
+            escrow = session.scalar(
+                select(Escrow).where(Escrow.bout_id == self.bout_id, Escrow.kind == EscrowKind.SHOW_A)
+            )
+            assert escrow is not None
+            self.assertEqual(escrow.status, EscrowStatus.PLANNED)
+            self.assertEqual(escrow.failure_code, "signing_declined")
+            audit = session.scalar(
+                select(AuditLog).where(
+                    AuditLog.action == "escrow_signing_reconcile",
+                    AuditLog.entity_id == str(escrow.id),
+                    AuditLog.outcome == "rejected",
+                )
+            )
+            self.assertIsNotNone(audit)
+
+    def test_signing_reconcile_signed_clears_signing_failure_without_state_transition(self) -> None:
+        payload_id = self._prepare_payload_id(EscrowKind.SHOW_B)
+        first = self.client.post(
+            f"/bouts/{self.bout_id}/escrows/signing/reconcile",
+            headers=self._promoter_headers(),
+            json={
+                "escrow_kind": EscrowKind.SHOW_B.value,
+                "payload_id": payload_id,
+                "observed_status": "expired",
+            },
+        )
+        self.assertEqual(first.status_code, 200)
+        self.assertEqual(first.json()["failure_code"], "signing_expired")
+
+        second = self.client.post(
+            f"/bouts/{self.bout_id}/escrows/signing/reconcile",
+            headers=self._promoter_headers(),
+            json={
+                "escrow_kind": EscrowKind.SHOW_B.value,
+                "payload_id": payload_id,
+                "observed_status": "signed",
+                "observed_tx_hash": "ABC123",
+            },
+        )
+        self.assertEqual(second.status_code, 200)
+        self.assertEqual(second.json()["signing_status"], "signed")
+        self.assertIsNone(second.json()["failure_code"])
+        self.assertEqual(second.json()["tx_hash"], "ABC123")
+
+        with Session(self.engine) as session:
+            escrow = session.scalar(
+                select(Escrow).where(Escrow.bout_id == self.bout_id, Escrow.kind == EscrowKind.SHOW_B)
+            )
+            assert escrow is not None
+            self.assertEqual(escrow.status, EscrowStatus.PLANNED)
+            self.assertIsNone(escrow.failure_code)
+
+    def test_signing_reconcile_rejects_invalid_observed_status(self) -> None:
+        payload_id = self._prepare_payload_id(EscrowKind.BONUS_A)
+        response = self.client.post(
+            f"/bouts/{self.bout_id}/escrows/signing/reconcile",
+            headers=self._promoter_headers(),
+            json={
+                "escrow_kind": EscrowKind.BONUS_A.value,
+                "payload_id": payload_id,
+                "observed_status": "invalid-value",
+            },
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["detail"], "Observed signing status is invalid.")
+
     def test_confirm_transitions_all_escrows_and_marks_bout_escrows_created(self) -> None:
         confirmations = [
             (EscrowKind.SHOW_A, "TX00000001", 1001),
@@ -351,6 +435,15 @@ class EscrowConfirmIntegrationTests(unittest.TestCase):
         if extra:
             headers.update(extra)
         return headers
+
+    def _prepare_payload_id(self, escrow_kind: EscrowKind) -> str:
+        response = self.client.post(
+            f"/bouts/{self.bout_id}/escrows/prepare",
+            headers=self._promoter_headers(),
+        )
+        self.assertEqual(response.status_code, 200)
+        item = next(item for item in response.json()["escrows"] if item["escrow_kind"] == escrow_kind.value)
+        return item["xaman_sign_request"]["payload_id"]
 
 
 if __name__ == "__main__":

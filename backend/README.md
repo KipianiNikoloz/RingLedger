@@ -9,9 +9,11 @@
   - `POST /auth/login`
 - Protected bout lifecycle endpoints (`Authorization: Bearer <jwt>` required):
   - `POST /bouts/{bout_id}/escrows/prepare`
+  - `POST /bouts/{bout_id}/escrows/signing/reconcile`
   - `POST /bouts/{bout_id}/escrows/confirm` (`Idempotency-Key` required)
   - `POST /bouts/{bout_id}/result` (admin-only)
   - `POST /bouts/{bout_id}/payouts/prepare`
+  - `POST /bouts/{bout_id}/payouts/signing/reconcile`
   - `POST /bouts/{bout_id}/payouts/confirm` (`Idempotency-Key` required)
 - Core domain utilities:
   - money conversion and drop validation
@@ -24,7 +26,7 @@
   - prepare endpoints return per-transaction sign-request metadata (`payload_id`, deep link, QR URL)
   - backend remains non-custodial and never stores promoter private keys
 - Explicit confirm failure taxonomy behavior:
-  - `signing_declined`, `confirmation_timeout`, `ledger_tec_tem`, `invalid_confirmation`
+  - `signing_declined`, `signing_expired`, `confirmation_timeout`, `ledger_tec_tem`, `invalid_confirmation`
   - failures are persisted/audited and never advance state
 - Replay-safe idempotency storage and mismatch rejection for confirm calls (`escrows/confirm` and `payouts/confirm`)
 - Audit logging for escrow create/payout and bout lifecycle outcomes

@@ -1,16 +1,17 @@
-# RingLedger API Spec (M4 Slice A In Progress)
+# RingLedger API Spec (M4 Slice C In Progress)
 
 Last updated: 2026-02-22
 
 ## Scope
 
-This document captures the implemented API surface through M4 slice A:
+This document captures the implemented API surface through M4 slice C:
 
 - Auth: register/login (email/password -> JWT)
 - Escrow create prepare/confirm
 - Result entry
 - Payout prepare/confirm
 - Xaman signing request envelopes for promoter prepare flows
+- Signing-status reconciliation endpoints for Xaman payload outcomes
 
 ## Mandatory Architecture Hardening Note (Pre-M4 Closeout)
 
@@ -127,6 +128,46 @@ This document captures the implemented API surface through M4 slice A:
 - Error `422`: escrow plan invalid.
 - Error `502`: Xaman signing request preparation failed.
 
+### `POST /bouts/{bout_id}/escrows/signing/reconcile`
+
+- Purpose: reconcile Xaman payload status for escrow-create signing without mutating lifecycle state.
+- Role: promoter.
+- Request body:
+
+```json
+{
+  "escrow_kind": "show_a",
+  "payload_id": "uuid",
+  "observed_status": "declined",
+  "observed_tx_hash": null
+}
+```
+
+- Response `200`:
+
+```json
+{
+  "bout_id": "uuid",
+  "escrow_id": "uuid",
+  "escrow_kind": "show_a",
+  "escrow_status": "planned",
+  "payload_id": "uuid",
+  "signing_status": "declined",
+  "tx_hash": null,
+  "failure_code": "signing_declined"
+}
+```
+
+- Notes:
+  - This endpoint records signing outcome and audit metadata only.
+  - It never applies escrow/bout state transitions.
+
+- Error `400`: invalid observed status in stub reconciliation mode.
+- Error `401`: missing/invalid bearer token.
+- Error `403`: caller role is not promoter.
+- Error `404`: bout or escrow not found.
+- Error `502`: Xaman payload status could not be reconciled.
+
 ### `POST /bouts/{bout_id}/escrows/confirm`
 
 - Purpose: validate confirmed `EscrowCreate` result and apply `planned -> created`.
@@ -238,6 +279,46 @@ This document captures the implemented API surface through M4 slice A:
 - Error `409`: payout prepare not allowed in current state.
 - Error `422`: payout setup invalid.
 - Error `502`: Xaman signing request preparation failed.
+
+### `POST /bouts/{bout_id}/payouts/signing/reconcile`
+
+- Purpose: reconcile Xaman payload status for payout signing without mutating lifecycle state.
+- Role: promoter.
+- Request body:
+
+```json
+{
+  "escrow_kind": "show_a",
+  "payload_id": "uuid",
+  "observed_status": "expired",
+  "observed_tx_hash": null
+}
+```
+
+- Response `200`:
+
+```json
+{
+  "bout_id": "uuid",
+  "escrow_id": "uuid",
+  "escrow_kind": "show_a",
+  "escrow_status": "created",
+  "payload_id": "uuid",
+  "signing_status": "expired",
+  "tx_hash": null,
+  "failure_code": "signing_expired"
+}
+```
+
+- Notes:
+  - This endpoint records signing outcome and audit metadata only.
+  - It never applies escrow/bout state transitions.
+
+- Error `400`: invalid observed status in stub reconciliation mode.
+- Error `401`: missing/invalid bearer token.
+- Error `403`: caller role is not promoter.
+- Error `404`: bout or escrow not found.
+- Error `502`: Xaman payload status could not be reconciled.
 
 ### `POST /bouts/{bout_id}/payouts/confirm`
 

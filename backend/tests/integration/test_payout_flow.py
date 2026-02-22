@@ -171,6 +171,69 @@ class PayoutFlowIntegrationTests(unittest.TestCase):
         self.assertEqual(response.status_code, 502)
         self.assertEqual(response.json()["detail"], "Xaman signing request could not be prepared.")
 
+    def test_payout_signing_reconcile_declined_sets_failure_without_transition(self) -> None:
+        self._enter_result(winner="A")
+        payload_id = self._prepare_payout_payload_id(EscrowKind.SHOW_A)
+        response = self.client.post(
+            f"/bouts/{self.bout_id}/payouts/signing/reconcile",
+            headers=self._auth_headers(self.promoter_user_id, self.promoter_email, UserRole.PROMOTER),
+            json={
+                "escrow_kind": EscrowKind.SHOW_A.value,
+                "payload_id": payload_id,
+                "observed_status": "declined",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["signing_status"], "declined")
+        self.assertEqual(response.json()["failure_code"], "signing_declined")
+        self.assertEqual(response.json()["escrow_status"], EscrowStatus.CREATED.value)
+
+        with Session(self.engine) as session:
+            escrow = session.scalar(
+                select(Escrow).where(Escrow.bout_id == self.bout_id, Escrow.kind == EscrowKind.SHOW_A)
+            )
+            assert escrow is not None
+            self.assertEqual(escrow.status, EscrowStatus.CREATED)
+            self.assertEqual(escrow.failure_code, "signing_declined")
+
+    def test_payout_signing_reconcile_signed_clears_signing_failure_without_transition(self) -> None:
+        self._enter_result(winner="A")
+        payload_id = self._prepare_payout_payload_id(EscrowKind.SHOW_B)
+        first = self.client.post(
+            f"/bouts/{self.bout_id}/payouts/signing/reconcile",
+            headers=self._auth_headers(self.promoter_user_id, self.promoter_email, UserRole.PROMOTER),
+            json={
+                "escrow_kind": EscrowKind.SHOW_B.value,
+                "payload_id": payload_id,
+                "observed_status": "expired",
+            },
+        )
+        self.assertEqual(first.status_code, 200)
+        self.assertEqual(first.json()["failure_code"], "signing_expired")
+
+        second = self.client.post(
+            f"/bouts/{self.bout_id}/payouts/signing/reconcile",
+            headers=self._auth_headers(self.promoter_user_id, self.promoter_email, UserRole.PROMOTER),
+            json={
+                "escrow_kind": EscrowKind.SHOW_B.value,
+                "payload_id": payload_id,
+                "observed_status": "signed",
+                "observed_tx_hash": "HASHSIGNED",
+            },
+        )
+        self.assertEqual(second.status_code, 200)
+        self.assertEqual(second.json()["signing_status"], "signed")
+        self.assertIsNone(second.json()["failure_code"])
+        self.assertEqual(second.json()["tx_hash"], "HASHSIGNED")
+
+        with Session(self.engine) as session:
+            escrow = session.scalar(
+                select(Escrow).where(Escrow.bout_id == self.bout_id, Escrow.kind == EscrowKind.SHOW_B)
+            )
+            assert escrow is not None
+            self.assertEqual(escrow.status, EscrowStatus.CREATED)
+            self.assertIsNone(escrow.failure_code)
+
     def test_loser_bonus_cancel_before_cancel_after_is_rejected(self) -> None:
         result_response = self.client.post(
             f"/bouts/{self.bout_id}/result",
@@ -366,6 +429,23 @@ class PayoutFlowIntegrationTests(unittest.TestCase):
             bout.status = BoutStatus.ESCROWS_CREATED
             session.commit()
             return bout.id, promoter_id, promoter_email, admin_id, admin_email
+
+    def _enter_result(self, *, winner: str) -> None:
+        result_response = self.client.post(
+            f"/bouts/{self.bout_id}/result",
+            headers=self._auth_headers(self.admin_user_id, self.admin_email, UserRole.ADMIN),
+            json={"winner": winner},
+        )
+        self.assertEqual(result_response.status_code, 200)
+
+    def _prepare_payout_payload_id(self, escrow_kind: EscrowKind) -> str:
+        prepare_response = self.client.post(
+            f"/bouts/{self.bout_id}/payouts/prepare",
+            headers=self._auth_headers(self.promoter_user_id, self.promoter_email, UserRole.PROMOTER),
+        )
+        self.assertEqual(prepare_response.status_code, 200)
+        item = next(item for item in prepare_response.json()["escrows"] if item["escrow_kind"] == escrow_kind.value)
+        return item["xaman_sign_request"]["payload_id"]
 
     def _build_confirm_payload(
         self,

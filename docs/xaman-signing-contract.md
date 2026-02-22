@@ -1,10 +1,10 @@
-# RingLedger Xaman Signing Contract (M4 Slice A)
+# RingLedger Xaman Signing Contract (M4 Slice C)
 
 Last updated: 2026-02-22
 
 ## Purpose
 
-Define backend responsibilities for non-custodial promoter signing with Xaman.
+Define backend responsibilities for non-custodial promoter signing with Xaman, including payload-status reconciliation.
 
 This slice hardens `R-06` without changing auth mode, payout/escrow state semantics, or confirm idempotency behavior.
 
@@ -31,6 +31,22 @@ Endpoints:
 
 If sign-request generation fails, prepare endpoints return `502`.
 
+## Signing Status Reconciliation Contract
+
+Reconciliation endpoints:
+
+- `POST /bouts/{bout_id}/escrows/signing/reconcile`
+- `POST /bouts/{bout_id}/payouts/signing/reconcile`
+
+Behavior:
+
+- Reconciles payload status (`open`, `signed`, `declined`, `expired`, `unknown`) from Xaman.
+- Persists/audits signing outcome classification without changing escrow/bout lifecycle state.
+- Applies failure classification metadata:
+  - `signing_declined`
+  - `signing_expired`
+- Returns deterministic API errors for invalid observed status (`400`) and Xaman connectivity/response failures (`502`).
+
 ## Runtime Modes
 
 Environment variables:
@@ -47,8 +63,9 @@ Environment variables:
 
 1. Backend prepare endpoint returns unsigned tx plus `xaman_sign_request`.
 2. Promoter signs and submits in Xaman app.
-3. Client submits confirmation artifacts (`tx_hash`, validated result metadata) to backend confirm endpoint.
-4. Backend validates ledger evidence and only then transitions escrow/bout state.
+3. Backend optionally reconciles payload status through signing-reconcile endpoints to record declined/expired/signed outcomes.
+4. Client submits confirmation artifacts (`tx_hash`, validated result metadata) to backend confirm endpoint.
+5. Backend validates ledger evidence and only then transitions escrow/bout state.
 
 ## Validation Coverage
 
