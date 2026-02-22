@@ -28,13 +28,21 @@ Workflow file: `.github/workflows/ci-cd.yml`
    - formatting gate: `ruff format --check backend`
    - lint gate: `ruff check backend`
    - test gate: `python -m unittest discover -s backend/tests -p "test_*.py"` (includes unit/integration/contract/security/migration/e2e packages)
-2. `secret-scan`
+2. `frontend-quality`
+   - Node `22` setup
+   - frontend dependency install (`npm install`)
+   - frontend typecheck gate: `npm run typecheck`
+   - frontend unit/integration gate: `npm run test`
+   - frontend browser e2e gate:
+     - `npx playwright install --with-deps chromium`
+     - `npm run test:e2e -- --project=chromium`
+3. `secret-scan`
    - full checkout history
    - `gitleaks` repository scan
-3. `delivery`
+4. `delivery`
    - runs only on push to `main` or `master`
-   - requires `quality` and `secret-scan` pass
-   - publishes artifact: `ringledger-m1-foundation.tgz`
+   - requires `quality`, `frontend-quality`, and `secret-scan` pass
+   - publishes artifact: `ringledger-m1-foundation.tgz` (backend + frontend + docs)
 
 ## Dependabot
 
@@ -44,6 +52,7 @@ Config file: `.github/dependabot.yml`
 
 - `github-actions`: weekly Monday updates
 - `pip`: weekly Monday updates for Python dependency manifests
+- `npm`: weekly Monday updates for frontend dependencies in `frontend/`
 
 Both streams use commit prefix `chore(deps)`.
 
@@ -57,6 +66,8 @@ ruff format --check backend
 ruff check backend
 python -m pytest backend/tests -q
 python -m alembic -c backend/alembic.ini history
+(cd frontend && npm install && npm run typecheck && npm run test)
+(cd frontend && npx playwright install --with-deps chromium && npm run test:e2e -- --project=chromium)
 ```
 
 ## Mandatory Modernization Gates (Pre-M4 Closeout)
@@ -78,6 +89,7 @@ Current evidence includes:
 
 - `python -m pytest backend/tests -q` passing with full backend suite (including M4 Xaman integration/reconciliation and backend-driven frontend E2E journeys).
 - `python -m alembic -c backend/alembic.ini history` showing baseline revision head.
+- Frontend verification gates are now codified in CI (`frontend-quality`) and executed in GitHub runner environment.
 
 ## Security Notes
 

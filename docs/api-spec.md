@@ -1,10 +1,10 @@
-# RingLedger API Spec (M4 Slice D In Progress)
+# RingLedger API Spec (M4 Slice E In Progress)
 
 Last updated: 2026-02-22
 
 ## Scope
 
-This document captures the implemented API surface through M4 slice D:
+This document captures the implemented API surface through M4 slice E:
 
 - Auth: register/login (email/password -> JWT)
 - Escrow create prepare/confirm
@@ -13,6 +13,7 @@ This document captures the implemented API surface through M4 slice D:
 - Xaman signing request envelopes for promoter prepare flows
 - Signing-status reconciliation endpoints for Xaman payload outcomes
 - Backend-driven frontend E2E consumer coverage for login-to-closeout and declined-signing failure journeys
+- React frontend package coverage with browser-level contract journeys (`frontend/`)
 
 ## Mandatory Architecture Hardening Note (Pre-M4 Closeout)
 
@@ -384,15 +385,17 @@ This document captures the implemented API surface through M4 slice D:
 
 ## Frontend Consumer Coverage (Current)
 
-- Frontend contract coverage is currently enforced via backend-driven E2E API-consumer tests:
+- Backend-driven API-consumer E2E coverage:
   - `backend/tests/e2e/test_promoter_signing_flow.py`
+- React/browser-level frontend coverage:
+  - frontend unit/integration: `frontend/src/api/client.test.ts`, `frontend/src/App.test.tsx`
+  - browser journeys: `frontend/e2e/promoter-flow.spec.ts`
 - Covered journeys:
-  - register/login + role-scoped access
-  - promoter escrow prepare/signing reconcile/confirm flow
-  - admin result entry
-  - promoter payout prepare/signing reconcile/confirm closeout flow
-  - declined-signing failure with deterministic `422` and idempotent replay parity
-- This preserves API and state semantics while UI implementation is still pending.
+  - register/login + role-scoped token handling
+  - promoter escrow prepare/signing reconcile/confirm contract flow
+  - admin result entry contract flow
+  - promoter payout prepare/signing reconcile/confirm contract flow
+  - declined-signing deterministic failure handling and replay-safe parity checks
 
 ## Planned Next Endpoints (Not Implemented Yet)
 
