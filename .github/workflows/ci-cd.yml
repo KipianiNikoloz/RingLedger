@@ -107,7 +107,7 @@ jobs:
           tar -czf ringledger-m1-foundation.tgz backend frontend docs pyproject.toml README.md
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ringledger-m1-foundation
           path: ringledger-m1-foundation.tgz
