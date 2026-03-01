@@ -38,6 +38,7 @@
 ## Structure
 
 - `app/api/`: route definitions
+- `app/api/bouts_routes/`: thin `/bouts` route modules (`escrow`, `payout`, `signing`) plus shared route helpers
 - `app/services/`: service-layer business logic
 - `app/middleware/`: request guard helpers (idempotency header enforcement)
 - `app/crypto_conditions/`: bonus preimage/condition/fulfillment helpers

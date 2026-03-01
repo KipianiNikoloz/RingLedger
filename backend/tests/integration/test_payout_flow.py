@@ -162,7 +162,7 @@ class PayoutFlowIntegrationTests(unittest.TestCase):
 
         xaman_mock = Mock()
         xaman_mock.create_sign_request.side_effect = XamanIntegrationError("xaman_api_connection_error")
-        with patch("app.api.bouts.XamanService.from_settings", return_value=xaman_mock):
+        with patch("app.api.bouts_routes.payout_routes.XamanService.from_settings", return_value=xaman_mock):
             response = self.client.post(
                 f"/bouts/{self.bout_id}/payouts/prepare",
                 headers=self._auth_headers(self.promoter_user_id, self.promoter_email, UserRole.PROMOTER),
