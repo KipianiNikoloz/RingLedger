@@ -74,3 +74,8 @@ Environment variables:
 - Integration: `backend/tests/integration/test_payout_flow.py`
 - E2E frontend-consumer journey: `backend/tests/e2e/test_promoter_signing_flow.py`
 - React/browser journey coverage: `frontend/e2e/promoter-flow.spec.ts`
+
+## Operational References
+
+- Runbook: `docs/operations-runbook.md`
+- Operator flow: `docs/operational-flow.md`

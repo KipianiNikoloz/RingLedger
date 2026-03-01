@@ -1,7 +1,7 @@
 # RingLedger MVP Traceability Matrix
 
 Date initialized: 2026-02-16  
-Last updated: 2026-02-22  
+Last updated: 2026-03-01  
 Purpose: enforce requirement -> implementation -> tests -> docs linkage from first increment.
 
 ## Status Legend
@@ -19,7 +19,7 @@ Purpose: enforce requirement -> implementation -> tests -> docs linkage from fir
 | R-03 | Drops integer-only money model | `backend/app/domain/money.py`, `backend/app/models/bout.py`, `backend/app/models/escrow.py`, `backend/sql/001_init_schema.sql` | `backend/tests/unit/test_money.py`, `backend/tests/property/test_money_properties.py`, `backend/tests/migration/test_schema_sql_contract.py` | `docs/schema-doc.md`, `docs/requirements-matrix.md` | done |
 | R-04 | 1v1 with 4 escrow model | `backend/app/models/escrow.py`, `backend/app/services/bout_service.py`, `backend/app/models/bout.py` | `backend/tests/unit/test_bout_escrow_planning.py`, `backend/tests/integration/test_bout_create_flow.py` | `docs/state-machines.md`, `docs/schema-doc.md` | done |
 | R-05 | Platform controls bonus fulfillment | `backend/app/crypto_conditions/fulfillment.py`, `backend/app/services/bout_service.py`, `backend/app/services/payout_service.py` | `backend/tests/unit/test_crypto_conditions.py`, `backend/tests/unit/test_xrpl_escrow_service.py`, `backend/tests/integration/test_payout_flow.py` | `docs/state-machines.md`, `docs/api-spec.md`, `docs/schema-doc.md` | done |
-| R-06 | Promoter signs via Xaman only | backend Xaman sign-request plus payload-status reconciliation integration (`backend/app/integrations/xaman_service.py`, `backend/app/services/signing_reconciliation_service.py`, `backend/app/api/bouts.py`) + frontend signing UX modules (`frontend/src/App.tsx`) | `backend/tests/unit/test_xaman_service.py`, `backend/tests/contract/test_bout_escrow_api_contract.py`, `backend/tests/integration/test_escrow_confirm_flow.py`, `backend/tests/integration/test_payout_flow.py`, `backend/tests/e2e/test_promoter_signing_flow.py`, `frontend/e2e/promoter-flow.spec.ts` | `docs/xaman-signing-contract.md`, `docs/api-spec.md`, `docs/state-machines.md`, `frontend/README.md`, runbook + operational flow docs (pending) | in_progress |
+| R-06 | Promoter signs via Xaman only | backend Xaman sign-request plus payload-status reconciliation integration (`backend/app/integrations/xaman_service.py`, `backend/app/services/signing_reconciliation_service.py`, `backend/app/api/bouts.py`) + frontend signing UX modules (`frontend/src/App.tsx`) | `backend/tests/unit/test_xaman_service.py`, `backend/tests/contract/test_bout_escrow_api_contract.py`, `backend/tests/integration/test_escrow_confirm_flow.py`, `backend/tests/integration/test_payout_flow.py`, `backend/tests/e2e/test_promoter_signing_flow.py`, `frontend/e2e/promoter-flow.spec.ts` | `docs/xaman-signing-contract.md`, `docs/api-spec.md`, `docs/state-machines.md`, `frontend/README.md`, `docs/operations-runbook.md`, `docs/operational-flow.md` | in_progress |
 | R-07 | Fixed finish/cancel timing rules | `backend/app/domain/time_rules.py`, `backend/app/services/bout_service.py` | `backend/tests/unit/test_time_rules.py`, `backend/tests/property/test_time_rules_properties.py`, `backend/tests/integration/test_timing_guards.py` | `docs/state-machines.md` | done |
 | R-08 | Ledger-validated transitions only | `backend/app/api/bouts.py`, `backend/app/services/escrow_service.py`, `backend/app/services/payout_service.py`, `backend/app/services/xrpl_escrow_service.py` | `backend/tests/unit/test_xrpl_escrow_service.py`, `backend/tests/integration/test_escrow_confirm_flow.py`, `backend/tests/integration/test_payout_flow.py` | `docs/state-machines.md`, `docs/api-spec.md` | done |
 | R-09 | Confirm endpoint idempotency | `backend/app/middleware/idempotency.py`, `backend/app/services/idempotency_service.py`, `backend/app/models/idempotency_key.py`, `backend/app/api/bouts.py` | `backend/tests/unit/test_idempotency_service.py`, `backend/tests/integration/test_escrow_confirm_flow.py`, `backend/tests/integration/test_payout_flow.py`, `backend/tests/security/test_confirm_idempotency_contract.py` | `docs/api-spec.md`, `docs/traceability-matrix.md` | done |
@@ -167,6 +167,16 @@ Goal: enforce Alembic migration authority and proven auth-library adoption witho
 | CI gate for frontend typecheck, unit tests, and browser E2E | `.github/workflows/ci-cd.yml` |
 | Slice E documentation alignment | `docs/traceability-matrix.md`, `docs/api-spec.md`, `docs/ci-cd.md`, `backend/README.md`, `README.md` |
 
+## Increment 4 Slice F Deliverables (In Progress)
+
+| Item | Evidence |
+|---|---|
+| Operational runbook for signing/confirm failure response and rollback | `docs/operations-runbook.md` |
+| Operator lifecycle flow for escrow/result/payout execution and recovery branches | `docs/operational-flow.md` |
+| Regression gate for failure taxonomy contract stability | `backend/tests/regression/test_failure_taxonomy_regression.py` |
+| Performance baseline gate for API liveness, Xaman stub throughput, and failure taxonomy throughput | `backend/tests/performance/test_m4_performance_baseline.py`, `docs/performance-regression-gates.md` |
+| Slice F documentation and gate alignment | `docs/ci-cd.md`, `backend/README.md`, `README.md`, `docs/traceability-matrix.md` |
+
 ## Test Evidence (Current)
 
 | Command | Result | Notes |
@@ -174,7 +184,8 @@ Goal: enforce Alembic migration authority and proven auth-library adoption witho
 | `.\venv\Scripts\python.exe -m compileall backend/app backend/tests` | pass | Syntax validation completed for all backend and test modules. |
 | `.\venv\Scripts\python.exe -m ruff check backend` | pass | Lint gate is clean across backend sources/tests. |
 | `.\venv\Scripts\python.exe -m ruff format --check backend docs` | pass | Formatting gate is clean across backend and docs touched by active slices. |
-| `.\venv\Scripts\python.exe -m pytest backend/tests -q` | pass (`76 passed`) | Includes migration/auth modernization regression plus M4 slice coverage for Xaman sign-request integration, signing reconciliation endpoints, explicit failure taxonomy (`declined`, `expired`, `timeout`, `tec/tem`) in escrow/payout flows, and backend-driven frontend E2E journeys. |
+| `.\venv\Scripts\python.exe -m pytest backend/tests -q` | pass (`76 passed`) | Historical full-suite evidence from the 2026-02-22 milestone acceptance run; not re-executed in this slice update. |
+| `.\venv\Scripts\python.exe -m pytest backend/tests/regression backend/tests/performance -q` | pass (`10 passed`) | Adds M4 slice F operational hardening evidence: failure-taxonomy regression lock plus deterministic performance baselines for healthz loop, stub sign-request generation, and failure-code classification throughput. Local run emitted a non-blocking pytest cache permission warning. |
 | `npm run typecheck` / `npm run test` / `npm run test:e2e` (`frontend/`) | pending local run | Frontend dependencies could not be installed in current local environment due npm network/permission error; CI workflow gate now enforces these commands. |
 | `.\venv\Scripts\python.exe -m alembic -c backend/alembic.ini history` | pass | Confirms deterministic baseline revision head: `202602220000_baseline_schema`. |
 | GitHub Actions backend/frontend/secret-scan/delivery jobs | configured | Enforced in `.github/workflows/ci-cd.yml`; executes on PR/push in GitHub runtime. |
@@ -188,4 +199,4 @@ Target: hardening for operational readiness and residual risk reduction.
 - Continue Xaman integration hardening after backend sign-request plus signing-status reconciliation delivery (`R-06`).
 - Continue failure taxonomy hardening after initial `declined`/`expired`/`timeout`/`tec`/`tem` classification delivery (`R-12`).
 - Expand from initial implemented React screens and browser-level journeys to full MVP product surfaces and edge-case UI handling (`R-01`, `R-10`).
-- Add regression/performance suites and operational runbooks aligned to gate thresholds.
+- Operationalize the new runbook and performance thresholds through release drills and incident simulations.

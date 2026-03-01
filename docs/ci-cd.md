@@ -1,6 +1,6 @@
 # RingLedger CI/CD and Dependency Automation
 
-Last updated: 2026-02-22
+Last updated: 2026-03-01
 
 ## Objectives
 
@@ -27,7 +27,7 @@ Workflow file: `.github/workflows/ci-cd.yml`
    - syntax compile check: `python -m compileall backend/app backend/tests`
    - formatting gate: `ruff format --check backend`
    - lint gate: `ruff check backend`
-   - test gate: `python -m unittest discover -s backend/tests -p "test_*.py"` (includes unit/integration/contract/security/migration/e2e packages)
+   - test gate: `python -m unittest discover -s backend/tests -p "test_*.py"` (includes unit/integration/contract/security/migration/e2e/regression/performance packages)
 2. `frontend-quality`
    - Node `22` setup
    - frontend dependency install (`npm install`)
@@ -65,10 +65,20 @@ python -m compileall backend/app backend/tests
 ruff format --check backend
 ruff check backend
 python -m pytest backend/tests -q
+python -m pytest backend/tests/regression backend/tests/performance -q
 python -m alembic -c backend/alembic.ini history
 (cd frontend && npm install && npm run typecheck && npm run test)
 (cd frontend && npx playwright install --with-deps chromium && npm run test:e2e -- --project=chromium)
 ```
+
+## M4 Operational Hardening Gates
+
+- Regression suite:
+  - `backend/tests/regression/test_failure_taxonomy_regression.py`
+- Performance baseline suite:
+  - `backend/tests/performance/test_m4_performance_baseline.py`
+- Thresholds and rationale are documented in:
+  - `docs/performance-regression-gates.md`
 
 ## Mandatory Modernization Gates (Pre-M4 Closeout)
 

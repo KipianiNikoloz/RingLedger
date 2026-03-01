@@ -1,4 +1,4 @@
-# RingLedger API Spec (M4 Slice E In Progress)
+# RingLedger API Spec (M4 Slices A-F In Progress)
 
 Last updated: 2026-02-22
 
