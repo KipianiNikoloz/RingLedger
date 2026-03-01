@@ -7,7 +7,7 @@ import { ResultEntryPanel } from "../components/ResultEntryPanel";
 import { StatusConsole } from "../components/StatusConsole";
 import { useRingLedgerConsole } from "../hooks/useRingLedgerConsole";
 
-export function AppShell(): JSX.Element {
+export function AppShell() {
   const model = useRingLedgerConsole();
   const activeRoles = model.currentRoleSummary === "none" ? [] : model.currentRoleSummary.split(", ");
   const latestActionTimestamp = model.actionLog[0]?.split("|")[0]?.trim() ?? "No actions yet.";
@@ -170,3 +170,4 @@ export function AppShell(): JSX.Element {
     </main>
   );
 }
+

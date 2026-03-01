@@ -1,11 +1,11 @@
-﻿import { useMemo } from "react";
+import { useMemo } from "react";
 
 interface JsonBlockProps {
   title: string;
   data: unknown;
 }
 
-export function JsonBlock({ title, data }: JsonBlockProps): JSX.Element {
+export function JsonBlock({ title, data }: JsonBlockProps) {
   const pretty = useMemo(() => JSON.stringify(data, null, 2), [data]);
 
   return (
@@ -15,3 +15,4 @@ export function JsonBlock({ title, data }: JsonBlockProps): JSX.Element {
     </section>
   );
 }
+

@@ -46,7 +46,7 @@ export function EscrowFlowPanel({
   onPrepare,
   onReconcile,
   onConfirm,
-}: EscrowFlowPanelProps): JSX.Element {
+}: EscrowFlowPanelProps) {
   return (
     <section className="panel">
       <div className="panel-header">
@@ -141,3 +141,4 @@ export function EscrowFlowPanel({
     </section>
   );
 }
+

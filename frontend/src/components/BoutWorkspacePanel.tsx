@@ -3,7 +3,7 @@ interface BoutWorkspacePanelProps {
   onBoutIdChange: (value: string) => void;
 }
 
-export function BoutWorkspacePanel({ boutId, onBoutIdChange }: BoutWorkspacePanelProps): JSX.Element {
+export function BoutWorkspacePanel({ boutId, onBoutIdChange }: BoutWorkspacePanelProps) {
   return (
     <section className="panel">
       <div className="panel-header">
@@ -23,3 +23,4 @@ export function BoutWorkspacePanel({ boutId, onBoutIdChange }: BoutWorkspacePane
     </section>
   );
 }
+

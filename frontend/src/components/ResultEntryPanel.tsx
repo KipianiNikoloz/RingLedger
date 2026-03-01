@@ -5,7 +5,7 @@ interface ResultEntryPanelProps {
   onSubmit: () => void;
 }
 
-export function ResultEntryPanel({ busy, winner, onWinnerChange, onSubmit }: ResultEntryPanelProps): JSX.Element {
+export function ResultEntryPanel({ busy, winner, onWinnerChange, onSubmit }: ResultEntryPanelProps) {
   return (
     <section className="panel">
       <div className="panel-header">
@@ -29,3 +29,4 @@ export function ResultEntryPanel({ busy, winner, onWinnerChange, onSubmit }: Res
     </section>
   );
 }
+

@@ -1,8 +1,8 @@
-﻿interface StatusConsoleProps {
+interface StatusConsoleProps {
   entries: string[];
 }
 
-export function StatusConsole({ entries }: StatusConsoleProps): JSX.Element {
+export function StatusConsole({ entries }: StatusConsoleProps) {
   return (
     <section className="status-console panel" aria-live="polite">
       <div className="panel-header">
@@ -21,3 +21,4 @@ export function StatusConsole({ entries }: StatusConsoleProps): JSX.Element {
     </section>
   );
 }
+
