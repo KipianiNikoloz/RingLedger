@@ -54,7 +54,9 @@ describe("App", () => {
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledTimes(2);
       expect(screen.getByText("Escrow Prepare")).toBeInTheDocument();
-      expect(screen.getByText(/4c2f8a58-1963-473a-8f90-2239950f0058/)).toBeInTheDocument();
+      const prepareBlock = screen.getByText("Escrow Prepare").closest("section");
+      expect(prepareBlock).not.toBeNull();
+      expect(prepareBlock).toHaveTextContent("4c2f8a58-1963-473a-8f90-2239950f0058");
     });
   });
 

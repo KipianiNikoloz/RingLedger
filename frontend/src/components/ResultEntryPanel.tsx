@@ -8,7 +8,10 @@ interface ResultEntryPanelProps {
 export function ResultEntryPanel({ busy, winner, onWinnerChange, onSubmit }: ResultEntryPanelProps): JSX.Element {
   return (
     <section className="panel">
-      <h2>Admin Result Entry</h2>
+      <div className="panel-header">
+        <h2>Admin Result Entry</h2>
+        <p className="panel-note">Winner selection locks payout direction. This action requires an admin token.</p>
+      </div>
       <div className="grid two-col compact-grid">
         <label>
           Winner
@@ -26,4 +29,3 @@ export function ResultEntryPanel({ busy, winner, onWinnerChange, onSubmit }: Res
     </section>
   );
 }
-

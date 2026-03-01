@@ -35,12 +35,27 @@ export function AuthPanel({
   onRegister,
   onLogin,
 }: AuthPanelProps): JSX.Element {
+  const tokenRoles = currentRoleSummary === "none" ? [] : currentRoleSummary.split(", ");
+
   return (
     <section className="panel auth-panel">
-      <h2>Auth Session</h2>
-      <p className="panel-note">Available tokens by role: {currentRoleSummary}</p>
+      <div className="panel-header">
+        <h2>Auth Session</h2>
+        <p className="panel-note">JWT tokens are stored in-memory by role for this session only.</p>
+      </div>
+      <div className="token-chip-row" aria-label="Available tokens by role">
+        {tokenRoles.length > 0 ? (
+          tokenRoles.map((role) => (
+            <span className="token-chip" key={role}>
+              {role}
+            </span>
+          ))
+        ) : (
+          <span className="token-chip token-chip-muted">none</span>
+        )}
+      </div>
       <div className="grid two-col">
-        <form onSubmit={onRegister}>
+        <form onSubmit={onRegister} className="form-panel">
           <h3>Register</h3>
           <label>
             Email
@@ -49,6 +64,7 @@ export function AuthPanel({
               type="email"
               value={registerEmail}
               onChange={(event) => onRegisterEmailChange(event.target.value)}
+              autoComplete="email"
               required
             />
           </label>
@@ -59,6 +75,7 @@ export function AuthPanel({
               type="password"
               value={registerPassword}
               onChange={(event) => onRegisterPasswordChange(event.target.value)}
+              autoComplete="new-password"
               required
             />
           </label>
@@ -76,7 +93,7 @@ export function AuthPanel({
           </button>
         </form>
 
-        <form onSubmit={onLogin}>
+        <form onSubmit={onLogin} className="form-panel">
           <h3>Login</h3>
           <label>
             Email
@@ -85,6 +102,7 @@ export function AuthPanel({
               type="email"
               value={loginEmail}
               onChange={(event) => onLoginEmailChange(event.target.value)}
+              autoComplete="email"
               required
             />
           </label>
@@ -95,6 +113,7 @@ export function AuthPanel({
               type="password"
               value={loginPassword}
               onChange={(event) => onLoginPasswordChange(event.target.value)}
+              autoComplete="current-password"
               required
             />
           </label>
@@ -106,4 +125,3 @@ export function AuthPanel({
     </section>
   );
 }
-

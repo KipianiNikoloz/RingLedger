@@ -49,78 +49,91 @@ export function PayoutFlowPanel({
 }: PayoutFlowPanelProps): JSX.Element {
   return (
     <section className="panel">
-      <h2>Promoter Payout Flow</h2>
-      <div className="actions-row">
-        <button type="button" onClick={onPrepare} disabled={busy} data-testid="payout-prepare-submit">
-          Prepare Payouts
-        </button>
-      </div>
-      <div className="grid three-col compact-grid">
-        <label>
-          Payout Reconcile Kind
-          <select value={reconcileKind} onChange={(event) => onReconcileKindChange(event.target.value as EscrowKind)}>
-            {ESCROW_KINDS.map((kind) => (
-              <option value={kind} key={kind}>
-                {kind}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Signing Status
-          <select value={reconcileStatus} onChange={(event) => onReconcileStatusChange(event.target.value as SigningStatus)}>
-            {SIGNING_STATUSES.map((statusName) => (
-              <option value={statusName} key={statusName}>
-                {statusName}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Observed Tx Hash
-          <input value={reconcileTxHash} onChange={(event) => onReconcileTxHashChange(event.target.value)} />
-        </label>
-      </div>
-      <div className="actions-row">
-        <button type="button" onClick={onReconcile} disabled={busy} data-testid="payout-reconcile-submit">
-          Reconcile Payout Signing
-        </button>
+      <div className="panel-header">
+        <h2>Promoter Payout Flow</h2>
+        <p className="panel-note">Drive finish/cancel transactions after result entry using validated confirmation artifacts.</p>
       </div>
 
-      <div className="grid four-col compact-grid">
-        <label>
-          Confirm Kind
-          <select value={confirmKind} onChange={(event) => onConfirmKindChange(event.target.value as EscrowKind)}>
-            {ESCROW_KINDS.map((kind) => (
-              <option value={kind} key={kind}>
-                {kind}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Tx Hash
-          <input value={confirmTxHash} onChange={(event) => onConfirmTxHashChange(event.target.value)} />
-        </label>
-        <label>
-          Engine Result
-          <input value={confirmEngineResult} onChange={(event) => onConfirmEngineResultChange(event.target.value)} />
-        </label>
-        <label>
-          Close Time Ripple
-          <input value={closeTimeRipple} onChange={(event) => onCloseTimeRippleChange(event.target.value)} inputMode="numeric" />
-        </label>
-        <label className="check-label">
-          <input type="checkbox" checked={confirmValidated} onChange={(event) => onConfirmValidatedChange(event.target.checked)} />
-          Validated
-        </label>
+      <div className="flow-stage">
+        <h3>1. Prepare</h3>
+        <div className="actions-row">
+          <button type="button" onClick={onPrepare} disabled={busy} data-testid="payout-prepare-submit">
+            Prepare Payouts
+          </button>
+        </div>
       </div>
-      <div className="actions-row">
-        <button type="button" onClick={onConfirm} disabled={busy} data-testid="payout-confirm-submit">
-          Confirm Payout
-        </button>
+
+      <div className="flow-stage">
+        <h3>2. Reconcile Signing</h3>
+        <div className="grid three-col compact-grid">
+          <label>
+            Payout Reconcile Kind
+            <select value={reconcileKind} onChange={(event) => onReconcileKindChange(event.target.value as EscrowKind)}>
+              {ESCROW_KINDS.map((kind) => (
+                <option value={kind} key={kind}>
+                  {kind}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Signing Status
+            <select value={reconcileStatus} onChange={(event) => onReconcileStatusChange(event.target.value as SigningStatus)}>
+              {SIGNING_STATUSES.map((statusName) => (
+                <option value={statusName} key={statusName}>
+                  {statusName}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Observed Tx Hash
+            <input value={reconcileTxHash} onChange={(event) => onReconcileTxHashChange(event.target.value)} />
+          </label>
+        </div>
+        <div className="actions-row">
+          <button type="button" onClick={onReconcile} disabled={busy} data-testid="payout-reconcile-submit">
+            Reconcile Payout Signing
+          </button>
+        </div>
+      </div>
+
+      <div className="flow-stage">
+        <h3>3. Confirm Ledger Result</h3>
+        <div className="grid four-col compact-grid">
+          <label>
+            Confirm Kind
+            <select value={confirmKind} onChange={(event) => onConfirmKindChange(event.target.value as EscrowKind)}>
+              {ESCROW_KINDS.map((kind) => (
+                <option value={kind} key={kind}>
+                  {kind}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Tx Hash
+            <input value={confirmTxHash} onChange={(event) => onConfirmTxHashChange(event.target.value)} />
+          </label>
+          <label>
+            Engine Result
+            <input value={confirmEngineResult} onChange={(event) => onConfirmEngineResultChange(event.target.value)} />
+          </label>
+          <label>
+            Close Time Ripple
+            <input value={closeTimeRipple} onChange={(event) => onCloseTimeRippleChange(event.target.value)} inputMode="numeric" />
+          </label>
+          <label className="check-label">
+            <input type="checkbox" checked={confirmValidated} onChange={(event) => onConfirmValidatedChange(event.target.checked)} />
+            Validated
+          </label>
+        </div>
+        <div className="actions-row">
+          <button type="button" onClick={onConfirm} disabled={busy} data-testid="payout-confirm-submit">
+            Confirm Payout
+          </button>
+        </div>
       </div>
     </section>
   );
 }
-

@@ -21,7 +21,7 @@ No lifecycle or ledger invariant is enforced by frontend code; backend remains a
 ## Structure
 
 - `src/App.tsx`: minimal entry component.
-- `src/app/AppShell.tsx`: view composition and panel orchestration.
+- `src/app/AppShell.tsx`: top-level information architecture (masthead, runtime summary, workspace columns, API output section).
 - `src/hooks/useRingLedgerConsole.ts`: workflow composition layer.
 - `src/hooks/useActionRunner.ts`: shared busy/error/log action runner.
 - `src/hooks/useAuthWorkflow.ts`: auth register/login workflow state.
@@ -34,6 +34,7 @@ No lifecycle or ledger invariant is enforced by frontend code; backend remains a
 - `src/components/PayoutFlowPanel.tsx`: promoter payout prepare/reconcile/confirm controls.
 - `src/components/OutputPanel.tsx`: response rendering blocks.
 - `src/flow-utils.ts`: request payload extraction and validation helpers from prepare contracts.
+- `src/styles.css`: design tokens, responsive grid layout, and motion/accessibility styling for console ergonomics.
 
 ## Commands
 
