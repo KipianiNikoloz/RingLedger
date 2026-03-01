@@ -1,4 +1,4 @@
-# RingLedger Xaman Signing Contract (M4 Slice D)
+# RingLedger Xaman Signing Contract (M4 Slice E)
 
 Last updated: 2026-02-22
 
@@ -73,3 +73,4 @@ Environment variables:
 - Integration: `backend/tests/integration/test_escrow_confirm_flow.py`
 - Integration: `backend/tests/integration/test_payout_flow.py`
 - E2E frontend-consumer journey: `backend/tests/e2e/test_promoter_signing_flow.py`
+- React/browser journey coverage: `frontend/e2e/promoter-flow.spec.ts`

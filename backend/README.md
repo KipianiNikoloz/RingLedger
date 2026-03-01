@@ -79,13 +79,14 @@ Implemented modernization scope:
 - Focus areas:
   - Xaman integration hardening completion (`R-06`) after sign-request and signing-status reconciliation delivery
   - failure taxonomy expansion after initial declined/timeout/`tec`/`tem` delivery (`R-12`)
-  - expand from backend-driven frontend contract E2E coverage to implemented React screens and browser-level journeys (`R-01`, `R-10`)
+  - expand from initial implemented React screens/browser journeys to full product frontend surfaces (`R-01`, `R-10`)
   - regression/performance baselines and runbook completion
 
 ## Notes
 
 - Use the project virtual environment for local commands (`.\venv\Scripts\python.exe ...`) to ensure FastAPI/SQLAlchemy/dev tooling are available.
 - Current suite entrypoint: `python -m pytest backend/tests -q`.
+- Frontend package and browser tests are under `frontend/` (`npm run test`, `npm run test:e2e`).
 - Xaman integration runtime mode is controlled by `XAMAN_MODE`:
   - `stub` (default): deterministic non-network sign-request envelopes for local/CI.
   - `api`: calls Xaman API using `XAMAN_API_KEY` and `XAMAN_API_SECRET`.
