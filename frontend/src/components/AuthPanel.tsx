@@ -34,7 +34,7 @@ export function AuthPanel({
   onLoginPasswordChange,
   onRegister,
   onLogin,
-}: AuthPanelProps): JSX.Element {
+}: AuthPanelProps) {
   const tokenRoles = currentRoleSummary === "none" ? [] : currentRoleSummary.split(", ");
 
   return (
@@ -125,3 +125,4 @@ export function AuthPanel({
     </section>
   );
 }
+

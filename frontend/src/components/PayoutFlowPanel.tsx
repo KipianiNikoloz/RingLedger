@@ -46,7 +46,7 @@ export function PayoutFlowPanel({
   onPrepare,
   onReconcile,
   onConfirm,
-}: PayoutFlowPanelProps): JSX.Element {
+}: PayoutFlowPanelProps) {
   return (
     <section className="panel">
       <div className="panel-header">
@@ -137,3 +137,4 @@ export function PayoutFlowPanel({
     </section>
   );
 }
+

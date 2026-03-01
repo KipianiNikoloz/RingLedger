@@ -28,7 +28,7 @@ export function OutputPanel({
   payoutPrepareResult,
   payoutReconcileResult,
   payoutConfirmResult,
-}: OutputPanelProps): JSX.Element {
+}: OutputPanelProps) {
   const hasResults = Boolean(
     registerResult ||
       escrowPrepareResult ||
@@ -59,3 +59,4 @@ export function OutputPanel({
     </section>
   );
 }
+
