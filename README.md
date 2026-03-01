@@ -15,6 +15,7 @@ Escrow-based fighter purse settlement on XRPL Testnet, with promoter signing via
 - M4 signing-reconciliation slice has started: backend Xaman payload status reconciliation endpoints for declined/expired/signed outcomes with no lifecycle transition side effects.
 - M4 frontend-coverage slice has started: backend-driven frontend contract E2E journeys now cover login-to-closeout and declined-signing replay-safe failure behavior.
 - M4 frontend implementation slice has started: React promoter/admin workflow surfaces are componentized and backed by browser-level contract E2E coverage.
+- M4 operational-readiness slice has started: operations runbook/flow docs plus explicit regression/performance gate baselines are now defined.
 
 ## MVP Scope (Locked)
 
@@ -40,6 +41,9 @@ Escrow-based fighter purse settlement on XRPL Testnet, with promoter signing via
 - Auth-library adoption plan: `docs/auth-library-adoption-plan.md`
 - M3.6 modernization acceptance memo: `docs/m3.6-modernization-acceptance-memo.md`
 - Xaman signing contract: `docs/xaman-signing-contract.md`
+- Operations runbook: `docs/operations-runbook.md`
+- Operational flow: `docs/operational-flow.md`
+- Regression/performance gates: `docs/performance-regression-gates.md`
 - Frontend package guide: `frontend/README.md`
 
 ## Repository Layout

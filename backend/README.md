@@ -80,7 +80,7 @@ Implemented modernization scope:
   - Xaman integration hardening completion (`R-06`) after sign-request and signing-status reconciliation delivery
   - failure taxonomy expansion after initial declined/timeout/`tec`/`tem` delivery (`R-12`)
   - expand from initial implemented React screens/browser journeys to full product frontend surfaces (`R-01`, `R-10`)
-  - regression/performance baselines and runbook completion
+  - operational readiness hardening through runbook/flow maintenance and regression/performance threshold enforcement
 
 ## Notes
 
