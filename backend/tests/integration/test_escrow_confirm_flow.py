@@ -89,7 +89,7 @@ class EscrowConfirmIntegrationTests(unittest.TestCase):
     def test_prepare_returns_502_when_xaman_sign_request_fails(self) -> None:
         xaman_mock = Mock()
         xaman_mock.create_sign_request.side_effect = XamanIntegrationError("xaman_api_connection_error")
-        with patch("app.api.bouts.XamanService.from_settings", return_value=xaman_mock):
+        with patch("app.api.bouts_routes.escrow_routes.XamanService.from_settings", return_value=xaman_mock):
             response = self.client.post(
                 f"/bouts/{self.bout_id}/escrows/prepare",
                 headers=self._promoter_headers(),
