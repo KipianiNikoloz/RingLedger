@@ -5,7 +5,7 @@ interface BoutWorkspacePanelProps {
 
 export function BoutWorkspacePanel({ boutId, onBoutIdChange }: BoutWorkspacePanelProps) {
   return (
-    <section className="panel">
+    <section className="panel workflow-panel">
       <div className="panel-header">
         <h2>Bout Workspace</h2>
         <p className="panel-note">Select the active bout context used by escrow, result, and payout actions.</p>

@@ -48,7 +48,7 @@ export function EscrowFlowPanel({
   onConfirm,
 }: EscrowFlowPanelProps) {
   return (
-    <section className="panel">
+    <section className="panel workflow-panel">
       <div className="panel-header">
         <h2>Promoter Escrow Flow</h2>
         <p className="panel-note">Prepare, reconcile Xaman status, then confirm validated escrow-create transactions.</p>
