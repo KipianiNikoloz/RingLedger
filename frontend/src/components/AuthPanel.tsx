@@ -38,7 +38,7 @@ export function AuthPanel({
   const tokenRoles = currentRoleSummary === "none" ? [] : currentRoleSummary.split(", ");
 
   return (
-    <section className="panel auth-panel">
+    <section className="panel auth-panel workflow-panel">
       <div className="panel-header">
         <h2>Auth Session</h2>
         <p className="panel-note">JWT tokens are stored in-memory by role for this session only.</p>

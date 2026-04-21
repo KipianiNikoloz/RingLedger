@@ -7,7 +7,7 @@ interface ResultEntryPanelProps {
 
 export function ResultEntryPanel({ busy, winner, onWinnerChange, onSubmit }: ResultEntryPanelProps) {
   return (
-    <section className="panel">
+    <section className="panel workflow-panel">
       <div className="panel-header">
         <h2>Admin Result Entry</h2>
         <p className="panel-note">Winner selection locks payout direction. This action requires an admin token.</p>

@@ -48,7 +48,7 @@ export function PayoutFlowPanel({
   onConfirm,
 }: PayoutFlowPanelProps) {
   return (
-    <section className="panel">
+    <section className="panel workflow-panel">
       <div className="panel-header">
         <h2>Promoter Payout Flow</h2>
         <p className="panel-note">Drive finish/cancel transactions after result entry using validated confirmation artifacts.</p>
