@@ -1,4 +1,4 @@
-﻿import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import App from "./App";
@@ -14,9 +14,23 @@ function buildJwtWithRole(role: string): string {
 beforeEach(() => {
   fetchMock.mockReset();
   vi.stubGlobal("fetch", fetchMock);
+  window.history.pushState({}, "", "/");
 });
 
 describe("App", () => {
+  it("renders homepage and navigates to operator workspace", async () => {
+    render(<App />);
+
+    expect(screen.getByRole("heading", { name: /XRPL escrow settlement for fight-night operations/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("link", { name: /Enter operator workspace/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { name: /Guided settlement workflow for promoter and admin execution/i })).toBeInTheDocument();
+      expect(screen.getByLabelText("Bout ID")).toBeInTheDocument();
+    });
+  });
+
   it("logs in promoter and prepares escrow payloads", async () => {
     fetchMock
       .mockResolvedValueOnce(
@@ -38,6 +52,7 @@ describe("App", () => {
         ),
       );
 
+    window.history.pushState({}, "", "/app");
     render(<App />);
 
     fireEvent.change(screen.getByLabelText("Bout ID"), {
@@ -68,6 +83,7 @@ describe("App", () => {
       }),
     );
 
+    window.history.pushState({}, "", "/app");
     render(<App />);
     fireEvent.click(screen.getByTestId("login-submit"));
 

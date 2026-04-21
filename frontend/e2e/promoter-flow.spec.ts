@@ -1,4 +1,4 @@
-﻿import { expect, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 const BOUT_ID = "4c2f8a58-1963-473a-8f90-2239950f0058";
 
@@ -154,6 +154,10 @@ test("promoter and admin browser journey covers escrow and payout contracts", as
   });
 
   await page.goto("/");
+  await expect(page.getByRole("heading", { name: /XRPL escrow settlement for fight-night operations/i })).toBeVisible();
+  await page.getByRole("link", { name: /Enter operator workspace/i }).click();
+  await expect(page.getByRole("heading", { name: /Guided settlement workflow for promoter and admin execution/i })).toBeVisible();
+
   await page.getByLabel("Bout ID").fill(BOUT_ID);
 
   await page.getByTestId("login-submit").click();
