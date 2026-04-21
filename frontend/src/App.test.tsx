@@ -21,7 +21,7 @@ describe("App", () => {
   it("renders homepage and navigates to operator workspace", async () => {
     render(<App />);
 
-    expect(screen.getByRole("heading", { name: /XRPL escrow settlement for fight-night operations/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /Control bout settlement with a calmer financial workflow/i })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("link", { name: /Enter operator workspace/i }));
 

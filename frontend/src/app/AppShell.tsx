@@ -43,117 +43,179 @@ function HomePage({ currentPath, onNavigate }: HomePageProps) {
   return (
     <main className="site-shell home-shell">
       <section className="home-hero">
-        <div className="hero-grid">
-          <div className="hero-copy">
-            <p className="eyebrow">RingLedger</p>
-            <h1>XRPL escrow settlement for fight-night operations.</h1>
-            <p className="hero-body">
-              RingLedger coordinates purse escrows, promoter signing, result entry, and payout closeout without moving
-              lifecycle authority out of the backend.
-            </p>
-            <div className="hero-actions">
-              <NavLink currentPath={currentPath} href="/app" label="Enter operator workspace" onNavigate={onNavigate} variant="strong" />
-              <a className="text-link" href="#lifecycle">
-                Explore the lifecycle
-              </a>
+        <div className="hero-copy">
+          <p className="eyebrow">RingLedger</p>
+          <h1>Control bout settlement with a calmer financial workflow.</h1>
+          <p className="hero-body">
+            RingLedger gives promoters and admins one surface for XRPL escrow creation, result entry, payout closeout,
+            and evidence review without shifting lifecycle authority away from the backend.
+          </p>
+          <div className="hero-actions">
+            <NavLink currentPath={currentPath} href="/app" label="Enter operator workspace" onNavigate={onNavigate} variant="strong" />
+            <a className="text-link" href="#capabilities">
+              Explore the platform
+            </a>
+          </div>
+          <div className="hero-proof-row" aria-label="Platform proof points">
+            <span>Promoter signing via Xaman</span>
+            <span>Admin result control</span>
+            <span>Ledger-validated closeout</span>
+          </div>
+        </div>
+
+        <section className="hero-product-shot" aria-label="RingLedger workflow product preview">
+          <div className="product-shot-frame">
+            <div className="product-topline">
+              <span>RingLedger Workspace</span>
+              <span>Live operator view</span>
+            </div>
+            <div className="product-layout">
+              <article className="product-primary-pane">
+                <div className="product-pane-head">
+                  <p className="mini-label">Bout lifecycle</p>
+                  <strong>BK-2048 · Event ready</strong>
+                </div>
+                <ul className="product-stage-list">
+                  <li>
+                    <span>Escrow creation</span>
+                    <strong>Validated</strong>
+                  </li>
+                  <li>
+                    <span>Result entry</span>
+                    <strong>Pending admin</strong>
+                  </li>
+                  <li>
+                    <span>Payout closeout</span>
+                    <strong>Queued</strong>
+                  </li>
+                </ul>
+              </article>
+              <article className="product-detail-pane">
+                <div>
+                  <p className="mini-label">Role posture</p>
+                  <strong>Promoter + admin tokens active</strong>
+                </div>
+                <div>
+                  <p className="mini-label">Latest confirmed action</p>
+                  <strong>EscrowCreate evidence accepted</strong>
+                </div>
+                <div>
+                  <p className="mini-label">Control model</p>
+                  <strong>Frontend untrusted, backend authoritative</strong>
+                </div>
+              </article>
             </div>
           </div>
+        </section>
+      </section>
 
-          <section className="hero-visual" aria-label="RingLedger workflow summary">
-            <div className="visual-kicker">
-              <span>Promoter signing</span>
-              <span>Admin result control</span>
-              <span>Ledger-validated closeout</span>
-            </div>
-
-            <div className="visual-orbit">
-              <article>
-                <p className="mini-label">Stage 01</p>
-                <h2>Prepare escrows</h2>
-                <p>Unsigned XRPL payloads plus Xaman sign requests are generated per bout.</p>
-              </article>
-              <article>
-                <p className="mini-label">Stage 02</p>
-                <h2>Reconcile and confirm</h2>
-                <p>Signing outcomes are reconciled, then ledger evidence is validated before state transitions.</p>
-              </article>
-              <article>
-                <p className="mini-label">Stage 03</p>
-                <h2>Result and payout</h2>
-                <p>Admin enters the winner, promoter signs payout actions, and the bout closes only on valid completion.</p>
-              </article>
-            </div>
-          </section>
-        </div>
+      <section className="proof-band" aria-label="Platform scale and control">
+        <article>
+          <span className="proof-value">4</span>
+          <p>escrows planned per 1v1 bout lifecycle</p>
+        </article>
+        <article>
+          <span className="proof-value">2</span>
+          <p>operator roles driving promoter and admin actions</p>
+        </article>
+        <article>
+          <span className="proof-value">100%</span>
+          <p>ledger state transitions gated by validated backend evidence</p>
+        </article>
       </section>
 
       <section className="story-section" aria-labelledby="trust-heading">
         <div className="section-heading">
-          <p className="eyebrow">Why it exists</p>
-          <h2 id="trust-heading">A product surface for a brittle financial workflow.</h2>
+          <p className="eyebrow">Who it serves</p>
+          <h2 id="trust-heading">Built for the people who actually move the bout lifecycle forward.</h2>
         </div>
         <div className="feature-ribbon">
           <article>
-            <h3>Backend remains authoritative</h3>
-            <p>Frontend actions only drive typed API contracts. Invariants, role checks, timing rules, and ledger truth stay server-side.</p>
+            <h3>Promoters</h3>
+            <p>Prepare escrows, reconcile signing, and confirm payout actions with Xaman-linked evidence in one place.</p>
           </article>
           <article>
-            <h3>Xaman-first promoter signing</h3>
-            <p>Promoters sign without handing private keys to the platform. RingLedger tracks status and confirmation evidence around that boundary.</p>
+            <h3>Admins</h3>
+            <p>Record winners at the correct lifecycle point and keep payout direction explicit before closeout starts.</p>
           </article>
           <article>
-            <h3>Bout-state clarity</h3>
-            <p>Escrow creation, result entry, payout progress, and closeout align to an explicit lifecycle instead of ad hoc manual bookkeeping.</p>
+            <h3>Operations teams</h3>
+            <p>Review tokens, logs, and raw backend payloads without losing the structure of the workflow itself.</p>
           </article>
         </div>
       </section>
 
-      <section id="lifecycle" className="lifecycle-section" aria-labelledby="lifecycle-heading">
+      <section id="capabilities" className="lifecycle-section capabilities-section" aria-labelledby="capabilities-heading">
         <div className="section-heading">
-          <p className="eyebrow">Lifecycle</p>
-          <h2 id="lifecycle-heading">Four operator moments, one controlled path to settlement.</h2>
+          <p className="eyebrow">Foundation</p>
+          <h2 id="capabilities-heading">A strong operational foundation for a high-risk settlement path.</h2>
+          <p className="section-body">
+            RingLedger keeps the workflow calm by separating signing, lifecycle control, and proof review into a single
+            operator surface with typed backend contracts underneath.
+          </p>
         </div>
-        <div className="timeline-grid">
+        <div className="timeline-grid capabilities-grid">
+          <article>
+            <h3>Backend-authoritative lifecycle</h3>
+            <p>Role checks, timing rules, and ledger truth stay server-side. The frontend only drives the approved path.</p>
+          </article>
+          <article>
+            <h3>Xaman-first signing</h3>
+            <p>Promoters sign without the platform storing private keys, while the workflow still captures payload status and evidence.</p>
+          </article>
+          <article>
+            <h3>Typed API evidence</h3>
+            <p>Each action returns deterministic payloads so operators can inspect exactly what the backend accepted.</p>
+          </article>
+        </div>
+      </section>
+
+      <section className="platform-section" aria-labelledby="platform-heading">
+        <div className="section-heading">
+          <p className="eyebrow">Modern capabilities</p>
+          <h2 id="platform-heading">One product surface for preparation, confirmation, and closeout.</h2>
+        </div>
+        <div className="platform-grid">
           <article>
             <p className="timeline-step">01</p>
             <h3>Authenticate by role</h3>
-            <p>Promoter and admin tokens unlock only the actions their lifecycle step requires.</p>
+            <p>Load promoter and admin tokens into the active session before acting on bout state.</p>
           </article>
           <article>
             <p className="timeline-step">02</p>
             <h3>Create escrows</h3>
-            <p>Prepare, reconcile signing, then confirm validated `EscrowCreate` transactions for all four bout escrows.</p>
+            <p>Prepare, reconcile, and confirm validated `EscrowCreate` transactions for each escrow kind.</p>
           </article>
           <article>
             <p className="timeline-step">03</p>
             <h3>Record the result</h3>
-            <p>Admin enters the winner once escrow creation has completed and before payout closeout begins.</p>
+            <p>Keep winner entry isolated to the admin checkpoint before payout operations begin.</p>
           </article>
           <article>
             <p className="timeline-step">04</p>
-            <h3>Finish or cancel payouts</h3>
-            <p>Promoter finalizes payout operations, while the backend validates evidence before the bout reaches `closed`.</p>
+            <h3>Close out payouts</h3>
+            <p>Finish or cancel payout escrows and only advance the bout when the evidence is valid.</p>
           </article>
         </div>
       </section>
 
-      <section className="roles-section" aria-labelledby="roles-heading">
+      <section className="roles-section security-section" aria-labelledby="roles-heading">
         <div className="section-heading">
-          <p className="eyebrow">Operators</p>
-          <h2 id="roles-heading">Built for promoters and admins, not for spectators.</h2>
+          <p className="eyebrow">Secure by design</p>
+          <h2 id="roles-heading">Trust comes from controls, not from a prettier dashboard.</h2>
         </div>
         <div className="roles-grid">
           <article>
-            <h3>Promoter</h3>
-            <p>Controls escrow and payout signing, reviews transaction evidence, and drives Xaman-linked actions.</p>
+            <h3>Untrusted frontend model</h3>
+            <p>Operators can drive workflows, but lifecycle invariants and settlement rules are never enforced in the browser.</p>
           </article>
           <article>
-            <h3>Admin</h3>
-            <p>Records fight outcomes and advances the lifecycle only through the result-entry boundary.</p>
+            <h3>Role-scoped actions</h3>
+            <p>Promoter and admin capabilities stay separated, which keeps result entry and signing responsibilities clear.</p>
           </article>
           <article>
-            <h3>Platform</h3>
-            <p>Owns fulfillment secrets and lifecycle enforcement while keeping frontend trust deliberately low.</p>
+            <h3>Evidence-led transitions</h3>
+            <p>Confirmed ledger results, idempotent endpoints, and deterministic payloads keep closeout auditable.</p>
           </article>
         </div>
       </section>

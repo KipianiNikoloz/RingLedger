@@ -154,7 +154,7 @@ test("promoter and admin browser journey covers escrow and payout contracts", as
   });
 
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: /XRPL escrow settlement for fight-night operations/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Control bout settlement with a calmer financial workflow/i })).toBeVisible();
   await page.getByRole("link", { name: /Enter operator workspace/i }).click();
   await expect(page.getByRole("heading", { name: /Guided settlement workflow for promoter and admin execution/i })).toBeVisible();
 
