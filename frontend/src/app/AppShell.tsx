@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import { AuthPanel } from "../components/AuthPanel";
 import { BoutWorkspacePanel } from "../components/BoutWorkspacePanel";
 import { EscrowFlowPanel } from "../components/EscrowFlowPanel";
@@ -5,8 +7,10 @@ import { OutputPanel } from "../components/OutputPanel";
 import { PayoutFlowPanel } from "../components/PayoutFlowPanel";
 import { ResultEntryPanel } from "../components/ResultEntryPanel";
 import { StatusConsole } from "../components/StatusConsole";
-import { useRingLedgerConsole } from "../hooks/useRingLedgerConsole";
+import { type RingLedgerConsoleModel, useRingLedgerConsole } from "../hooks/useRingLedgerConsole";
 import { usePathname } from "./usePathname";
+
+type StageState = "complete" | "in-progress" | "pending" | "failed";
 
 interface NavLinkProps {
   currentPath: string;
@@ -14,6 +18,20 @@ interface NavLinkProps {
   label: string;
   onNavigate: (href: string) => void;
   variant?: "default" | "strong";
+}
+
+interface StageSummary {
+  id: "auth" | "escrows" | "result" | "payouts";
+  index: string;
+  label: string;
+  state: StageState;
+  summary: string;
+}
+
+interface EvidenceItem {
+  label: string;
+  value: string;
+  tone?: "operator" | "signing" | "backend" | "ledger" | "failure";
 }
 
 function NavLink({ currentPath, href, label, onNavigate, variant = "default" }: NavLinkProps) {
@@ -42,192 +60,76 @@ interface HomePageProps {
 function HomePage({ currentPath, onNavigate }: HomePageProps) {
   return (
     <main className="site-shell home-shell">
-      <section className="home-hero">
-        <div className="hero-copy">
+      <section className="entry-console" aria-labelledby="home-heading">
+        <div className="entry-copy">
           <p className="eyebrow">RingLedger</p>
-          <h1>Control bout settlement with a calmer financial workflow.</h1>
+          <h1 id="home-heading">Backend-authoritative escrow settlement console.</h1>
           <p className="hero-body">
-            RingLedger gives promoters and admins one surface for XRPL escrow creation, result entry, payout closeout,
-            and evidence review without shifting lifecycle authority away from the backend.
+            RingLedger gives operators one dark control surface for XRPL escrow preparation, Xaman signing reconciliation,
+            result entry, payout closeout, and backend evidence review.
           </p>
           <div className="hero-actions">
-            <NavLink currentPath={currentPath} href="/app" label="Enter operator workspace" onNavigate={onNavigate} variant="strong" />
-            <a className="text-link" href="#capabilities">
-              Explore the platform
+            <NavLink
+              currentPath={currentPath}
+              href="/app"
+              label="Enter operator workspace"
+              onNavigate={onNavigate}
+              variant="strong"
+            />
+            <a className="text-link" href="#trust-boundaries">
+              Review trust boundaries
             </a>
           </div>
-          <div className="hero-proof-row" aria-label="Platform proof points">
-            <span>Promoter signing via Xaman</span>
-            <span>Admin result control</span>
-            <span>Ledger-validated closeout</span>
+        </div>
+
+        <div className="entry-status-board" aria-label="RingLedger trust boundary summary">
+          <div className="entry-status-header">
+            <span>Settlement Control</span>
+            <strong>XRPL Testnet</strong>
+          </div>
+          <div className="entry-status-grid">
+            <article data-tone="operator">
+              <span>Operator action</span>
+              <strong>Prepare and submit</strong>
+            </article>
+            <article data-tone="signing">
+              <span>Xaman signing</span>
+              <strong>Payload status</strong>
+            </article>
+            <article data-tone="backend">
+              <span>Backend authority</span>
+              <strong>Lifecycle gates</strong>
+            </article>
+            <article data-tone="ledger">
+              <span>XRPL evidence</span>
+              <strong>Validated results</strong>
+            </article>
           </div>
         </div>
-
-        <section className="hero-product-shot" aria-label="RingLedger workflow product preview">
-          <div className="product-shot-frame">
-            <div className="product-topline">
-              <span>RingLedger Workspace</span>
-              <span>Live operator view</span>
-            </div>
-            <div className="product-layout">
-              <article className="product-primary-pane">
-                <div className="product-pane-head">
-                  <p className="mini-label">Bout lifecycle</p>
-                  <strong>BK-2048 · Event ready</strong>
-                </div>
-                <ul className="product-stage-list">
-                  <li>
-                    <span>Escrow creation</span>
-                    <strong>Validated</strong>
-                  </li>
-                  <li>
-                    <span>Result entry</span>
-                    <strong>Pending admin</strong>
-                  </li>
-                  <li>
-                    <span>Payout closeout</span>
-                    <strong>Queued</strong>
-                  </li>
-                </ul>
-              </article>
-              <article className="product-detail-pane">
-                <div>
-                  <p className="mini-label">Role posture</p>
-                  <strong>Promoter + admin tokens active</strong>
-                </div>
-                <div>
-                  <p className="mini-label">Latest confirmed action</p>
-                  <strong>EscrowCreate evidence accepted</strong>
-                </div>
-                <div>
-                  <p className="mini-label">Control model</p>
-                  <strong>Frontend untrusted, backend authoritative</strong>
-                </div>
-              </article>
-            </div>
-          </div>
-        </section>
       </section>
 
-      <section className="proof-band" aria-label="Platform scale and control">
-        <article>
-          <span className="proof-value">4</span>
-          <p>escrows planned per 1v1 bout lifecycle</p>
-        </article>
-        <article>
-          <span className="proof-value">2</span>
-          <p>operator roles driving promoter and admin actions</p>
-        </article>
-        <article>
-          <span className="proof-value">100%</span>
-          <p>ledger state transitions gated by validated backend evidence</p>
-        </article>
-      </section>
-
-      <section className="story-section" aria-labelledby="trust-heading">
-        <div className="section-heading">
-          <p className="eyebrow">Who it serves</p>
-          <h2 id="trust-heading">Built for the people who actually move the bout lifecycle forward.</h2>
-        </div>
-        <div className="feature-ribbon">
-          <article>
-            <h3>Promoters</h3>
-            <p>Prepare escrows, reconcile signing, and confirm payout actions with Xaman-linked evidence in one place.</p>
-          </article>
-          <article>
-            <h3>Admins</h3>
-            <p>Record winners at the correct lifecycle point and keep payout direction explicit before closeout starts.</p>
-          </article>
-          <article>
-            <h3>Operations teams</h3>
-            <p>Review tokens, logs, and raw backend payloads without losing the structure of the workflow itself.</p>
-          </article>
-        </div>
-      </section>
-
-      <section id="capabilities" className="lifecycle-section capabilities-section" aria-labelledby="capabilities-heading">
-        <div className="section-heading">
-          <p className="eyebrow">Foundation</p>
-          <h2 id="capabilities-heading">A strong operational foundation for a high-risk settlement path.</h2>
-          <p className="section-body">
-            RingLedger keeps the workflow calm by separating signing, lifecycle control, and proof review into a single
-            operator surface with typed backend contracts underneath.
-          </p>
-        </div>
-        <div className="timeline-grid capabilities-grid">
-          <article>
-            <h3>Backend-authoritative lifecycle</h3>
-            <p>Role checks, timing rules, and ledger truth stay server-side. The frontend only drives the approved path.</p>
-          </article>
-          <article>
-            <h3>Xaman-first signing</h3>
-            <p>Promoters sign without the platform storing private keys, while the workflow still captures payload status and evidence.</p>
-          </article>
-          <article>
-            <h3>Typed API evidence</h3>
-            <p>Each action returns deterministic payloads so operators can inspect exactly what the backend accepted.</p>
-          </article>
-        </div>
-      </section>
-
-      <section className="platform-section" aria-labelledby="platform-heading">
-        <div className="section-heading">
-          <p className="eyebrow">Modern capabilities</p>
-          <h2 id="platform-heading">One product surface for preparation, confirmation, and closeout.</h2>
-        </div>
-        <div className="platform-grid">
-          <article>
-            <p className="timeline-step">01</p>
-            <h3>Authenticate by role</h3>
-            <p>Load promoter and admin tokens into the active session before acting on bout state.</p>
-          </article>
-          <article>
-            <p className="timeline-step">02</p>
-            <h3>Create escrows</h3>
-            <p>Prepare, reconcile, and confirm validated `EscrowCreate` transactions for each escrow kind.</p>
-          </article>
-          <article>
-            <p className="timeline-step">03</p>
-            <h3>Record the result</h3>
-            <p>Keep winner entry isolated to the admin checkpoint before payout operations begin.</p>
-          </article>
-          <article>
-            <p className="timeline-step">04</p>
-            <h3>Close out payouts</h3>
-            <p>Finish or cancel payout escrows and only advance the bout when the evidence is valid.</p>
-          </article>
-        </div>
-      </section>
-
-      <section className="roles-section security-section" aria-labelledby="roles-heading">
-        <div className="section-heading">
-          <p className="eyebrow">Secure by design</p>
-          <h2 id="roles-heading">Trust comes from controls, not from a prettier dashboard.</h2>
-        </div>
-        <div className="roles-grid">
-          <article>
-            <h3>Untrusted frontend model</h3>
-            <p>Operators can drive workflows, but lifecycle invariants and settlement rules are never enforced in the browser.</p>
-          </article>
-          <article>
-            <h3>Role-scoped actions</h3>
-            <p>Promoter and admin capabilities stay separated, which keeps result entry and signing responsibilities clear.</p>
-          </article>
-          <article>
-            <h3>Evidence-led transitions</h3>
-            <p>Confirmed ledger results, idempotent endpoints, and deterministic payloads keep closeout auditable.</p>
-          </article>
-        </div>
-      </section>
-
-      <section className="final-cta" aria-labelledby="cta-heading">
+      <section id="trust-boundaries" className="home-trust-band" aria-labelledby="trust-heading">
         <div>
-          <p className="eyebrow">Workspace</p>
-          <h2 id="cta-heading">Move from product story to the operating surface.</h2>
+          <p className="eyebrow">Operating model</p>
+          <h2 id="trust-heading">The browser drives approved actions. The backend and ledger remain the source of truth.</h2>
         </div>
-        <div className="final-cta-actions">
-          <NavLink currentPath={currentPath} href="/app" label="Open the app" onNavigate={onNavigate} variant="strong" />
-          <p>Use the guided operator workspace to authenticate, stage escrows, submit results, and complete payouts.</p>
+        <div className="trust-grid">
+          <article>
+            <h3>Authenticate</h3>
+            <p>Promoter and admin role tokens stay visible as session posture.</p>
+          </article>
+          <article>
+            <h3>Escrows</h3>
+            <p>Escrow creation moves through prepare, signing reconciliation, and confirmation.</p>
+          </article>
+          <article>
+            <h3>Result</h3>
+            <p>Winner entry is isolated before payout direction can be closed.</p>
+          </article>
+          <article>
+            <h3>Payouts</h3>
+            <p>Finish and cancel actions expose signing and ledger evidence for review.</p>
+          </article>
         </div>
       </section>
     </main>
@@ -236,246 +138,254 @@ function HomePage({ currentPath, onNavigate }: HomePageProps) {
 
 function OperatorWorkspacePage() {
   const model = useRingLedgerConsole();
-  const activeRoles = model.currentRoleSummary === "none" ? [] : model.currentRoleSummary.split(", ");
-  const latestActionTimestamp = model.actionLog[0]?.split("|")[0]?.trim() ?? "No actions yet.";
-  const hasPromoter = activeRoles.includes("promoter");
-  const hasAdmin = activeRoles.includes("admin");
-
-  const stageCards = [
-    {
-      key: "auth",
-      label: "Auth",
-      title: "Session roles",
-      summary: hasPromoter || hasAdmin ? `${activeRoles.join(", ")} token(s) loaded` : "No active role tokens",
-      status: hasPromoter || hasAdmin ? "Ready" : "Required",
-    },
-    {
-      key: "escrow",
-      label: "Escrows",
-      title: "Escrow creation",
-      summary: model.escrowConfirmResult ? "Ledger confirmation recorded" : "Prepare, reconcile, and confirm creation",
-      status: model.escrowConfirmResult ? "Advanced" : "Open",
-    },
-    {
-      key: "result",
-      label: "Result",
-      title: "Winner entry",
-      summary: model.resultEntry ? `Winner ${model.resultEntry.winner} submitted` : "Admin action still pending",
-      status: model.resultEntry ? "Locked" : "Pending",
-    },
-    {
-      key: "payout",
-      label: "Payout",
-      title: "Settlement closeout",
-      summary: model.payoutConfirmResult ? "Payout confirmation recorded" : "Awaiting payout operations",
-      status: model.payoutConfirmResult ? "Closed path" : "Queued",
-    },
-  ];
+  const stages = buildStageSummaries(model);
+  const activeStage = stages.find((stage) => stage.state === "failed" || stage.state === "in-progress") ?? stages[0];
+  const activeRoles = getActiveRoles(model);
+  const latestAction = model.actionLog[0] ?? "No actions recorded";
+  const latestResponse = getLatestResponse(model);
+  const signingEvidence = getSigningEvidence(model);
+  const ledgerEvidence = getLedgerEvidence(model);
+  const failureEvidence = getFailureEvidence(model);
 
   return (
-    <main className="site-shell app-shell">
-      <section className="app-hero">
-        <div className="app-hero-copy">
-          <p className="eyebrow">Operator workspace</p>
-          <h1>Guided settlement workflow for promoter and admin execution.</h1>
-          <p className="hero-body">
-            The app is organized around the bout lifecycle instead of raw panel sprawl. Actions still map directly to
-            the existing backend contracts.
-          </p>
+    <main className="operator-shell" aria-labelledby="workspace-heading">
+      <section className="workspace-header">
+        <div>
+          <p className="eyebrow">Operator Workspace</p>
+          <h1 id="workspace-heading">Settlement control room</h1>
+          <p className="hero-body">Backend and XRPL evidence are the source of truth for every lifecycle transition.</p>
         </div>
-        <div className="hero-status-grid" aria-label="Workspace status">
-          <article>
-            <span>Active roles</span>
-            <strong>{activeRoles.length}</strong>
-          </article>
-          <article>
-            <span>Bout context</span>
-            <strong>{model.boutId.trim() || "Unset"}</strong>
-          </article>
-          <article>
-            <span>Latest action</span>
-            <strong>{model.actionLog.length > 0 ? "Recorded" : "Pending"}</strong>
-          </article>
-          <article>
-            <span>Timestamp</span>
-            <strong>{latestActionTimestamp}</strong>
-          </article>
+        <div className="workspace-status">
+          <label>
+            Network
+            <select aria-label="Network">
+              <option>XRPL Testnet</option>
+            </select>
+          </label>
+          <span className="status-chip status-chip-ledger">Backend online</span>
+          <button className="icon-button" type="button" aria-label="Notifications">
+            N
+          </button>
+          <button className="icon-button" type="button" aria-label="Help">
+            ?
+          </button>
+          <span className="avatar-mark" aria-label="Operator profile">
+            OP
+          </span>
         </div>
       </section>
 
-      <section className="stage-overview" aria-label="Lifecycle overview">
-        {stageCards.map((stage) => (
-          <article className="stage-overview-card" key={stage.key}>
-            <p className="mini-label">{stage.label}</p>
-            <h2>{stage.title}</h2>
-            <p>{stage.summary}</p>
-            <span className="status-pill">{stage.status}</span>
+      <section className="lifecycle-stepper" aria-label="RingLedger lifecycle stages">
+        {stages.map((stage) => (
+          <article className="lifecycle-step" data-state={stage.state} key={stage.id}>
+            <span className="step-marker">{stage.index}</span>
+            <div>
+              <span className="step-label">{stage.label}</span>
+              <strong>{formatStageState(stage.state)}</strong>
+              <p>{stage.summary}</p>
+            </div>
           </article>
         ))}
       </section>
 
-      <div className="app-grid">
-        <section className="app-main-column">
-          <section className="stage-section" aria-labelledby="stage-auth">
-            <div className="stage-header">
-              <p className="stage-index">01</p>
-              <div>
-                <h2 id="stage-auth">Authenticate and load roles</h2>
-                <p>Keep promoter and admin tokens available in-session before moving deeper into the lifecycle.</p>
+      <div className="workbench-grid">
+        <div className="operations-grid">
+          <aside className="context-rail" aria-label="Session and bout context">
+            <section className="panel rail-panel">
+              <div className="panel-header">
+                <p className="eyebrow">Session</p>
+                <h2>Operator context</h2>
+                <p className="panel-note">Active role, bout, stage, and latest confirmed action.</p>
               </div>
-            </div>
-            <AuthPanel
-              busy={model.busy}
-              currentRoleSummary={model.currentRoleSummary}
-              registerEmail={model.registerEmail}
-              registerPassword={model.registerPassword}
-              registerRole={model.registerRole}
-              loginEmail={model.loginEmail}
-              loginPassword={model.loginPassword}
-              onRegisterEmailChange={model.setRegisterEmail}
-              onRegisterPasswordChange={model.setRegisterPassword}
-              onRegisterRoleChange={model.setRegisterRole}
-              onLoginEmailChange={model.setLoginEmail}
-              onLoginPasswordChange={model.setLoginPassword}
-              onRegister={(event) => {
-                void model.handleRegister(event);
-              }}
-              onLogin={(event) => {
-                void model.handleLogin(event);
-              }}
+              <dl className="definition-grid">
+                <div>
+                  <dt>Active roles</dt>
+                  <dd>{activeRoles.length > 0 ? activeRoles.join(", ") : "none"}</dd>
+                </div>
+                <div>
+                  <dt>Auth posture</dt>
+                  <dd>{activeRoles.length > 0 ? "token state loaded" : "login required"}</dd>
+                </div>
+                <div>
+                  <dt>Bout ID</dt>
+                  <dd>{model.boutId.trim() || "not selected"}</dd>
+                </div>
+                <div>
+                  <dt>Current stage</dt>
+                  <dd>{activeStage.label}</dd>
+                </div>
+                <div>
+                  <dt>Latest action</dt>
+                  <dd>{summarizeAction(latestAction)}</dd>
+                </div>
+              </dl>
+            </section>
+
+            <section className="panel rail-panel">
+              <div className="panel-header">
+                <p className="eyebrow">Task list</p>
+                <h2>Run order</h2>
+              </div>
+              <ol className="operator-task-list">
+                {stages.map((stage) => (
+                  <li data-state={stage.state} key={stage.id}>
+                    <span>{stage.index}</span>
+                    <div>
+                      <strong>{stage.label}</strong>
+                      <p>{stage.summary}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          </aside>
+
+          <section className="workspace-column" aria-label="Active lifecycle controls">
+            {model.lastError ? <p className="error-banner">{model.lastError}</p> : null}
+
+            <section className="flow-shell" aria-labelledby="stage-auth">
+              <StageHeader index="01" title="Authenticate" description="Load promoter and admin role tokens for this session." id="stage-auth" />
+              <AuthPanel
+                busy={model.busy}
+                currentRoleSummary={model.currentRoleSummary}
+                registerEmail={model.registerEmail}
+                registerPassword={model.registerPassword}
+                registerRole={model.registerRole}
+                loginEmail={model.loginEmail}
+                loginPassword={model.loginPassword}
+                onRegisterEmailChange={model.setRegisterEmail}
+                onRegisterPasswordChange={model.setRegisterPassword}
+                onRegisterRoleChange={model.setRegisterRole}
+                onLoginEmailChange={model.setLoginEmail}
+                onLoginPasswordChange={model.setLoginPassword}
+                onRegister={(event) => {
+                  void model.handleRegister(event);
+                }}
+                onLogin={(event) => {
+                  void model.handleLogin(event);
+                }}
+              />
+            </section>
+
+            <section className="flow-shell" aria-labelledby="stage-escrows">
+              <StageHeader
+                index="02"
+                title="Escrows"
+                description="Prepare, reconcile, and confirm escrow creation for the active bout."
+                id="stage-escrows"
+              />
+              <BoutWorkspacePanel boutId={model.boutId} onBoutIdChange={model.setBoutId} />
+              <EscrowFlowPanel
+                busy={model.busy}
+                reconcileKind={model.escrowReconcileKind}
+                reconcileStatus={model.escrowReconcileStatus}
+                reconcileTxHash={model.escrowReconcileTxHash}
+                confirmKind={model.escrowConfirmKind}
+                confirmTxHash={model.escrowConfirmTxHash}
+                confirmOfferSequence={model.escrowConfirmOfferSequence}
+                confirmEngineResult={model.escrowConfirmEngineResult}
+                confirmValidated={model.escrowConfirmValidated}
+                onReconcileKindChange={model.setEscrowReconcileKind}
+                onReconcileStatusChange={model.setEscrowReconcileStatus}
+                onReconcileTxHashChange={model.setEscrowReconcileTxHash}
+                onConfirmKindChange={model.setEscrowConfirmKind}
+                onConfirmTxHashChange={model.setEscrowConfirmTxHash}
+                onConfirmOfferSequenceChange={model.setEscrowConfirmOfferSequence}
+                onConfirmEngineResultChange={model.setEscrowConfirmEngineResult}
+                onConfirmValidatedChange={model.setEscrowConfirmValidated}
+                onPrepare={() => {
+                  void model.handleEscrowPrepare();
+                }}
+                onReconcile={() => {
+                  void model.handleEscrowReconcile();
+                }}
+                onConfirm={() => {
+                  void model.handleEscrowConfirm();
+                }}
+              />
+            </section>
+
+            <section className="flow-shell" aria-labelledby="stage-result">
+              <StageHeader index="03" title="Result" description="Enter the winner once escrow creation evidence is ready." id="stage-result" />
+              <ResultEntryPanel
+                busy={model.busy}
+                winner={model.winner}
+                onWinnerChange={model.setWinner}
+                onSubmit={() => {
+                  void model.handleResultEntry();
+                }}
+              />
+            </section>
+
+            <section className="flow-shell" aria-labelledby="stage-payouts">
+              <StageHeader
+                index="04"
+                title="Payouts"
+                description="Prepare payout actions, reconcile signing, and confirm ledger closeout."
+                id="stage-payouts"
+              />
+              <PayoutFlowPanel
+                busy={model.busy}
+                reconcileKind={model.payoutReconcileKind}
+                reconcileStatus={model.payoutReconcileStatus}
+                reconcileTxHash={model.payoutReconcileTxHash}
+                confirmKind={model.payoutConfirmKind}
+                confirmTxHash={model.payoutConfirmTxHash}
+                confirmEngineResult={model.payoutConfirmEngineResult}
+                confirmValidated={model.payoutConfirmValidated}
+                closeTimeRipple={model.payoutCloseTimeRipple}
+                onReconcileKindChange={model.setPayoutReconcileKind}
+                onReconcileStatusChange={model.setPayoutReconcileStatus}
+                onReconcileTxHashChange={model.setPayoutReconcileTxHash}
+                onConfirmKindChange={model.setPayoutConfirmKind}
+                onConfirmTxHashChange={model.setPayoutConfirmTxHash}
+                onConfirmEngineResultChange={model.setPayoutConfirmEngineResult}
+                onConfirmValidatedChange={model.setPayoutConfirmValidated}
+                onCloseTimeRippleChange={model.setPayoutCloseTimeRipple}
+                onPrepare={() => {
+                  void model.handlePayoutPrepare();
+                }}
+                onReconcile={() => {
+                  void model.handlePayoutReconcile();
+                }}
+                onConfirm={() => {
+                  void model.handlePayoutConfirm();
+                }}
+              />
+            </section>
+          </section>
+        </div>
+
+        <aside className="evidence-rail" aria-label="Evidence and output">
+          <EvidencePanel title="Latest backend response" description="Most recent payload accepted by the frontend model.">
+            <EvidenceList
+              items={[
+                { label: "Response", value: latestResponse.label, tone: "backend" },
+                { label: "Bout", value: latestResponse.boutId, tone: "operator" },
+                { label: "Status", value: latestResponse.status, tone: latestResponse.statusTone },
+              ]}
             />
-          </section>
+          </EvidencePanel>
 
-          <section className="stage-section" aria-labelledby="stage-escrow">
-            <div className="stage-header">
-              <p className="stage-index">02</p>
-              <div>
-                <h2 id="stage-escrow">Create escrows for the active bout</h2>
-                <p>Set bout context once, then drive prepare, signing reconciliation, and final confirmation in order.</p>
-              </div>
-            </div>
-            <BoutWorkspacePanel boutId={model.boutId} onBoutIdChange={model.setBoutId} />
-            <EscrowFlowPanel
-              busy={model.busy}
-              reconcileKind={model.escrowReconcileKind}
-              reconcileStatus={model.escrowReconcileStatus}
-              reconcileTxHash={model.escrowReconcileTxHash}
-              confirmKind={model.escrowConfirmKind}
-              confirmTxHash={model.escrowConfirmTxHash}
-              confirmOfferSequence={model.escrowConfirmOfferSequence}
-              confirmEngineResult={model.escrowConfirmEngineResult}
-              confirmValidated={model.escrowConfirmValidated}
-              onReconcileKindChange={model.setEscrowReconcileKind}
-              onReconcileStatusChange={model.setEscrowReconcileStatus}
-              onReconcileTxHashChange={model.setEscrowReconcileTxHash}
-              onConfirmKindChange={model.setEscrowConfirmKind}
-              onConfirmTxHashChange={model.setEscrowConfirmTxHash}
-              onConfirmOfferSequenceChange={model.setEscrowConfirmOfferSequence}
-              onConfirmEngineResultChange={model.setEscrowConfirmEngineResult}
-              onConfirmValidatedChange={model.setEscrowConfirmValidated}
-              onPrepare={() => {
-                void model.handleEscrowPrepare();
-              }}
-              onReconcile={() => {
-                void model.handleEscrowReconcile();
-              }}
-              onConfirm={() => {
-                void model.handleEscrowConfirm();
-              }}
-            />
-          </section>
+          <EvidencePanel title="Xaman signing state" description="Payload and signing status surfaced from prepare or reconcile responses.">
+            <EvidenceList items={signingEvidence} />
+          </EvidencePanel>
 
-          <section className="stage-section" aria-labelledby="stage-result">
-            <div className="stage-header">
-              <p className="stage-index">03</p>
-              <div>
-                <h2 id="stage-result">Record the bout result</h2>
-                <p>Admin winner entry is isolated as its own step so payout direction is obvious before closeout begins.</p>
-              </div>
-            </div>
-            <ResultEntryPanel
-              busy={model.busy}
-              winner={model.winner}
-              onWinnerChange={model.setWinner}
-              onSubmit={() => {
-                void model.handleResultEntry();
-              }}
-            />
-          </section>
+          <EvidencePanel title="XRPL ledger evidence" description="Validated ledger details from confirm responses.">
+            <EvidenceList items={ledgerEvidence} />
+          </EvidencePanel>
 
-          <section className="stage-section" aria-labelledby="stage-payout">
-            <div className="stage-header">
-              <p className="stage-index">04</p>
-              <div>
-                <h2 id="stage-payout">Complete payout settlement</h2>
-                <p>Prepare payout actions, reconcile signing state, and confirm validated ledger closeout artifacts.</p>
-              </div>
-            </div>
-            <PayoutFlowPanel
-              busy={model.busy}
-              reconcileKind={model.payoutReconcileKind}
-              reconcileStatus={model.payoutReconcileStatus}
-              reconcileTxHash={model.payoutReconcileTxHash}
-              confirmKind={model.payoutConfirmKind}
-              confirmTxHash={model.payoutConfirmTxHash}
-              confirmEngineResult={model.payoutConfirmEngineResult}
-              confirmValidated={model.payoutConfirmValidated}
-              closeTimeRipple={model.payoutCloseTimeRipple}
-              onReconcileKindChange={model.setPayoutReconcileKind}
-              onReconcileStatusChange={model.setPayoutReconcileStatus}
-              onReconcileTxHashChange={model.setPayoutReconcileTxHash}
-              onConfirmKindChange={model.setPayoutConfirmKind}
-              onConfirmTxHashChange={model.setPayoutConfirmTxHash}
-              onConfirmEngineResultChange={model.setPayoutConfirmEngineResult}
-              onConfirmValidatedChange={model.setPayoutConfirmValidated}
-              onCloseTimeRippleChange={model.setPayoutCloseTimeRipple}
-              onPrepare={() => {
-                void model.handlePayoutPrepare();
-              }}
-              onReconcile={() => {
-                void model.handlePayoutReconcile();
-              }}
-              onConfirm={() => {
-                void model.handlePayoutConfirm();
-              }}
-            />
-          </section>
-        </section>
-
-        <aside className="app-side-column">
-          {model.lastError ? <p className="error-banner">{model.lastError}</p> : null}
-
-          <section className="panel rail-panel">
-            <div className="panel-header">
-              <h2>Operator snapshot</h2>
-              <p className="panel-note">Fast orientation for the current session, bout, and role posture.</p>
-            </div>
-            <dl className="definition-grid">
-              <div>
-                <dt>Roles</dt>
-                <dd>{model.currentRoleSummary}</dd>
-              </div>
-              <div>
-                <dt>Bout ID</dt>
-                <dd>{model.boutId.trim() || "No bout selected"}</dd>
-              </div>
-              <div>
-                <dt>Winner</dt>
-                <dd>{model.resultEntry?.winner ?? model.winner}</dd>
-              </div>
-              <div>
-                <dt>Action timestamp</dt>
-                <dd>{latestActionTimestamp}</dd>
-              </div>
-            </dl>
-          </section>
+          <EvidencePanel title="Failure classification" description="Last deterministic error or signing failure code.">
+            <EvidenceList items={failureEvidence} />
+          </EvidencePanel>
 
           <StatusConsole entries={model.actionLog} />
 
-          <section className="results-section">
+          <section className="panel output-panel-wrap">
             <div className="panel-header">
-              <h2>Payload evidence</h2>
-              <p className="panel-note">Latest backend responses remain available as operator reference data.</p>
+              <p className="eyebrow">Raw output</p>
+              <h2>Backend payloads</h2>
+              <p className="panel-note">Full JSON remains available for audit and troubleshooting.</p>
             </div>
             <OutputPanel
               registerResult={model.registerResult}
@@ -490,7 +400,94 @@ function OperatorWorkspacePage() {
           </section>
         </aside>
       </div>
+
+      <TrustBoundaryLegend />
     </main>
+  );
+}
+
+interface StageHeaderProps {
+  id: string;
+  index: string;
+  title: string;
+  description: string;
+}
+
+function StageHeader({ id, index, title, description }: StageHeaderProps) {
+  return (
+    <div className="stage-header">
+      <span className="stage-index">{index}</span>
+      <div>
+        <h2 id={id}>{title}</h2>
+        <p>{description}</p>
+      </div>
+    </div>
+  );
+}
+
+interface EvidencePanelProps {
+  title: string;
+  description: string;
+  children: ReactNode;
+}
+
+function EvidencePanel({ title, description, children }: EvidencePanelProps) {
+  return (
+    <section className="panel evidence-panel">
+      <div className="panel-header">
+        <h2>{title}</h2>
+        <p className="panel-note">{description}</p>
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function EvidenceList({ items }: { items: EvidenceItem[] }) {
+  return (
+    <dl className="evidence-list">
+      {items.map((item) => (
+        <div data-tone={item.tone ?? "backend"} key={item.label}>
+          <dt>{item.label}</dt>
+          <dd>{item.value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+function TrustBoundaryLegend() {
+  return (
+    <section className="trust-boundary-legend" aria-label="Trust-boundary color legend">
+      <article data-tone="operator">
+        <span />
+        <div>
+          <strong>Operator Actions</strong>
+          <p>Cyan marks human-driven commands and the current workflow stage.</p>
+        </div>
+      </article>
+      <article data-tone="signing">
+        <span />
+        <div>
+          <strong>Signing State</strong>
+          <p>Blue marks Xaman payloads, signing status, and observed transaction hashes.</p>
+        </div>
+      </article>
+      <article data-tone="backend">
+        <span />
+        <div>
+          <strong>Backend Processing</strong>
+          <p>Amber marks pending server-side lifecycle processing.</p>
+        </div>
+      </article>
+      <article data-tone="ledger">
+        <span />
+        <div>
+          <strong>Ledger Evidence</strong>
+          <p>Green marks validated backend or XRPL confirmation evidence.</p>
+        </div>
+      </article>
+    </section>
   );
 }
 
@@ -500,10 +497,10 @@ function NotFoundPage({ onNavigate, currentPath }: HomePageProps) {
       <section className="final-cta">
         <div>
           <p className="eyebrow">404</p>
-          <h1>That route does not belong to the workflow.</h1>
+          <h1>Route outside the settlement workspace.</h1>
         </div>
         <div className="final-cta-actions">
-          <NavLink currentPath={currentPath} href="/" label="Back to homepage" onNavigate={onNavigate} variant="strong" />
+          <NavLink currentPath={currentPath} href="/" label="Back to entry" onNavigate={onNavigate} variant="strong" />
           <NavLink currentPath={currentPath} href="/app" label="Open operator workspace" onNavigate={onNavigate} />
         </div>
       </section>
@@ -519,6 +516,10 @@ export function AppShell() {
     <div className="app-frame">
       <header className="topbar">
         <NavLink currentPath={pathname} href="/" label="RingLedger" onNavigate={navigate} variant="strong" />
+        <div className="topbar-center" aria-label="Workspace identity">
+          <span>Operator Workspace</span>
+          <strong>XRPL escrow lifecycle</strong>
+        </div>
         <nav className="topbar-nav" aria-label="Primary">
           <NavLink currentPath={pathname} href="/" label="Home" onNavigate={navigate} />
           <NavLink currentPath={pathname} href="/app" label="Workspace" onNavigate={navigate} />
@@ -530,4 +531,236 @@ export function AppShell() {
       {route === "/404" ? <NotFoundPage currentPath={pathname} onNavigate={navigate} /> : null}
     </div>
   );
+}
+
+function buildStageSummaries(model: RingLedgerConsoleModel): StageSummary[] {
+  const roles = getActiveRoles(model);
+  const failedStage = getLatestFailureStage(model);
+  const authComplete = roles.length > 0;
+  const escrowStarted = Boolean(model.boutId || model.escrowPrepareResult || model.escrowReconcileResult || model.escrowConfirmResult);
+  const escrowComplete = Boolean(model.escrowConfirmResult);
+  const resultComplete = Boolean(model.resultEntry);
+  const payoutStarted = Boolean(model.payoutPrepareResult || model.payoutReconcileResult || model.payoutConfirmResult);
+  const payoutComplete = Boolean(model.payoutConfirmResult);
+
+  return [
+    {
+      id: "auth",
+      index: "01",
+      label: "Authenticate",
+      state: failedStage === "auth" ? "failed" : authComplete ? "complete" : "in-progress",
+      summary: authComplete ? `${roles.join(", ")} token state active` : "Promoter/admin token required",
+    },
+    {
+      id: "escrows",
+      index: "02",
+      label: "Escrows",
+      state: failedStage === "escrows" ? "failed" : escrowComplete ? "complete" : escrowStarted ? "in-progress" : "pending",
+      summary: escrowComplete ? `${model.escrowConfirmResult?.escrow_kind} confirmed` : "Prepare, reconcile, confirm",
+    },
+    {
+      id: "result",
+      index: "03",
+      label: "Result",
+      state: failedStage === "result" ? "failed" : resultComplete ? "complete" : escrowComplete ? "in-progress" : "pending",
+      summary: resultComplete ? `Winner ${model.resultEntry?.winner} recorded` : "Admin winner entry",
+    },
+    {
+      id: "payouts",
+      index: "04",
+      label: "Payouts",
+      state: failedStage === "payouts" ? "failed" : payoutComplete ? "complete" : payoutStarted ? "in-progress" : "pending",
+      summary: payoutComplete ? `${model.payoutConfirmResult?.escrow_kind} ${model.payoutConfirmResult?.escrow_status}` : "Prepare closeout actions",
+    },
+  ];
+}
+
+function getActiveRoles(model: RingLedgerConsoleModel): string[] {
+  return model.currentRoleSummary === "none" ? [] : model.currentRoleSummary.split(", ");
+}
+
+function getLatestFailureStage(model: RingLedgerConsoleModel): StageSummary["id"] | null {
+  if (!model.lastError) {
+    return null;
+  }
+  const latest = model.actionLog[0]?.toLowerCase() ?? "";
+  if (latest.includes("payout")) {
+    return "payouts";
+  }
+  if (latest.includes("result")) {
+    return "result";
+  }
+  if (latest.includes("escrow")) {
+    return "escrows";
+  }
+  return "auth";
+}
+
+function formatStageState(state: StageState): string {
+  if (state === "in-progress") {
+    return "in progress";
+  }
+  return state;
+}
+
+function summarizeAction(action: string): string {
+  const [, message] = action.split("|").map((part) => part.trim());
+  return message || action;
+}
+
+function getLatestResponse(model: RingLedgerConsoleModel): {
+  label: string;
+  boutId: string;
+  status: string;
+  statusTone: EvidenceItem["tone"];
+} {
+  if (model.payoutConfirmResult) {
+    return {
+      label: "Payout Confirm",
+      boutId: model.payoutConfirmResult.bout_id,
+      status: model.payoutConfirmResult.bout_status,
+      statusTone: "ledger",
+    };
+  }
+  if (model.payoutReconcileResult) {
+    return {
+      label: "Payout Reconcile",
+      boutId: model.payoutReconcileResult.bout_id,
+      status: model.payoutReconcileResult.signing_status,
+      statusTone: model.payoutReconcileResult.failure_code ? "failure" : "signing",
+    };
+  }
+  if (model.payoutPrepareResult) {
+    return {
+      label: "Payout Prepare",
+      boutId: model.payoutPrepareResult.bout_id,
+      status: model.payoutPrepareResult.bout_status,
+      statusTone: "backend",
+    };
+  }
+  if (model.resultEntry) {
+    return {
+      label: "Result Entry",
+      boutId: model.resultEntry.bout_id,
+      status: model.resultEntry.bout_status,
+      statusTone: "backend",
+    };
+  }
+  if (model.escrowConfirmResult) {
+    return {
+      label: "Escrow Confirm",
+      boutId: model.escrowConfirmResult.bout_id,
+      status: model.escrowConfirmResult.bout_status,
+      statusTone: "ledger",
+    };
+  }
+  if (model.escrowReconcileResult) {
+    return {
+      label: "Escrow Reconcile",
+      boutId: model.escrowReconcileResult.bout_id,
+      status: model.escrowReconcileResult.signing_status,
+      statusTone: model.escrowReconcileResult.failure_code ? "failure" : "signing",
+    };
+  }
+  if (model.escrowPrepareResult) {
+    return {
+      label: "Escrow Prepare",
+      boutId: model.escrowPrepareResult.bout_id,
+      status: `${model.escrowPrepareResult.escrows.length} payloads`,
+      statusTone: "backend",
+    };
+  }
+  if (model.registerResult) {
+    return {
+      label: "Register Response",
+      boutId: model.boutId.trim() || "not selected",
+      status: "role created",
+      statusTone: "operator",
+    };
+  }
+  return {
+    label: "No response yet",
+    boutId: model.boutId.trim() || "not selected",
+    status: "waiting for action",
+    statusTone: "backend",
+  };
+}
+
+function getSigningEvidence(model: RingLedgerConsoleModel): EvidenceItem[] {
+  const reconcile = model.payoutReconcileResult ?? model.escrowReconcileResult;
+  const preparedPayout = model.payoutPrepareResult?.escrows[0];
+  const preparedEscrow = model.escrowPrepareResult?.escrows[0];
+  const prepared = preparedPayout ?? preparedEscrow;
+
+  return [
+    {
+      label: "Payload ID",
+      value: reconcile?.payload_id ?? prepared?.xaman_sign_request.payload_id ?? "pending",
+      tone: "signing",
+    },
+    {
+      label: "Signing status",
+      value: reconcile?.signing_status ?? "not reconciled",
+      tone: reconcile?.failure_code ? "failure" : "signing",
+    },
+    {
+      label: "Observed tx",
+      value: reconcile?.tx_hash ?? "not observed",
+      tone: reconcile?.tx_hash ? "ledger" : "signing",
+    },
+    {
+      label: "Mode",
+      value: prepared?.xaman_sign_request.mode ?? "pending",
+      tone: "backend",
+    },
+  ];
+}
+
+function getLedgerEvidence(model: RingLedgerConsoleModel): EvidenceItem[] {
+  const confirm = model.payoutConfirmResult ?? model.escrowConfirmResult;
+
+  return [
+    {
+      label: "Tx hash",
+      value: confirm?.tx_hash ?? "pending",
+      tone: confirm?.tx_hash ? "ledger" : "backend",
+    },
+    {
+      label: "Escrow kind",
+      value: confirm?.escrow_kind ?? model.payoutConfirmKind ?? model.escrowConfirmKind,
+      tone: "operator",
+    },
+    {
+      label: "Escrow status",
+      value: confirm?.escrow_status ?? "not confirmed",
+      tone: confirm ? "ledger" : "backend",
+    },
+    {
+      label: "Validated flag",
+      value: model.payoutConfirmValidated || model.escrowConfirmValidated ? "true" : "false",
+      tone: model.payoutConfirmValidated || model.escrowConfirmValidated ? "ledger" : "backend",
+    },
+  ];
+}
+
+function getFailureEvidence(model: RingLedgerConsoleModel): EvidenceItem[] {
+  const failureCode = model.payoutReconcileResult?.failure_code ?? model.escrowReconcileResult?.failure_code ?? null;
+
+  return [
+    {
+      label: "Last error",
+      value: model.lastError ?? "none",
+      tone: model.lastError ? "failure" : "ledger",
+    },
+    {
+      label: "Failure code",
+      value: failureCode ?? "none",
+      tone: failureCode ? "failure" : "ledger",
+    },
+    {
+      label: "Latest log",
+      value: summarizeAction(model.actionLog[0] ?? "No actions recorded"),
+      tone: model.lastError ? "failure" : "backend",
+    },
+  ];
 }

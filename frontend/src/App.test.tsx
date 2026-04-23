@@ -21,12 +21,12 @@ describe("App", () => {
   it("renders homepage and navigates to operator workspace", async () => {
     render(<App />);
 
-    expect(screen.getByRole("heading", { name: /Control bout settlement with a calmer financial workflow/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /Backend-authoritative escrow settlement console/i })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("link", { name: /Enter operator workspace/i }));
 
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: /Guided settlement workflow for promoter and admin execution/i })).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: /Settlement control room/i })).toBeInTheDocument();
       expect(screen.getByLabelText("Bout ID")).toBeInTheDocument();
     });
   });
@@ -68,8 +68,9 @@ describe("App", () => {
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledTimes(2);
-      expect(screen.getByText("Escrow Prepare")).toBeInTheDocument();
-      const prepareBlock = screen.getByText("Escrow Prepare").closest("section");
+      const prepareHeading = screen.getByRole("heading", { name: "Escrow Prepare" });
+      expect(prepareHeading).toBeInTheDocument();
+      const prepareBlock = prepareHeading.closest("section");
       expect(prepareBlock).not.toBeNull();
       expect(prepareBlock).toHaveTextContent("4c2f8a58-1963-473a-8f90-2239950f0058");
     });
@@ -88,7 +89,7 @@ describe("App", () => {
     fireEvent.click(screen.getByTestId("login-submit"));
 
     await waitFor(() => {
-      expect(screen.getByText("[401] Invalid credentials.")).toBeInTheDocument();
+      expect(screen.getAllByText("[401] Invalid credentials.").length).toBeGreaterThan(0);
     });
   });
 });
