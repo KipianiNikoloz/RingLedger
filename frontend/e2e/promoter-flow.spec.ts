@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 const BOUT_ID = "4c2f8a58-1963-473a-8f90-2239950f0058";
 
@@ -154,40 +154,40 @@ test("promoter and admin browser journey covers escrow and payout contracts", as
   });
 
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: /Control bout settlement with a calmer financial workflow/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Backend-authoritative escrow settlement console/i })).toBeVisible();
   await page.getByRole("link", { name: /Enter operator workspace/i }).click();
-  await expect(page.getByRole("heading", { name: /Guided settlement workflow for promoter and admin execution/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Settlement control room/i })).toBeVisible();
 
   await page.getByLabel("Bout ID").fill(BOUT_ID);
 
   await page.getByTestId("login-submit").click();
-  await expect(page.getByText(/token stored for role=promoter/)).toBeVisible();
+  await expectActionLog(page, /token stored for role=promoter/);
 
   await page.getByTestId("escrow-prepare-submit").click();
-  await expect(page.getByText(/escrow_prepare: success/)).toBeVisible();
+  await expectActionLog(page, /escrow_prepare: success/);
 
   await page.getByTestId("escrow-reconcile-submit").click();
-  await expect(page.getByText(/escrow_signing_reconcile: success/)).toBeVisible();
+  await expectActionLog(page, /escrow_signing_reconcile: success/);
 
   await page.getByTestId("escrow-confirm-submit").click();
-  await expect(page.getByText(/escrow_confirm: success/)).toBeVisible();
+  await expectActionLog(page, /escrow_confirm: success/);
 
   await page.locator('input[name="login_email"]').fill("admin.frontend@example.com");
   await page.locator('input[name="login_password"]').fill("AdminPass123!");
   await page.getByTestId("login-submit").click();
-  await expect(page.getByText(/token stored for role=admin/)).toBeVisible();
+  await expectActionLog(page, /token stored for role=admin/);
 
   await page.getByTestId("result-submit").click();
-  await expect(page.getByText(/result_entry: success/)).toBeVisible();
+  await expectActionLog(page, /result_entry: success/);
 
   await page.getByTestId("payout-prepare-submit").click();
-  await expect(page.getByText(/payout_prepare: success/)).toBeVisible();
+  await expectActionLog(page, /payout_prepare: success/);
 
   await page.getByTestId("payout-reconcile-submit").click();
-  await expect(page.getByText(/payout_signing_reconcile: success/)).toBeVisible();
+  await expectActionLog(page, /payout_signing_reconcile: success/);
 
   await page.getByTestId("payout-confirm-submit").click();
-  await expect(page.getByText(/payout_confirm: success/)).toBeVisible();
+  await expectActionLog(page, /payout_confirm: success/);
 
   expect(seenPaths.has("/auth/login")).toBe(true);
   expect(seenPaths.has(`/bouts/${BOUT_ID}/escrows/prepare`)).toBe(true);
@@ -198,6 +198,10 @@ test("promoter and admin browser journey covers escrow and payout contracts", as
   expect(seenPaths.has(`/bouts/${BOUT_ID}/payouts/signing/reconcile`)).toBe(true);
   expect(seenPaths.has(`/bouts/${BOUT_ID}/payouts/confirm`)).toBe(true);
 });
+
+async function expectActionLog(page: Page, text: RegExp) {
+  await expect(page.getByRole("listitem").filter({ hasText: text }).first()).toBeVisible();
+}
 
 function escrowPrepareItem(kind: string, suffix: string, cancelAfter: number | null, conditionHex: string | null) {
   const unsignedTx: Record<string, unknown> = {
