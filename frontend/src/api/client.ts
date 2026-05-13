@@ -1,9 +1,14 @@
-﻿import type {
+import type {
+  BoutCreateRequest,
+  BoutListResponse,
   BoutResultRequest,
   BoutResultResponse,
+  BoutSummaryResponse,
   EscrowConfirmRequest,
   EscrowConfirmResponse,
   EscrowPrepareResponse,
+  FighterProfileResponse,
+  FighterProfileUpsertRequest,
   LoginRequest,
   PayoutConfirmRequest,
   PayoutConfirmResponse,
@@ -28,7 +33,7 @@ export class ApiRequestError extends Error {
 }
 
 interface RequestOptions {
-  method?: "GET" | "POST";
+  method?: "GET" | "POST" | "PUT";
   token?: string;
   body?: unknown;
   idempotencyKey?: string;
@@ -86,6 +91,37 @@ export function loginUser(payload: LoginRequest): Promise<TokenResponse> {
   });
 }
 
+export function upsertFighterProfile(
+  token: string,
+  payload: FighterProfileUpsertRequest,
+): Promise<FighterProfileResponse> {
+  return requestJson<FighterProfileResponse>("/fighters/me", {
+    method: "PUT",
+    token,
+    body: payload,
+  });
+}
+
+export function createBout(token: string, payload: BoutCreateRequest): Promise<BoutSummaryResponse> {
+  return requestJson<BoutSummaryResponse>("/bouts", {
+    method: "POST",
+    token,
+    body: payload,
+  });
+}
+
+export function listBouts(token: string): Promise<BoutListResponse> {
+  return requestJson<BoutListResponse>("/bouts", {
+    token,
+  });
+}
+
+export function getBout(boutId: string, token: string): Promise<BoutSummaryResponse> {
+  return requestJson<BoutSummaryResponse>(`/bouts/${boutId}`, {
+    token,
+  });
+}
+
 export function prepareEscrows(boutId: string, token: string): Promise<EscrowPrepareResponse> {
   return requestJson<EscrowPrepareResponse>(`/bouts/${boutId}/escrows/prepare`, {
     method: "POST",
@@ -119,11 +155,7 @@ export function confirmEscrowCreate(
   });
 }
 
-export function enterResult(
-  boutId: string,
-  token: string,
-  payload: BoutResultRequest,
-): Promise<BoutResultResponse> {
+export function enterResult(boutId: string, token: string, payload: BoutResultRequest): Promise<BoutResultResponse> {
   return requestJson<BoutResultResponse>(`/bouts/${boutId}/result`, {
     method: "POST",
     token,

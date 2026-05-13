@@ -5,6 +5,12 @@
 This package implements the first React frontend contract surface for M4 hardening:
 
 - Email/password login flow that stores JWTs by role (`promoter`, `admin`).
+- Fighter profile setup control:
+  - `PUT /fighters/me`
+- Bout management controls:
+  - `POST /bouts`
+  - `GET /bouts`
+  - `GET /bouts/{bout_id}`
 - Promoter escrow flow controls:
   - `POST /bouts/{bout_id}/escrows/prepare`
   - `POST /bouts/{bout_id}/escrows/signing/reconcile`
@@ -25,10 +31,11 @@ No lifecycle or ledger invariant is enforced by frontend code; backend remains a
 - `src/hooks/useRingLedgerConsole.ts`: workflow composition layer.
 - `src/hooks/useActionRunner.ts`: shared busy/error/log action runner.
 - `src/hooks/useAuthWorkflow.ts`: auth register/login workflow state.
+- `src/hooks/useManagementWorkflow.ts`: fighter profile and bout create/list/detail workflow state.
 - `src/hooks/useEscrowWorkflow.ts`: promoter escrow workflow state/actions.
 - `src/hooks/useResultPayoutWorkflow.ts`: admin result and promoter payout workflow state/actions.
 - `src/components/AuthPanel.tsx`: register/login UI.
-- `src/components/BoutWorkspacePanel.tsx`: bout context input.
+- `src/components/BoutWorkspacePanel.tsx`: profile setup, bout create/list/detail controls, and active bout context input.
 - `src/components/EscrowFlowPanel.tsx`: promoter escrow prepare/reconcile/confirm controls.
 - `src/components/ResultEntryPanel.tsx`: admin result entry controls.
 - `src/components/PayoutFlowPanel.tsx`: promoter payout prepare/reconcile/confirm controls.

@@ -16,6 +16,7 @@ Escrow-based fighter purse settlement on XRPL Testnet, with promoter signing via
 - M4 frontend-coverage slice has started: backend-driven frontend contract E2E journeys now cover login-to-closeout and declined-signing replay-safe failure behavior.
 - M4 frontend implementation slice has started: React promoter/admin workflow surfaces are componentized and backed by browser-level contract E2E coverage.
 - M4 operational-readiness slice has started: operations runbook/flow docs plus explicit regression/performance gate baselines are now defined.
+- M4 management-endpoint slice has started: fighter profile upsert plus role-scoped bout create/list/detail APIs are implemented with backend and frontend contract coverage.
 
 ## MVP Scope (Locked)
 
@@ -60,7 +61,7 @@ Escrow-based fighter purse settlement on XRPL Testnet, with promoter signing via
 3. M3: result entry and payout prepare/confirm with bonus fulfillment logic - complete.
 4. M3.5 (mandatory): clean architecture hardening of persistence boundaries (Unit of Work + selective repositories) with behavior parity proof - complete.
 5. M3.6 (mandatory): migration/auth modernization (Alembic authority + proven auth library) with parity proof - complete.
-6. M4: hardening closeout (security, failure paths, regression/performance, operational readiness) - in progress.
+6. M4: hardening closeout (security, failure paths, regression/performance, operational readiness, MVP management endpoints) - in progress.
 
 ## Delivery Rules
 

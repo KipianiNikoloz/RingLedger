@@ -1,6 +1,6 @@
 ﻿import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { confirmEscrowCreate, loginUser, prepareEscrows, registerUser } from "./client";
+import { confirmEscrowCreate, createBout, listBouts, loginUser, prepareEscrows, registerUser, upsertFighterProfile } from "./client";
 
 const fetchMock = vi.fn<typeof fetch>();
 
@@ -104,4 +104,82 @@ describe("api/client", () => {
     const headers = new Headers(init?.headers);
     expect(headers.get("Authorization")).toBe("Bearer jwt-promoter");
   });
+
+  it("calls fighter profile upsert with PUT and bearer token", async () => {
+    fetchMock.mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          profile_id: "profile-1",
+          user_id: "fighter-1",
+          display_name: "Fighter Alpha",
+          xrpl_address: "rAAAAAAAAAAAAAAAAAAAAAAAA",
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      ),
+    );
+
+    await upsertFighterProfile("jwt-fighter", {
+      display_name: "Fighter Alpha",
+      xrpl_address: "rAAAAAAAAAAAAAAAAAAAAAAAA",
+    });
+
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain("/fighters/me");
+    expect(init?.method).toBe("PUT");
+    const headers = new Headers(init?.headers);
+    expect(headers.get("Authorization")).toBe("Bearer jwt-fighter");
+  });
+
+  it("creates and lists bouts through management endpoints", async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(boutSummary("bout-1")), {
+          status: 201,
+          headers: { "Content-Type": "application/json" },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ bouts: [boutSummary("bout-1")] }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      );
+
+    await createBout("jwt-promoter", {
+      fighter_a_user_id: "fighter-a",
+      fighter_b_user_id: "fighter-b",
+      event_datetime_utc: "2026-02-18T20:00:00Z",
+      promoter_owner_address: "rCCCCCCCCCCCCCCCCCCCCCCCC",
+      show_a_drops: 2000000,
+      show_b_drops: 2500000,
+      bonus_a_drops: 500000,
+      bonus_b_drops: 750000,
+    });
+    await listBouts("jwt-promoter");
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock.mock.calls[0][0]).toContain("/bouts");
+    expect(fetchMock.mock.calls[0][1]?.method).toBe("POST");
+    expect(fetchMock.mock.calls[1][0]).toContain("/bouts");
+    expect(fetchMock.mock.calls[1][1]?.method).toBe("GET");
+  });
 });
+
+function boutSummary(boutId: string) {
+  return {
+    bout_id: boutId,
+    promoter_user_id: "promoter-1",
+    fighter_a_user_id: "fighter-a",
+    fighter_b_user_id: "fighter-b",
+    event_datetime_utc: "2026-02-18T20:00:00Z",
+    finish_after_utc: "2026-02-18T22:00:00Z",
+    cancel_after_utc: "2026-02-25T20:00:00Z",
+    show_a_drops: 2000000,
+    show_b_drops: 2500000,
+    bonus_a_drops: 500000,
+    bonus_b_drops: 750000,
+    bout_status: "draft",
+    winner: null,
+    escrows: [],
+  };
+}

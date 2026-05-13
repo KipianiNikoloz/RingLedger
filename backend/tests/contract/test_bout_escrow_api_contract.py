@@ -10,6 +10,9 @@ class BoutEscrowApiContractTests(unittest.TestCase):
         from app.main import app
 
         routes = {(route.path, tuple(route.methods)) for route in app.routes}
+        self.assertTrue(any(path == "/bouts" and "POST" in methods for path, methods in routes))
+        self.assertTrue(any(path == "/bouts" and "GET" in methods for path, methods in routes))
+        self.assertTrue(any(path == "/bouts/{bout_id}" and "GET" in methods for path, methods in routes))
         self.assertTrue(
             any(path == "/bouts/{bout_id}/escrows/prepare" and "POST" in methods for path, methods in routes)
         )

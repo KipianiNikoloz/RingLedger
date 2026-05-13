@@ -274,7 +274,44 @@ function OperatorWorkspacePage() {
                 description="Prepare, reconcile, and confirm escrow creation for the active bout."
                 id="stage-escrows"
               />
-              <BoutWorkspacePanel boutId={model.boutId} onBoutIdChange={model.setBoutId} />
+              <BoutWorkspacePanel
+                busy={model.busy}
+                boutId={model.boutId}
+                fighterDisplayName={model.fighterDisplayName}
+                fighterXrplAddress={model.fighterXrplAddress}
+                createFighterAUserId={model.createFighterAUserId}
+                createFighterBUserId={model.createFighterBUserId}
+                createEventDatetimeUtc={model.createEventDatetimeUtc}
+                createPromoterOwnerAddress={model.createPromoterOwnerAddress}
+                createShowADrops={model.createShowADrops}
+                createShowBDrops={model.createShowBDrops}
+                createBonusADrops={model.createBonusADrops}
+                createBonusBDrops={model.createBonusBDrops}
+                listCount={model.boutListResult?.bouts.length ?? null}
+                onBoutIdChange={model.setBoutId}
+                onFighterDisplayNameChange={model.setFighterDisplayName}
+                onFighterXrplAddressChange={model.setFighterXrplAddress}
+                onCreateFighterAUserIdChange={model.setCreateFighterAUserId}
+                onCreateFighterBUserIdChange={model.setCreateFighterBUserId}
+                onCreateEventDatetimeUtcChange={model.setCreateEventDatetimeUtc}
+                onCreatePromoterOwnerAddressChange={model.setCreatePromoterOwnerAddress}
+                onCreateShowADropsChange={model.setCreateShowADrops}
+                onCreateShowBDropsChange={model.setCreateShowBDrops}
+                onCreateBonusADropsChange={model.setCreateBonusADrops}
+                onCreateBonusBDropsChange={model.setCreateBonusBDrops}
+                onFighterProfileUpsert={(event) => {
+                  void model.handleFighterProfileUpsert(event);
+                }}
+                onBoutCreate={(event) => {
+                  void model.handleBoutCreate(event);
+                }}
+                onBoutList={() => {
+                  void model.handleBoutList();
+                }}
+                onBoutLoad={() => {
+                  void model.handleBoutLoad();
+                }}
+              />
               <EscrowFlowPanel
                 busy={model.busy}
                 reconcileKind={model.escrowReconcileKind}
@@ -389,6 +426,10 @@ function OperatorWorkspacePage() {
             </div>
             <OutputPanel
               registerResult={model.registerResult}
+              fighterProfileResult={model.fighterProfileResult}
+              boutCreateResult={model.boutCreateResult}
+              boutListResult={model.boutListResult}
+              boutDetailResult={model.boutDetailResult}
               escrowPrepareResult={model.escrowPrepareResult}
               escrowReconcileResult={model.escrowReconcileResult}
               escrowConfirmResult={model.escrowConfirmResult}
@@ -537,7 +578,14 @@ function buildStageSummaries(model: RingLedgerConsoleModel): StageSummary[] {
   const roles = getActiveRoles(model);
   const failedStage = getLatestFailureStage(model);
   const authComplete = roles.length > 0;
-  const escrowStarted = Boolean(model.boutId || model.escrowPrepareResult || model.escrowReconcileResult || model.escrowConfirmResult);
+  const escrowStarted = Boolean(
+    model.boutId ||
+      model.boutCreateResult ||
+      model.boutDetailResult ||
+      model.escrowPrepareResult ||
+      model.escrowReconcileResult ||
+      model.escrowConfirmResult,
+  );
   const escrowComplete = Boolean(model.escrowConfirmResult);
   const resultComplete = Boolean(model.resultEntry);
   const payoutStarted = Boolean(model.payoutPrepareResult || model.payoutReconcileResult || model.payoutConfirmResult);
@@ -556,7 +604,7 @@ function buildStageSummaries(model: RingLedgerConsoleModel): StageSummary[] {
       index: "02",
       label: "Escrows",
       state: failedStage === "escrows" ? "failed" : escrowComplete ? "complete" : escrowStarted ? "in-progress" : "pending",
-      summary: escrowComplete ? `${model.escrowConfirmResult?.escrow_kind} confirmed` : "Prepare, reconcile, confirm",
+      summary: escrowComplete ? `${model.escrowConfirmResult?.escrow_kind} confirmed` : "Create/select, prepare, confirm",
     },
     {
       id: "result",
@@ -668,6 +716,30 @@ function getLatestResponse(model: RingLedgerConsoleModel): {
       boutId: model.escrowPrepareResult.bout_id,
       status: `${model.escrowPrepareResult.escrows.length} payloads`,
       statusTone: "backend",
+    };
+  }
+  if (model.boutDetailResult) {
+    return {
+      label: "Bout Detail",
+      boutId: model.boutDetailResult.bout_id,
+      status: model.boutDetailResult.bout_status,
+      statusTone: "backend",
+    };
+  }
+  if (model.boutCreateResult) {
+    return {
+      label: "Bout Create",
+      boutId: model.boutCreateResult.bout_id,
+      status: model.boutCreateResult.bout_status,
+      statusTone: "backend",
+    };
+  }
+  if (model.fighterProfileResult) {
+    return {
+      label: "Fighter Profile",
+      boutId: model.boutId.trim() || "not selected",
+      status: "profile saved",
+      statusTone: "operator",
     };
   }
   if (model.registerResult) {

@@ -19,6 +19,7 @@ export interface AuthWorkflowModel {
   loginPassword: string;
   currentRoleSummary: string;
   promoterToken: string | undefined;
+  fighterToken: string | undefined;
   adminToken: string | undefined;
   setRegisterEmail: (value: string) => void;
   setRegisterPassword: (value: string) => void;
@@ -82,6 +83,7 @@ export function useAuthWorkflow({ runAction, pushLog }: AuthWorkflowOptions): Au
     loginPassword,
     currentRoleSummary,
     promoterToken: tokensByRole.promoter,
+    fighterToken: tokensByRole.fighter,
     adminToken: tokensByRole.admin,
     setRegisterEmail,
     setRegisterPassword,

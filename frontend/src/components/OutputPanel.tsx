@@ -1,7 +1,10 @@
 import type {
+  BoutListResponse,
   BoutResultResponse,
+  BoutSummaryResponse,
   EscrowConfirmResponse,
   EscrowPrepareResponse,
+  FighterProfileResponse,
   PayoutConfirmResponse,
   PayoutPrepareResponse,
   SigningReconcileResponse,
@@ -10,6 +13,10 @@ import { JsonBlock } from "./JsonBlock";
 
 interface OutputPanelProps {
   registerResult: unknown;
+  fighterProfileResult: FighterProfileResponse | null;
+  boutCreateResult: BoutSummaryResponse | null;
+  boutListResult: BoutListResponse | null;
+  boutDetailResult: BoutSummaryResponse | null;
   escrowPrepareResult: EscrowPrepareResponse | null;
   escrowReconcileResult: SigningReconcileResponse | null;
   escrowConfirmResult: EscrowConfirmResponse | null;
@@ -21,6 +28,10 @@ interface OutputPanelProps {
 
 export function OutputPanel({
   registerResult,
+  fighterProfileResult,
+  boutCreateResult,
+  boutListResult,
+  boutDetailResult,
   escrowPrepareResult,
   escrowReconcileResult,
   escrowConfirmResult,
@@ -31,6 +42,10 @@ export function OutputPanel({
 }: OutputPanelProps) {
   const hasResults = Boolean(
     registerResult ||
+      fighterProfileResult ||
+      boutCreateResult ||
+      boutListResult ||
+      boutDetailResult ||
       escrowPrepareResult ||
       escrowReconcileResult ||
       escrowConfirmResult ||
@@ -45,6 +60,10 @@ export function OutputPanel({
       {hasResults ? (
         <>
           {registerResult ? <JsonBlock title="Register Response" data={registerResult} /> : null}
+          {fighterProfileResult ? <JsonBlock title="Fighter Profile" data={fighterProfileResult} /> : null}
+          {boutCreateResult ? <JsonBlock title="Bout Create" data={boutCreateResult} /> : null}
+          {boutListResult ? <JsonBlock title="Bout List" data={boutListResult} /> : null}
+          {boutDetailResult ? <JsonBlock title="Bout Detail" data={boutDetailResult} /> : null}
           {escrowPrepareResult ? <JsonBlock title="Escrow Prepare" data={escrowPrepareResult} /> : null}
           {escrowReconcileResult ? <JsonBlock title="Escrow Reconcile" data={escrowReconcileResult} /> : null}
           {escrowConfirmResult ? <JsonBlock title="Escrow Confirm" data={escrowConfirmResult} /> : null}

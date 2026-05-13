@@ -76,6 +76,68 @@ describe("App", () => {
     });
   });
 
+  it("sets up fighter profile and creates an active bout", async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ access_token: buildJwtWithRole("fighter"), token_type: "bearer" }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            profile_id: "profile-1",
+            user_id: "fighter-a",
+            display_name: "Fighter Alpha",
+            xrpl_address: "rAAAAAAAAAAAAAAAAAAAAAAAA",
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ access_token: buildJwtWithRole("promoter"), token_type: "bearer" }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(boutSummary("11111111-1111-4111-8111-111111111111")), {
+          status: 201,
+          headers: { "Content-Type": "application/json" },
+        }),
+      );
+
+    window.history.pushState({}, "", "/app");
+    render(<App />);
+
+    fireEvent.click(screen.getByTestId("login-submit"));
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    fireEvent.click(screen.getByTestId("fighter-profile-submit"));
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(screen.getByRole("heading", { name: "Fighter Profile" })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByTestId("login-submit"));
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+    });
+
+    fireEvent.change(screen.getByLabelText("Fighter A user ID"), { target: { value: "fighter-a" } });
+    fireEvent.change(screen.getByLabelText("Fighter B user ID"), { target: { value: "fighter-b" } });
+    fireEvent.click(screen.getByTestId("bout-create-submit"));
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledTimes(4);
+      expect(screen.getByLabelText("Bout ID")).toHaveValue("11111111-1111-4111-8111-111111111111");
+      expect(screen.getByRole("heading", { name: "Bout Create" })).toBeInTheDocument();
+    });
+  });
+
   it("shows deterministic API error message", async () => {
     fetchMock.mockResolvedValueOnce(
       new Response(JSON.stringify({ detail: "Invalid credentials." }), {
@@ -93,3 +155,22 @@ describe("App", () => {
     });
   });
 });
+
+function boutSummary(boutId: string) {
+  return {
+    bout_id: boutId,
+    promoter_user_id: "promoter-1",
+    fighter_a_user_id: "fighter-a",
+    fighter_b_user_id: "fighter-b",
+    event_datetime_utc: "2026-02-18T20:00:00Z",
+    finish_after_utc: "2026-02-18T22:00:00Z",
+    cancel_after_utc: "2026-02-25T20:00:00Z",
+    show_a_drops: 2000000,
+    show_b_drops: 2500000,
+    bonus_a_drops: 500000,
+    bonus_b_drops: 750000,
+    bout_status: "draft",
+    winner: null,
+    escrows: [],
+  };
+}

@@ -3,9 +3,12 @@ import { useState } from "react";
 
 import type {
   BoutResultResponse,
+  BoutListResponse,
+  BoutSummaryResponse,
   EscrowConfirmResponse,
   EscrowKind,
   EscrowPrepareResponse,
+  FighterProfileResponse,
   PayoutConfirmResponse,
   PayoutPrepareResponse,
   SigningReconcileResponse,
@@ -15,6 +18,7 @@ import type { SigningStatus } from "../constants";
 import { useActionRunner } from "./useActionRunner";
 import { useAuthWorkflow } from "./useAuthWorkflow";
 import { useEscrowWorkflow } from "./useEscrowWorkflow";
+import { useManagementWorkflow } from "./useManagementWorkflow";
 import { useResultPayoutWorkflow } from "./useResultPayoutWorkflow";
 
 export interface RingLedgerConsoleModel {
@@ -29,6 +33,20 @@ export interface RingLedgerConsoleModel {
   loginEmail: string;
   loginPassword: string;
   boutId: string;
+  fighterDisplayName: string;
+  fighterXrplAddress: string;
+  fighterProfileResult: FighterProfileResponse | null;
+  createFighterAUserId: string;
+  createFighterBUserId: string;
+  createEventDatetimeUtc: string;
+  createPromoterOwnerAddress: string;
+  createShowADrops: string;
+  createShowBDrops: string;
+  createBonusADrops: string;
+  createBonusBDrops: string;
+  boutCreateResult: BoutSummaryResponse | null;
+  boutListResult: BoutListResponse | null;
+  boutDetailResult: BoutSummaryResponse | null;
   escrowPrepareResult: EscrowPrepareResponse | null;
   escrowReconcileKind: EscrowKind;
   escrowReconcileStatus: SigningStatus;
@@ -59,6 +77,16 @@ export interface RingLedgerConsoleModel {
   setLoginEmail: (value: string) => void;
   setLoginPassword: (value: string) => void;
   setBoutId: (value: string) => void;
+  setFighterDisplayName: (value: string) => void;
+  setFighterXrplAddress: (value: string) => void;
+  setCreateFighterAUserId: (value: string) => void;
+  setCreateFighterBUserId: (value: string) => void;
+  setCreateEventDatetimeUtc: (value: string) => void;
+  setCreatePromoterOwnerAddress: (value: string) => void;
+  setCreateShowADrops: (value: string) => void;
+  setCreateShowBDrops: (value: string) => void;
+  setCreateBonusADrops: (value: string) => void;
+  setCreateBonusBDrops: (value: string) => void;
   setEscrowReconcileKind: (value: EscrowKind) => void;
   setEscrowReconcileStatus: (value: SigningStatus) => void;
   setEscrowReconcileTxHash: (value: string) => void;
@@ -78,6 +106,10 @@ export interface RingLedgerConsoleModel {
   setPayoutCloseTimeRipple: (value: string) => void;
   handleRegister: (event: FormEvent<HTMLFormElement>) => Promise<void>;
   handleLogin: (event: FormEvent<HTMLFormElement>) => Promise<void>;
+  handleFighterProfileUpsert: (event: FormEvent<HTMLFormElement>) => Promise<void>;
+  handleBoutCreate: (event: FormEvent<HTMLFormElement>) => Promise<void>;
+  handleBoutList: () => Promise<void>;
+  handleBoutLoad: () => Promise<void>;
   handleEscrowPrepare: () => Promise<void>;
   handleEscrowReconcile: () => Promise<void>;
   handleEscrowConfirm: () => Promise<void>;
@@ -94,6 +126,14 @@ export function useRingLedgerConsole(): RingLedgerConsoleModel {
   const auth = useAuthWorkflow({
     runAction: actionRunner.runAction,
     pushLog: actionRunner.pushLog,
+  });
+  const management = useManagementWorkflow({
+    promoterToken: auth.promoterToken,
+    fighterToken: auth.fighterToken,
+    adminToken: auth.adminToken,
+    boutId,
+    setBoutId,
+    runAction: actionRunner.runAction,
   });
   const escrow = useEscrowWorkflow({
     promoterToken: auth.promoterToken,
@@ -121,6 +161,20 @@ export function useRingLedgerConsole(): RingLedgerConsoleModel {
     loginEmail: auth.loginEmail,
     loginPassword: auth.loginPassword,
     boutId,
+    fighterDisplayName: management.fighterDisplayName,
+    fighterXrplAddress: management.fighterXrplAddress,
+    fighterProfileResult: management.fighterProfileResult,
+    createFighterAUserId: management.createFighterAUserId,
+    createFighterBUserId: management.createFighterBUserId,
+    createEventDatetimeUtc: management.createEventDatetimeUtc,
+    createPromoterOwnerAddress: management.createPromoterOwnerAddress,
+    createShowADrops: management.createShowADrops,
+    createShowBDrops: management.createShowBDrops,
+    createBonusADrops: management.createBonusADrops,
+    createBonusBDrops: management.createBonusBDrops,
+    boutCreateResult: management.boutCreateResult,
+    boutListResult: management.boutListResult,
+    boutDetailResult: management.boutDetailResult,
     escrowPrepareResult: escrow.escrowPrepareResult,
     escrowReconcileKind: escrow.escrowReconcileKind,
     escrowReconcileStatus: escrow.escrowReconcileStatus,
@@ -151,6 +205,16 @@ export function useRingLedgerConsole(): RingLedgerConsoleModel {
     setLoginEmail: auth.setLoginEmail,
     setLoginPassword: auth.setLoginPassword,
     setBoutId,
+    setFighterDisplayName: management.setFighterDisplayName,
+    setFighterXrplAddress: management.setFighterXrplAddress,
+    setCreateFighterAUserId: management.setCreateFighterAUserId,
+    setCreateFighterBUserId: management.setCreateFighterBUserId,
+    setCreateEventDatetimeUtc: management.setCreateEventDatetimeUtc,
+    setCreatePromoterOwnerAddress: management.setCreatePromoterOwnerAddress,
+    setCreateShowADrops: management.setCreateShowADrops,
+    setCreateShowBDrops: management.setCreateShowBDrops,
+    setCreateBonusADrops: management.setCreateBonusADrops,
+    setCreateBonusBDrops: management.setCreateBonusBDrops,
     setEscrowReconcileKind: escrow.setEscrowReconcileKind,
     setEscrowReconcileStatus: escrow.setEscrowReconcileStatus,
     setEscrowReconcileTxHash: escrow.setEscrowReconcileTxHash,
@@ -170,6 +234,10 @@ export function useRingLedgerConsole(): RingLedgerConsoleModel {
     setPayoutCloseTimeRipple: resultPayout.setPayoutCloseTimeRipple,
     handleRegister: auth.handleRegister,
     handleLogin: auth.handleLogin,
+    handleFighterProfileUpsert: management.handleFighterProfileUpsert,
+    handleBoutCreate: management.handleBoutCreate,
+    handleBoutList: management.handleBoutList,
+    handleBoutLoad: management.handleBoutLoad,
     handleEscrowPrepare: escrow.handleEscrowPrepare,
     handleEscrowReconcile: escrow.handleEscrowReconcile,
     handleEscrowConfirm: escrow.handleEscrowConfirm,

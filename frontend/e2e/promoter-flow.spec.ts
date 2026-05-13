@@ -1,6 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
 
 const BOUT_ID = "4c2f8a58-1963-473a-8f90-2239950f0058";
+const FIGHTER_A_ID = "11111111-1111-4111-8111-111111111111";
+const FIGHTER_B_ID = "22222222-2222-4222-8222-222222222222";
 
 function jwtForRole(role: string): string {
   const payload = Buffer.from(JSON.stringify({ role })).toString("base64url");
@@ -23,11 +25,48 @@ test("promoter and admin browser journey covers escrow and payout contracts", as
 
     if (path === "/auth/login") {
       const body = request.postDataJSON() as { email?: string };
-      const role = typeof body.email === "string" && body.email.includes("admin") ? "admin" : "promoter";
+      const role =
+        typeof body.email === "string" && body.email.includes("admin")
+          ? "admin"
+          : typeof body.email === "string" && body.email.includes("fighter")
+            ? "fighter"
+            : "promoter";
       await route.fulfill({
         status: 200,
         contentType: "application/json",
         body: JSON.stringify({ access_token: jwtForRole(role), token_type: "bearer" }),
+      });
+      return;
+    }
+
+    if (path === "/fighters/me") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          profile_id: "profile-fighter-a",
+          user_id: FIGHTER_A_ID,
+          display_name: "Fighter Alpha",
+          xrpl_address: "rAAAAAAAAAAAAAAAAAAAAAAAA",
+        }),
+      });
+      return;
+    }
+
+    if (path === "/bouts" && request.method() === "POST") {
+      await route.fulfill({
+        status: 201,
+        contentType: "application/json",
+        body: JSON.stringify(boutSummary(BOUT_ID)),
+      });
+      return;
+    }
+
+    if (path === "/bouts" && request.method() === "GET") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ bouts: [boutSummary(BOUT_ID)] }),
       });
       return;
     }
@@ -158,10 +197,23 @@ test("promoter and admin browser journey covers escrow and payout contracts", as
   await page.getByRole("link", { name: /Enter operator workspace/i }).click();
   await expect(page.getByRole("heading", { name: /Settlement control room/i })).toBeVisible();
 
-  await page.getByLabel("Bout ID").fill(BOUT_ID);
+  await page.locator('input[name="login_email"]').fill("fighter.frontend@example.com");
+  await page.getByTestId("login-submit").click();
+  await expectActionLog(page, /token stored for role=fighter/);
 
+  await page.getByTestId("fighter-profile-submit").click();
+  await expectActionLog(page, /fighter_profile_upsert: success/);
+
+  await page.locator('input[name="login_email"]').fill("promoter.frontend@example.com");
+  await page.locator('input[name="login_password"]').fill("PromoterPass123!");
   await page.getByTestId("login-submit").click();
   await expectActionLog(page, /token stored for role=promoter/);
+
+  await page.locator('input[name="fighter_a_user_id"]').fill(FIGHTER_A_ID);
+  await page.locator('input[name="fighter_b_user_id"]').fill(FIGHTER_B_ID);
+  await page.getByTestId("bout-create-submit").click();
+  await expectActionLog(page, /bout_create: success/);
+  await expect(page.getByLabel("Bout ID")).toHaveValue(BOUT_ID);
 
   await page.getByTestId("escrow-prepare-submit").click();
   await expectActionLog(page, /escrow_prepare: success/);
@@ -190,6 +242,8 @@ test("promoter and admin browser journey covers escrow and payout contracts", as
   await expectActionLog(page, /payout_confirm: success/);
 
   expect(seenPaths.has("/auth/login")).toBe(true);
+  expect(seenPaths.has("/fighters/me")).toBe(true);
+  expect(seenPaths.has("/bouts")).toBe(true);
   expect(seenPaths.has(`/bouts/${BOUT_ID}/escrows/prepare`)).toBe(true);
   expect(seenPaths.has(`/bouts/${BOUT_ID}/escrows/signing/reconcile`)).toBe(true);
   expect(seenPaths.has(`/bouts/${BOUT_ID}/escrows/confirm`)).toBe(true);
@@ -201,6 +255,25 @@ test("promoter and admin browser journey covers escrow and payout contracts", as
 
 async function expectActionLog(page: Page, text: RegExp) {
   await expect(page.getByRole("listitem").filter({ hasText: text }).first()).toBeVisible();
+}
+
+function boutSummary(boutId: string) {
+  return {
+    bout_id: boutId,
+    promoter_user_id: "promoter-1",
+    fighter_a_user_id: FIGHTER_A_ID,
+    fighter_b_user_id: FIGHTER_B_ID,
+    event_datetime_utc: "2026-02-18T20:00:00Z",
+    finish_after_utc: "2026-02-18T22:00:00Z",
+    cancel_after_utc: "2026-02-25T20:00:00Z",
+    show_a_drops: 2000000,
+    show_b_drops: 2500000,
+    bonus_a_drops: 500000,
+    bonus_b_drops: 750000,
+    bout_status: "draft",
+    winner: null,
+    escrows: [],
+  };
 }
 
 function escrowPrepareItem(kind: string, suffix: string, cancelAfter: number | null, conditionHex: string | null) {

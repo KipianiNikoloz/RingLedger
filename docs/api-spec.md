@@ -1,12 +1,14 @@
-# RingLedger API Spec (M4 Slices A-F In Progress)
+# RingLedger API Spec (M4 Management Endpoints Implemented)
 
 Last updated: 2026-02-22
 
 ## Scope
 
-This document captures the implemented API surface through M4 slice E:
+This document captures the implemented API surface through the M4 management endpoint slice:
 
 - Auth: register/login (email/password -> JWT)
+- Fighter profile upsert
+- Bout draft create/list/detail
 - Escrow create prepare/confirm
 - Result entry
 - Payout prepare/confirm
@@ -88,6 +90,84 @@ This document captures the implemented API surface through M4 slice E:
 ```
 
 - Error `401`: invalid credentials.
+
+### `PUT /fighters/me`
+
+- Purpose: create or update the authenticated fighter's profile and XRPL destination address.
+- Role: fighter only.
+- Request body:
+
+```json
+{
+  "display_name": "Fighter Alpha",
+  "xrpl_address": "rAAAAAAAAAAAAAAAAAAAAAAAA"
+}
+```
+
+- Response `200`:
+
+```json
+{
+  "profile_id": "uuid",
+  "user_id": "uuid",
+  "display_name": "Fighter Alpha",
+  "xrpl_address": "rAAAAAAAAAAAAAAAAAAAAAAAA"
+}
+```
+
+- Error `401`: missing/invalid bearer token.
+- Error `403`: caller role is not fighter.
+- Error `409`: XRPL address is already assigned to another fighter profile.
+- Error `422`: invalid display name or XRPL classic address format.
+
+### `POST /bouts`
+
+- Purpose: create a promoter-owned draft bout with exactly four planned escrows.
+- Role: promoter only.
+- Request body:
+
+```json
+{
+  "fighter_a_user_id": "uuid",
+  "fighter_b_user_id": "uuid",
+  "event_datetime_utc": "2026-02-18T20:00:00Z",
+  "promoter_owner_address": "rCCCCCCCCCCCCCCCCCCCCCCCC",
+  "show_a_drops": 2000000,
+  "show_b_drops": 2500000,
+  "bonus_a_drops": 500000,
+  "bonus_b_drops": 750000
+}
+```
+
+- Response `201`: bout summary with `bout_status: "draft"` and an `escrows` array containing four planned escrow summaries.
+- Error `401`: missing/invalid bearer token.
+- Error `403`: caller role is not promoter.
+- Error `409`: bout draft could not be persisted.
+- Error `422`: fighters are not distinct fighter users with profile XRPL addresses, or payload validation failed.
+
+### `GET /bouts`
+
+- Purpose: list bouts visible to the authenticated actor.
+- Role scope:
+  - promoter: own promoted bouts
+  - fighter: bouts where the actor is fighter A or fighter B
+  - admin/management: all bouts
+- Response `200`:
+
+```json
+{
+  "bouts": []
+}
+```
+
+- Error `401`: missing/invalid bearer token.
+
+### `GET /bouts/{bout_id}`
+
+- Purpose: return one role-scoped bout summary.
+- Response `200`: same bout summary shape returned by `POST /bouts`.
+- Error `401`: missing/invalid bearer token.
+- Error `404`: bout does not exist or is outside caller scope.
 
 ### `POST /bouts/{bout_id}/escrows/prepare`
 
@@ -397,9 +477,6 @@ This document captures the implemented API surface through M4 slice E:
   - promoter payout prepare/signing reconcile/confirm contract flow
   - declined-signing deterministic failure handling and replay-safe parity checks
 
-## Planned Next Endpoints (Not Implemented Yet)
+## Planned Next Endpoints
 
-- `PUT /fighters/me`
-- `POST /bouts`
-- `GET /bouts`
-- `GET /bouts/{id}`
+No additional MVP endpoints are currently listed as planned in this document.

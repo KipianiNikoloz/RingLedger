@@ -40,6 +40,62 @@ export interface ApiError {
   detail: string;
 }
 
+export interface FighterProfileUpsertRequest {
+  display_name: string;
+  xrpl_address: string;
+}
+
+export interface FighterProfileResponse {
+  profile_id: string;
+  user_id: string;
+  display_name: string;
+  xrpl_address: string;
+}
+
+export interface BoutCreateRequest {
+  fighter_a_user_id: string;
+  fighter_b_user_id: string;
+  event_datetime_utc: string;
+  promoter_owner_address: string;
+  show_a_drops: number;
+  show_b_drops: number;
+  bonus_a_drops: number;
+  bonus_b_drops: number;
+}
+
+export interface BoutEscrowSummary {
+  escrow_id: string;
+  escrow_kind: EscrowKind;
+  escrow_status: EscrowStatus;
+  owner_address: string;
+  destination_address: string;
+  amount_drops: number;
+  offer_sequence: number | null;
+  create_tx_hash: string | null;
+  close_tx_hash: string | null;
+}
+
+export interface BoutSummaryResponse {
+  bout_id: string;
+  promoter_user_id: string;
+  fighter_a_user_id: string;
+  fighter_b_user_id: string;
+  event_datetime_utc: string;
+  finish_after_utc: string;
+  cancel_after_utc: string;
+  show_a_drops: number;
+  show_b_drops: number;
+  bonus_a_drops: number;
+  bonus_b_drops: number;
+  bout_status: BoutStatus;
+  winner: BoutWinner | null;
+  escrows: BoutEscrowSummary[];
+}
+
+export interface BoutListResponse {
+  bouts: BoutSummaryResponse[];
+}
+
 export interface XamanSignRequest {
   payload_id: string;
   deep_link_url: string;
