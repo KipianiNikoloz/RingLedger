@@ -53,6 +53,8 @@ From `frontend/`:
 - `npm run test`
 - `npm run test:e2e`
 
+`npm run test:e2e` starts a managed Vite server, runs Playwright, and terminates the owned server process before exiting.
+
 ## Environment
 
 - `VITE_API_BASE_URL` (default: `http://127.0.0.1:8000`)

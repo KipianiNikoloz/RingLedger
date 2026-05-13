@@ -187,6 +187,14 @@ Goal: enforce Alembic migration authority and proven auth-library adoption witho
 | Frontend management controls and typed client coverage | `frontend/src/components/BoutWorkspacePanel.tsx`, `frontend/src/hooks/useManagementWorkflow.ts`, `frontend/src/api/client.ts`, `frontend/src/App.test.tsx`, `frontend/e2e/promoter-flow.spec.ts` |
 | Slice G documentation alignment | `docs/api-spec.md`, `docs/traceability-matrix.md`, `backend/README.md`, `frontend/README.md`, `README.md` |
 
+## Increment 4 Slice H Deliverables (In Progress)
+
+| Item | Evidence |
+|---|---|
+| Deterministic frontend E2E runner owns Vite startup and cleanup | `frontend/scripts/run-e2e.mjs`, `frontend/package.json`, `frontend/playwright.config.ts` |
+| Browser journey remains focused on the operator workspace flow | `frontend/e2e/promoter-flow.spec.ts` |
+| Slice H documentation alignment | `frontend/README.md`, `docs/traceability-matrix.md` |
+
 ## Test Evidence (Current)
 
 | Command | Result | Notes |
@@ -200,7 +208,7 @@ Goal: enforce Alembic migration authority and proven auth-library adoption witho
 | `npm run typecheck` (`frontend/`) | pass | TypeScript validation completed for management client/workspace wiring. |
 | `npm run test` (`frontend/`) | pass (`10 passed`) | Vitest coverage for API client and workspace management/lifecycle flows. |
 | `npm run build` (`frontend/`) | pass | Production build completed after management workspace changes. |
-| `npm run test:e2e` (`frontend/`) | partial local evidence | Playwright reported the single browser journey passed, including fighter profile and bout creation calls, but the local npm wrapper timed out while cleaning up the dev-server process. CI remains the authoritative non-hanging E2E gate. |
+| `npm run test:e2e` (`frontend/`) | pass (`1 passed`) | Managed Vite runner starts the local server, executes the Playwright operator journey, and exits cleanly after cleanup. |
 | `.\venv\Scripts\python.exe -m alembic -c backend/alembic.ini history` | pass | Confirms deterministic baseline revision head: `202602220000_baseline_schema`. |
 | GitHub Actions backend/frontend/secret-scan/delivery jobs | configured | Enforced in `.github/workflows/ci-cd.yml`; executes on PR/push in GitHub runtime. |
 | Dependabot weekly update streams | configured | Enforced in `.github/dependabot.yml` for `pip`, `npm`, and `github-actions`. |
