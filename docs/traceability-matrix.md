@@ -14,18 +14,18 @@ Purpose: enforce requirement -> implementation -> tests -> docs linkage from fir
 
 | Req ID | Requirement Summary | Planned Implementation Targets | Planned Test Targets | Documentation Targets | Status |
 |---|---|---|---|---|---|
-| R-01 | Fixed stack and integration boundaries | `backend/app/main.py`, `backend/app/api/router.py`, `backend/app/db/session.py`, `.github/workflows/ci-cd.yml`, `frontend/src/App.tsx`, `frontend/src/api/client.ts`, XRPL/Xaman integrations, management endpoints (`backend/app/api/fighters.py`, `backend/app/api/bouts_routes/management_routes.py`) | `backend/tests/integration/test_stack_bootstrap.py`, `backend/tests/e2e/test_promoter_signing_flow.py`, `backend/tests/integration/test_management_endpoints.py`, `frontend/src/App.test.tsx`, `frontend/e2e/promoter-flow.spec.ts` | `docs/requirements-matrix.md`, `docs/state-machines.md`, `backend/README.md`, `docs/ci-cd.md`, `frontend/README.md` | in_progress |
+| R-01 | Fixed stack and integration boundaries | `backend/app/main.py`, `backend/app/api/router.py`, `backend/app/db/session.py`, `.github/workflows/ci-cd.yml`, `frontend/src/App.tsx`, `frontend/src/api/client.ts`, XRPL/Xaman integrations, management endpoints (`backend/app/api/fighters.py`, `backend/app/api/bouts_routes/management_routes.py`) | `backend/tests/integration/test_stack_bootstrap.py`, `backend/tests/e2e/test_promoter_signing_flow.py`, `backend/tests/integration/test_management_endpoints.py`, `frontend/src/App.test.tsx`, `frontend/e2e/promoter-flow.spec.ts` | `docs/requirements-matrix.md`, `docs/state-machines.md`, `backend/README.md`, `docs/ci-cd.md`, `frontend/README.md` | done |
 | R-02 | Email/password + JWT auth only | `backend/app/api/auth.py`, `backend/app/services/auth_service.py`, `backend/app/models/user.py`, `backend/app/core/security.py` | `backend/tests/unit/test_security.py`, `backend/tests/contract/test_auth_api_contract.py`, `backend/tests/security/test_auth_mode_contract.py` | `docs/requirements-matrix.md`, `docs/api-spec.md` | done |
 | R-03 | Drops integer-only money model | `backend/app/domain/money.py`, `backend/app/models/bout.py`, `backend/app/models/escrow.py`, `backend/sql/001_init_schema.sql` | `backend/tests/unit/test_money.py`, `backend/tests/property/test_money_properties.py`, `backend/tests/migration/test_schema_sql_contract.py` | `docs/schema-doc.md`, `docs/requirements-matrix.md` | done |
 | R-04 | 1v1 with 4 escrow model | `backend/app/models/escrow.py`, `backend/app/services/bout_service.py`, `backend/app/models/bout.py` | `backend/tests/unit/test_bout_escrow_planning.py`, `backend/tests/integration/test_bout_create_flow.py` | `docs/state-machines.md`, `docs/schema-doc.md` | done |
 | R-05 | Platform controls bonus fulfillment | `backend/app/crypto_conditions/fulfillment.py`, `backend/app/services/bout_service.py`, `backend/app/services/payout_service.py` | `backend/tests/unit/test_crypto_conditions.py`, `backend/tests/unit/test_xrpl_escrow_service.py`, `backend/tests/integration/test_payout_flow.py` | `docs/state-machines.md`, `docs/api-spec.md`, `docs/schema-doc.md` | done |
-| R-06 | Promoter signs via Xaman only | backend Xaman sign-request plus payload-status reconciliation integration (`backend/app/integrations/xaman_service.py`, `backend/app/services/signing_reconciliation_service.py`, `backend/app/api/bouts.py`, `backend/app/api/bouts_routes/*.py`) + frontend signing UX modules (`frontend/src/App.tsx`) | `backend/tests/unit/test_xaman_service.py`, `backend/tests/contract/test_bout_escrow_api_contract.py`, `backend/tests/integration/test_escrow_confirm_flow.py`, `backend/tests/integration/test_payout_flow.py`, `backend/tests/e2e/test_promoter_signing_flow.py`, `frontend/e2e/promoter-flow.spec.ts` | `docs/xaman-signing-contract.md`, `docs/api-spec.md`, `docs/state-machines.md`, `frontend/README.md`, `docs/operations-runbook.md`, `docs/operational-flow.md` | in_progress |
+| R-06 | Promoter signs via Xaman only | backend Xaman sign-request plus payload-status reconciliation integration (`backend/app/integrations/xaman_service.py`, `backend/app/services/signing_reconciliation_service.py`, `backend/app/api/bouts.py`, `backend/app/api/bouts_routes/*.py`) + frontend signing UX modules (`frontend/src/App.tsx`) | `backend/tests/unit/test_xaman_service.py`, `backend/tests/contract/test_bout_escrow_api_contract.py`, `backend/tests/integration/test_escrow_confirm_flow.py`, `backend/tests/integration/test_payout_flow.py`, `backend/tests/e2e/test_promoter_signing_flow.py`, `frontend/e2e/promoter-flow.spec.ts` | `docs/xaman-signing-contract.md`, `docs/api-spec.md`, `docs/state-machines.md`, `frontend/README.md`, `docs/operations-runbook.md`, `docs/operational-flow.md` | done |
 | R-07 | Fixed finish/cancel timing rules | `backend/app/domain/time_rules.py`, `backend/app/services/bout_service.py` | `backend/tests/unit/test_time_rules.py`, `backend/tests/property/test_time_rules_properties.py`, `backend/tests/integration/test_timing_guards.py` | `docs/state-machines.md` | done |
 | R-08 | Ledger-validated transitions only | `backend/app/api/bouts.py`, `backend/app/services/escrow_service.py`, `backend/app/services/payout_service.py`, `backend/app/services/xrpl_escrow_service.py` | `backend/tests/unit/test_xrpl_escrow_service.py`, `backend/tests/integration/test_escrow_confirm_flow.py`, `backend/tests/integration/test_payout_flow.py` | `docs/state-machines.md`, `docs/api-spec.md` | done |
 | R-09 | Confirm endpoint idempotency | `backend/app/middleware/idempotency.py`, `backend/app/services/idempotency_service.py`, `backend/app/models/idempotency_key.py`, `backend/app/api/bouts.py` | `backend/tests/unit/test_idempotency_service.py`, `backend/tests/integration/test_escrow_confirm_flow.py`, `backend/tests/integration/test_payout_flow.py`, `backend/tests/security/test_confirm_idempotency_contract.py` | `docs/api-spec.md`, `docs/traceability-matrix.md` | done |
-| R-10 | Backend enforces invariants (frontend untrusted) | role-gated `backend/app/api/bouts.py` + modular route handlers in `backend/app/api/bouts_routes/*.py` + lifecycle/ledger validation services + role-scoped management endpoints + frontend client contract layer (`frontend/src/api/client.ts`) + CI secret scan gate | `backend/tests/security/test_bout_role_guards.py`, `backend/tests/security/test_confirm_idempotency_contract.py`, `backend/tests/integration/test_management_endpoints.py`, `backend/tests/e2e/test_promoter_signing_flow.py`, `frontend/src/api/client.test.ts`, `frontend/e2e/promoter-flow.spec.ts`, CI gitleaks job | `docs/api-spec.md`, `docs/ci-cd.md`, `frontend/README.md` | in_progress |
+| R-10 | Backend enforces invariants (frontend untrusted) | role-gated `backend/app/api/bouts.py` + modular route handlers in `backend/app/api/bouts_routes/*.py` + lifecycle/ledger validation services + role-scoped management endpoints + frontend client contract layer (`frontend/src/api/client.ts`) + CI secret scan gate | `backend/tests/security/test_bout_role_guards.py`, `backend/tests/security/test_confirm_idempotency_contract.py`, `backend/tests/integration/test_management_endpoints.py`, `backend/tests/e2e/test_promoter_signing_flow.py`, `frontend/src/api/client.test.ts`, `frontend/e2e/promoter-flow.spec.ts`, CI gitleaks job | `docs/api-spec.md`, `docs/ci-cd.md`, `frontend/README.md` | done |
 | R-11 | Explicit lifecycle state machines | transition guards in `backend/app/services/escrow_service.py` and `backend/app/services/payout_service.py` | `backend/tests/integration/test_escrow_confirm_flow.py`, `backend/tests/integration/test_payout_flow.py`, `backend/tests/contract/test_bout_escrow_api_contract.py` | `docs/state-machines.md`, `docs/api-spec.md` | done |
-| R-12 | Explicit failure handling | `backend/app/services/failure_taxonomy.py`, `backend/app/services/escrow_service.py`, `backend/app/services/payout_service.py`, `backend/app/services/signing_reconciliation_service.py` (audited failure classification for `signing_declined`, `signing_expired`, `confirmation_timeout`, `ledger_tec_tem`, `invalid_confirmation`) | `backend/tests/integration/test_escrow_confirm_flow.py`, `backend/tests/integration/test_payout_flow.py`, `backend/tests/contract/test_bout_escrow_api_contract.py` | `docs/state-machines.md`, `docs/api-spec.md`, `docs/xaman-signing-contract.md` | in_progress |
+| R-12 | Explicit failure handling | `backend/app/services/failure_taxonomy.py`, `backend/app/services/escrow_service.py`, `backend/app/services/payout_service.py`, `backend/app/services/signing_reconciliation_service.py` (audited failure classification for `signing_declined`, `signing_expired`, `confirmation_timeout`, `ledger_tec_tem`, `invalid_confirmation`) | `backend/tests/integration/test_escrow_confirm_flow.py`, `backend/tests/integration/test_payout_flow.py`, `backend/tests/contract/test_bout_escrow_api_contract.py` | `docs/state-machines.md`, `docs/api-spec.md`, `docs/xaman-signing-contract.md` | done |
 
 ## Increment 0 Deliverables (Completed)
 
@@ -117,7 +117,7 @@ Goal: enforce Alembic migration authority and proven auth-library adoption witho
 | Contract stability statement for modernization step | `docs/api-spec.md`, `docs/state-machines.md` |
 | Milestone acceptance memo with residual risk statement | `docs/m3.6-modernization-acceptance-memo.md` |
 
-## Increment 4 Slice A Deliverables (In Progress)
+## Increment 4 Slice A Deliverables (Completed)
 
 | Item | Evidence |
 |---|---|
@@ -127,7 +127,7 @@ Goal: enforce Alembic migration authority and proven auth-library adoption witho
 | Unit validation for stub/api Xaman service behavior | `backend/tests/unit/test_xaman_service.py` |
 | M4 slice contract documentation | `docs/xaman-signing-contract.md`, `docs/api-spec.md`, `backend/README.md`, `README.md` |
 
-## Increment 4 Slice B Deliverables (In Progress)
+## Increment 4 Slice B Deliverables (Completed)
 
 | Item | Evidence |
 |---|---|
@@ -138,7 +138,7 @@ Goal: enforce Alembic migration authority and proven auth-library adoption witho
 | Escrow failure-path regression coverage | `backend/tests/integration/test_escrow_confirm_flow.py` |
 | Payout failure-path regression coverage | `backend/tests/integration/test_payout_flow.py` |
 
-## Increment 4 Slice C Deliverables (In Progress)
+## Increment 4 Slice C Deliverables (Completed)
 
 | Item | Evidence |
 |---|---|
@@ -148,7 +148,7 @@ Goal: enforce Alembic migration authority and proven auth-library adoption witho
 | Reconciliation failure/signed regression coverage (`declined`, `expired`, `signed`) | `backend/tests/integration/test_escrow_confirm_flow.py`, `backend/tests/integration/test_payout_flow.py` |
 | Slice C documentation alignment | `docs/xaman-signing-contract.md`, `docs/api-spec.md`, `docs/state-machines.md`, `backend/README.md`, `README.md` |
 
-## Increment 4 Slice D Deliverables (In Progress)
+## Increment 4 Slice D Deliverables (Completed)
 
 | Item | Evidence |
 |---|---|
@@ -157,7 +157,7 @@ Goal: enforce Alembic migration authority and proven auth-library adoption witho
 | Frontend-actionable failure-path coverage for declined signing with replay-safe confirm behavior | `backend/tests/e2e/test_promoter_signing_flow.py` |
 | Slice D documentation alignment | `docs/traceability-matrix.md`, `docs/api-spec.md`, `backend/README.md`, `README.md`, `docs/xaman-signing-contract.md` |
 
-## Increment 4 Slice E Deliverables (In Progress)
+## Increment 4 Slice E Deliverables (Completed)
 
 | Item | Evidence |
 |---|---|
@@ -167,7 +167,7 @@ Goal: enforce Alembic migration authority and proven auth-library adoption witho
 | CI gate for frontend typecheck, unit tests, and browser E2E | `.github/workflows/ci-cd.yml` |
 | Slice E documentation alignment | `docs/traceability-matrix.md`, `docs/api-spec.md`, `docs/ci-cd.md`, `backend/README.md`, `README.md` |
 
-## Increment 4 Slice F Deliverables (In Progress)
+## Increment 4 Slice F Deliverables (Completed)
 
 | Item | Evidence |
 |---|---|
@@ -177,7 +177,7 @@ Goal: enforce Alembic migration authority and proven auth-library adoption witho
 | Performance baseline gate for API liveness, Xaman stub throughput, and failure taxonomy throughput | `backend/tests/performance/test_m4_performance_baseline.py`, `docs/performance-regression-gates.md` |
 | Slice F documentation and gate alignment | `docs/ci-cd.md`, `backend/README.md`, `README.md`, `docs/traceability-matrix.md` |
 
-## Increment 4 Slice G Deliverables (In Progress)
+## Increment 4 Slice G Deliverables (Completed)
 
 | Item | Evidence |
 |---|---|
@@ -187,7 +187,7 @@ Goal: enforce Alembic migration authority and proven auth-library adoption witho
 | Frontend management controls and typed client coverage | `frontend/src/components/BoutWorkspacePanel.tsx`, `frontend/src/hooks/useManagementWorkflow.ts`, `frontend/src/api/client.ts`, `frontend/src/App.test.tsx`, `frontend/e2e/promoter-flow.spec.ts` |
 | Slice G documentation alignment | `docs/api-spec.md`, `docs/traceability-matrix.md`, `backend/README.md`, `frontend/README.md`, `README.md` |
 
-## Increment 4 Slice H Deliverables (In Progress)
+## Increment 4 Slice H Deliverables (Completed)
 
 | Item | Evidence |
 |---|---|
@@ -213,12 +213,8 @@ Goal: enforce Alembic migration authority and proven auth-library adoption witho
 | GitHub Actions backend/frontend/secret-scan/delivery jobs | configured | Enforced in `.github/workflows/ci-cd.yml`; executes on PR/push in GitHub runtime. |
 | Dependabot weekly update streams | configured | Enforced in `.github/dependabot.yml` for `pip`, `npm`, and `github-actions`. |
 
-## Next Implementation Slice (M4)
+## M4 Closeout
 
-Target: hardening for operational readiness and residual risk reduction.
+M4 hardening is complete for the locked MVP/Testnet scope. Current evidence covers backend contracts/security/integration/regression/performance tests, frontend type/unit/build/browser gates, OpenSpec validation, operational runbooks, and documented residual risk boundaries.
 
-- M3.6 modernization is complete and accepted (see `docs/m3.6-modernization-acceptance-memo.md`).
-- Continue Xaman integration hardening after backend sign-request plus signing-status reconciliation delivery (`R-06`).
-- Continue failure taxonomy hardening after initial `declined`/`expired`/`timeout`/`tec`/`tem` classification delivery (`R-12`).
-- Continue edge-case hardening for implemented React screens and management/lifecycle workflows (`R-01`, `R-10`).
-- Operationalize the new runbook and performance thresholds through release drills and incident simulations.
+Residual risk is limited to deployment operations and external XRPL/Xaman service availability; those remain outside the local MVP verification environment.

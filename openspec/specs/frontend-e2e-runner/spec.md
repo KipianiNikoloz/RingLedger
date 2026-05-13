@@ -1,7 +1,7 @@
 # frontend-e2e-runner Specification
 
 ## Purpose
-TBD - created by archiving change stabilize-frontend-e2e-runner. Update Purpose after archive.
+Defines the deterministic frontend browser-test runner lifecycle for starting the local operator workspace, executing Playwright, and cleaning up owned server processes.
 ## Requirements
 ### Requirement: Stable frontend E2E command
 The system SHALL provide a frontend E2E command that starts the local browser-test server, runs Playwright, and exits with the actual test result.
@@ -17,4 +17,3 @@ The system SHALL provide a frontend E2E command that starts the local browser-te
 #### Scenario: E2E command propagates browser-test failure
 - **WHEN** Playwright reports a browser-test failure
 - **THEN** the E2E command exits with a non-zero status
-

@@ -1,7 +1,7 @@
 # operator-console-interface Specification
 
 ## Purpose
-TBD - created by archiving change redesign-ringledger-interface. Update Purpose after archive.
+Defines the RingLedger operator workspace experience for MVP escrow lifecycle work, including management setup controls, lifecycle visibility, evidence surfaces, trust-boundary visual language, and responsive usability.
 ## Requirements
 ### Requirement: Operator workspace route
 The system SHALL present `/app` as a dark operator workspace for RingLedger escrow lifecycle work while preserving existing workflow behavior and backend API contracts.
@@ -70,4 +70,3 @@ The system SHALL keep browser-level verification available for the operator work
 #### Scenario: Operator journey remains covered
 - **WHEN** the frontend E2E command runs
 - **THEN** the browser journey covers fighter profile setup, bout creation, escrow preparation, signing reconciliation, confirmation, result entry, and payout closeout controls
-

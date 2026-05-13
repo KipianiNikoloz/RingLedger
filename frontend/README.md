@@ -1,8 +1,8 @@
-﻿# RingLedger Frontend (M4 In Progress)
+# RingLedger Frontend (M4 Complete)
 
 ## Scope
 
-This package implements the first React frontend contract surface for M4 hardening:
+This package implements the React frontend contract surface for M4 hardening:
 
 - Email/password login flow that stores JWTs by role (`promoter`, `admin`).
 - Fighter profile setup control:

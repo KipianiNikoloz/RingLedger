@@ -1,7 +1,7 @@
 # mvp-management-endpoints Specification
 
 ## Purpose
-TBD - created by archiving change add-mvp-management-endpoints. Update Purpose after archive.
+Defines fighter profile management and role-scoped bout create/read APIs needed to run the locked MVP lifecycle without manual database setup.
 ## Requirements
 ### Requirement: Fighter profile upsert
 The system SHALL allow an authenticated fighter to create or update their own profile with a display name and XRPL address.

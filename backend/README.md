@@ -1,4 +1,4 @@
-# RingLedger Backend (M4 Hardening In Progress)
+# RingLedger Backend (M4 Hardening Complete)
 
 ## Current Scope
 
@@ -80,14 +80,9 @@ Implemented modernization scope:
   - no wallet-based login
 - Preserve API contracts and lifecycle semantics unless explicitly versioned and documented.
 
-## Next Increment (M4 Hardening Closeout)
+## M4 Closeout Status
 
-- Continue residual hardening scope for operational readiness and risk burn-down.
-- Focus areas:
-  - Xaman integration hardening completion (`R-06`) after sign-request and signing-status reconciliation delivery
-  - failure taxonomy expansion after initial declined/timeout/`tec`/`tem` delivery (`R-12`)
-  - harden edge cases across implemented React management and lifecycle workflows (`R-01`, `R-10`)
-  - operational readiness hardening through runbook/flow maintenance and regression/performance threshold enforcement
+M4 hardening is complete for the locked MVP/Testnet scope. Residual risk remains bounded to deployment operations and real external XRPL/Xaman availability; runtime lifecycle authority, failure taxonomy, signing reconciliation, management endpoints, and regression/performance evidence are implemented and documented.
 
 ## Notes
 
