@@ -1,7 +1,7 @@
 # m4-closeout-readiness Specification
 
 ## Purpose
-TBD - created by archiving change close-m4-hardening-readiness. Update Purpose after archive.
+Defines the evidence, scope boundaries, and documentation conditions required to mark RingLedger M4 hardening complete for the locked MVP/Testnet release.
 ## Requirements
 ### Requirement: M4 closeout evidence
 The system SHALL document M4 hardening as complete only when implementation evidence, regression gates, frontend gates, and OpenSpec validation are current.
@@ -20,4 +20,3 @@ The system SHALL keep archived and main OpenSpec capability specs understandable
 #### Scenario: Spec purpose is explicit
 - **WHEN** a capability spec is read after archive
 - **THEN** its Purpose section briefly explains the capability instead of retaining generated TBD placeholder language
-
