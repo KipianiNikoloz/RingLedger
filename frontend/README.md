@@ -43,6 +43,8 @@ No lifecycle or ledger invariant is enforced by frontend code; backend remains a
 - `src/flow-utils.ts`: request payload extraction and validation helpers from prepare contracts.
 - `src/styles.css`: design tokens, responsive grid layout, and motion/accessibility styling for console ergonomics.
 
+Feature-level maintainer documentation is indexed in `docs/features/README.md`.
+
 ## Commands
 
 From `frontend/`:

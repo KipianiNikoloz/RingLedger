@@ -31,6 +31,7 @@ Escrow-based fighter purse settlement on XRPL Testnet, with promoter signing via
 - Requirements baseline: `docs/requirements-matrix.md`
 - Lifecycle contract: `docs/state-machines.md`
 - Requirement traceability: `docs/traceability-matrix.md`
+- Feature documentation hub: `docs/features/README.md`
 - CI/CD and dependency automation: `docs/ci-cd.md`
 - Clean architecture refactor plan: `docs/clean-architecture-refactor-plan.md`
 - Alembic adoption plan: `docs/alembic-adoption-plan.md`
