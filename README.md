@@ -11,6 +11,7 @@ Escrow-based fighter purse settlement on XRPL Testnet, with promoter signing via
 - Mandatory pre-closeout architecture hardening is implemented: lightweight Unit of Work + selective repositories, with no API/state-machine semantic changes.
 - Mandatory pre-closeout modernization is implemented: Alembic migration authority + proven auth-library adoption, with no unapproved contract drift.
 - M4 hardening is complete for the locked MVP scope: Xaman sign-request integration, failure taxonomy, signing reconciliation, frontend workflow coverage, operational readiness, MVP management endpoints, and stable browser E2E gates are implemented and documented.
+- Testnet release readiness is the active post-M4 milestone: deterministic gates remain local/CI-safe, while live Xaman API and XRPL Testnet smoke validation are documented as operator-run release evidence.
 
 ## MVP Scope (Locked)
 
@@ -39,6 +40,7 @@ Escrow-based fighter purse settlement on XRPL Testnet, with promoter signing via
 - Operations runbook: `docs/operations-runbook.md`
 - Operational flow: `docs/operational-flow.md`
 - Regression/performance gates: `docs/performance-regression-gates.md`
+- Testnet release readiness memo: `docs/testnet-release-readiness.md`
 - Frontend package guide: `frontend/README.md`
 
 ## Repository Layout
@@ -56,6 +58,7 @@ Escrow-based fighter purse settlement on XRPL Testnet, with promoter signing via
 4. M3.5 (mandatory): clean architecture hardening of persistence boundaries (Unit of Work + selective repositories) with behavior parity proof - complete.
 5. M3.6 (mandatory): migration/auth modernization (Alembic authority + proven auth library) with parity proof - complete.
 6. M4: hardening closeout (security, failure paths, regression/performance, operational readiness, MVP management endpoints) - complete for locked MVP/Testnet scope.
+7. Testnet release readiness: release evidence, live Xaman API smoke validation, XRPL Testnet confirmation smoke path, and bounded residual-risk documentation - active.
 
 ## Delivery Rules
 

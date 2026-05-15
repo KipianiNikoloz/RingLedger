@@ -1,7 +1,7 @@
 # RingLedger MVP Traceability Matrix
 
 Date initialized: 2026-02-16  
-Last updated: 2026-05-13
+Last updated: 2026-05-15
 Purpose: enforce requirement -> implementation -> tests -> docs linkage from first increment.
 
 ## Status Legend
@@ -218,3 +218,18 @@ Goal: enforce Alembic migration authority and proven auth-library adoption witho
 M4 hardening is complete for the locked MVP/Testnet scope. Current evidence covers backend contracts/security/integration/regression/performance tests, frontend type/unit/build/browser gates, OpenSpec validation, operational runbooks, and documented residual risk boundaries.
 
 Residual risk is limited to deployment operations and external XRPL/Xaman service availability; those remain outside the local MVP verification environment.
+
+## Testnet Release Readiness (Active)
+
+Goal: convert completed M4 hardening into deployable XRPL Testnet release readiness without expanding locked MVP scope.
+
+| Item | Evidence |
+|---|---|
+| Release-readiness capability contract | `openspec/changes/prepare-testnet-release/specs/testnet-release-readiness/spec.md` |
+| Release readiness memo and live-smoke checklist | `docs/testnet-release-readiness.md` |
+| Operator preflight and evidence capture procedure | `docs/operations-runbook.md` |
+| Deterministic local/CI gate separation from live Xaman/XRPL checks | `docs/testnet-release-readiness.md`, `docs/operations-runbook.md`, `openspec/changes/prepare-testnet-release/design.md` |
+
+Release readiness remains bounded to XRPL Testnet, Xaman non-custodial signing, and the locked MVP lifecycle. Live Xaman API and XRPL Testnet smoke evidence is operator-run and must not require committing secrets or making CI depend on external services.
+
+Current local evidence for this slice is recorded in `docs/testnet-release-readiness.md`: backend compile/lint/format/full-test/regression/performance/migration gates pass, frontend typecheck/test/build/browser E2E gates pass, and `openspec validate prepare-testnet-release` passes. Live Xaman/XRPL smoke validation remains pending until an operator runs it with environment-managed credentials and funded Testnet accounts.
