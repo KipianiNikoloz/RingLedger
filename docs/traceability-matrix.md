@@ -225,10 +225,10 @@ Goal: convert completed M4 hardening into deployable XRPL Testnet release readin
 
 | Item | Evidence |
 |---|---|
-| Release-readiness capability contract | `openspec/changes/prepare-testnet-release/specs/testnet-release-readiness/spec.md` |
+| Release-readiness capability contract | `openspec/specs/testnet-release-readiness/spec.md` |
 | Release readiness memo and live-smoke checklist | `docs/testnet-release-readiness.md` |
 | Operator preflight and evidence capture procedure | `docs/operations-runbook.md` |
-| Deterministic local/CI gate separation from live Xaman/XRPL checks | `docs/testnet-release-readiness.md`, `docs/operations-runbook.md`, `openspec/changes/prepare-testnet-release/design.md` |
+| Deterministic local/CI gate separation from live Xaman/XRPL checks | `docs/testnet-release-readiness.md`, `docs/operations-runbook.md`, `openspec/changes/archive/2026-05-15-prepare-testnet-release/design.md` |
 
 Release readiness remains bounded to XRPL Testnet, Xaman non-custodial signing, and the locked MVP lifecycle. Live Xaman API and XRPL Testnet smoke evidence is operator-run and must not require committing secrets or making CI depend on external services.
 

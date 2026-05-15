@@ -9,7 +9,7 @@ Testnet release readiness turns completed M4 hardening into deployable XRPL Test
 - Release memo: `docs/testnet-release-readiness.md`
 - Runbook: `docs/operations-runbook.md`
 - CI/CD docs: `docs/ci-cd.md`
-- Active change: `openspec/changes/prepare-testnet-release/tasks.md`
+- Archived change: `openspec/changes/archive/2026-05-15-prepare-testnet-release/tasks.md`
 - Frontend package: `frontend/README.md`
 
 ## Runtime Flow
@@ -57,4 +57,4 @@ flowchart TD
 - `docs/testnet-release-readiness.md`
 - `docs/operations-runbook.md`
 - `docs/traceability-matrix.md`
-- `openspec/changes/prepare-testnet-release/specs/testnet-release-readiness/spec.md`
+- `openspec/specs/testnet-release-readiness/spec.md`
