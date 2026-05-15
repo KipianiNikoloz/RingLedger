@@ -1,6 +1,6 @@
 # RingLedger Operations Runbook (M4 Hardening)
 
-Last updated: 2026-03-01
+Last updated: 2026-05-15
 
 ## Purpose
 
@@ -37,6 +37,7 @@ Reference:
 
 - `docs/xaman-signing-contract.md`
 - `docs/state-machines.md`
+- `docs/testnet-release-readiness.md`
 
 ## Operational Flow Reference
 
@@ -56,6 +57,49 @@ Operators should always confirm that observed actions are valid for the current 
 3. Run targeted M4 regression/performance suites:
    - `.\venv\Scripts\python.exe -m pytest backend/tests/regression backend/tests/performance -q`
 4. Confirm CI `quality`, `frontend-quality`, and `secret-scan` jobs are green for the merge commit.
+
+## Testnet Release Preflight
+
+Use this checklist before marking the locked MVP ready for XRPL Testnet release:
+
+1. Confirm release scope is unchanged:
+   - XRPL Testnet only.
+   - Xaman non-custodial signing only.
+   - email/password plus JWT auth only.
+   - no wallet login, no mainnet, and no lifecycle/state-machine expansion.
+2. Confirm required non-local secrets are present in the deployment environment, not repository files:
+   - `XAMAN_API_KEY`
+   - `XAMAN_API_SECRET`
+   - strong `JWT_SECRET_KEY`
+3. Confirm runtime mode and endpoints:
+   - `XAMAN_MODE=api`
+   - backend points at XRPL Testnet infrastructure
+   - frontend API base URL points at the release backend
+4. Run the standard pre-deploy checklist above and record summarized results in `docs/testnet-release-readiness.md`.
+5. Run the live smoke validation below and record only non-secret identifiers and summaries.
+
+### Live Xaman/XRPL Smoke Validation
+
+Live smoke validation is operator-run release evidence. It must not replace deterministic local or CI gates.
+
+1. Boot the backend in the release environment with `XAMAN_MODE=api`.
+2. Verify `GET /healthz`.
+3. Authenticate promoter and admin actors.
+4. Create or verify fighter profiles using funded XRPL Testnet addresses.
+5. Create a promoter bout draft and verify the four planned escrows.
+6. Prepare escrow signing and record the non-secret Xaman payload identifier.
+7. Complete promoter signing in Xaman and run signing reconciliation.
+8. Submit escrow confirm only after XRPL Testnet `tesSUCCESS` evidence is available.
+9. Enter result as admin.
+10. Prepare payout signing, complete signing, reconcile status, and confirm payout with validated XRPL Testnet evidence.
+11. Record non-secret evidence:
+    - environment mode
+    - request paths and response status summaries
+    - Xaman payload identifiers
+    - XRPL Testnet transaction hashes
+    - deterministic failure codes, if any
+
+Do not record API secrets, JWT secrets, private keys, passwords, seed phrases, or raw credential material.
 
 ## Incident Classification Matrix
 
