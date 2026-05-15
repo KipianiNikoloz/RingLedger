@@ -3,31 +3,30 @@
 ## Purpose
 TBD - created by archiving change overhaul-feature-documentation. Update Purpose after archive.
 ## Requirements
-### Requirement: Feature documentation hub
-The repository SHALL provide a maintainer-focused feature documentation hub that maps locked MVP capabilities to per-feature READMEs.
+### Requirement: Module-local documentation
+The repository SHALL provide maintainer-focused README files at meaningful backend and frontend module boundaries.
 
-#### Scenario: Maintainer starts from the feature hub
-- **WHEN** a maintainer opens the feature documentation hub
-- **THEN** they can navigate to each MVP feature README and identify the feature purpose, main flows, source areas, tests, and canonical references
+#### Scenario: Maintainer starts from a module
+- **WHEN** a maintainer opens a module directory such as `backend/app/domain`
+- **THEN** the local README explains the module purpose, files, flow, maintenance notes, and related canonical docs
 
-### Requirement: Per-feature README structure
-Each feature README SHALL use a consistent maintainer template covering purpose, flows, invariants, implementation map, tests, operations, and references.
+### Requirement: Module README structure
+Each module README SHALL use a consistent maintainer template covering purpose, directory map, diagrams, maintenance notes, and references.
 
-#### Scenario: Feature README is complete
-- **WHEN** a feature README is reviewed
-- **THEN** it contains the required maintainer sections and at least one Mermaid diagram relevant to the feature
+#### Scenario: Module README is complete
+- **WHEN** a module README is reviewed
+- **THEN** it contains the required maintainer sections and at least one Mermaid diagram relevant to the module
 
 ### Requirement: Diagram format
-Feature documentation SHALL use Mermaid diagrams stored directly in Markdown for feature visualizations.
+Module documentation SHALL use Mermaid diagrams stored directly in Markdown for technical visualizations.
 
 #### Scenario: Diagram is reviewable
 - **WHEN** a feature flow, state, sequence, or relationship is documented visually
 - **THEN** the diagram is represented as a Mermaid fenced code block rather than a generated binary image
 
 ### Requirement: Documentation validation
-The repository SHALL include automated validation for the feature documentation inventory and structural expectations.
+The repository SHALL include automated validation for the module README inventory and structural expectations.
 
-#### Scenario: Feature docs drift
-- **WHEN** a required feature README is missing, lacks required sections, lacks a Mermaid diagram, or references a non-existent repo path
+#### Scenario: Module docs drift
+- **WHEN** a required module README is missing, lacks required sections, lacks a Mermaid diagram, or references a non-existent repo path
 - **THEN** the documentation validation gate fails
-

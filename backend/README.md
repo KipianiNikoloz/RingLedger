@@ -55,7 +55,7 @@
 - `app/db/`: database session and init helpers
 - `tests/`: unit/property/contract/security/migration tests
 
-Feature-level maintainer documentation is indexed in `docs/features/README.md`.
+Module-level maintainer documentation starts at `backend/app/README.md` and `backend/tests/README.md`.
 
 ## Mandatory Pre-M4 Refactor (Implemented)
 

@@ -1,74 +1,136 @@
 # RingLedger
 
-Escrow-based fighter purse settlement on XRPL Testnet, with promoter signing via Xaman and backend-enforced lifecycle/security invariants.
+RingLedger is an XRPL Testnet escrow settlement system for fighter purses. The locked MVP uses FastAPI, PostgreSQL, React, Xaman promoter signing, backend-enforced lifecycle guards, and XRP drops-only accounting.
 
-## Status
+## System At A Glance
 
-- Baseline product and technical documentation are in place.
-- Backend/database M1 foundation is complete with executable unit/integration/property/contract/security/migration tests.
-- M2 escrow create prepare/confirm flow is implemented with validated XRPL confirmation checks and confirm-endpoint idempotency.
-- M3 result entry + payout prepare/confirm flow is implemented with JWT role guards, payout idempotency, timing guards, and winner-bonus fulfillment validation.
-- Mandatory pre-closeout architecture hardening is implemented: lightweight Unit of Work + selective repositories, with no API/state-machine semantic changes.
-- Mandatory pre-closeout modernization is implemented: Alembic migration authority + proven auth-library adoption, with no unapproved contract drift.
-- M4 hardening is complete for the locked MVP scope: Xaman sign-request integration, failure taxonomy, signing reconciliation, frontend workflow coverage, operational readiness, MVP management endpoints, and stable browser E2E gates are implemented and documented.
-- Testnet release readiness is the active post-M4 milestone: deterministic gates remain local/CI-safe, while live Xaman API and XRPL Testnet smoke validation are documented as operator-run release evidence.
+```mermaid
+flowchart TD
+    operator[Operator console<br/>React] --> api[FastAPI backend]
+    api --> auth[Email/password + JWT]
+    api --> lifecycle[Bout lifecycle services]
+    lifecycle --> db[(PostgreSQL)]
+    lifecycle --> xrpl[XRPL escrow validation]
+    lifecycle --> xaman[Xaman sign requests]
+    lifecycle --> crypto[Bonus crypto conditions]
+    xaman --> promoter[Promoter wallet signing]
+    promoter --> xrpl
+    xrpl --> api
+```
 
-## MVP Scope (Locked)
+## Current Status
 
-- Stack: FastAPI (Python), PostgreSQL, React, XRPL Testnet, Xaman.
-- Auth: email/password + JWT only (no wallet login).
-- Money: XRP only, amounts in drops (integers), DB `BIGINT`.
-- Bout model: 1v1 with 4 escrows: `show_a`, `show_b`, `bonus_a`, `bonus_b`.
-- Custody split: platform controls bonus preimage/fulfillment; promoter controls signatures.
-- Signing: promoter signs in Xaman; backend never stores promoter private keys.
-- Timing: `FinishAfter = event_datetime_utc + 2h`; `CancelAfter = event_datetime_utc + 7d` (bonus only).
-- Ledger truth: state transitions only after validated XRPL `tesSUCCESS`.
-- Idempotency: required on confirm endpoints.
-- Security: frontend untrusted, backend authoritative for all invariants.
+- M1 through M4 are complete for the locked MVP/Testnet scope.
+- Testnet release readiness is documented; live Xaman/XRPL smoke validation remains operator-run with environment-managed secrets.
+- OpenSpec changes for release readiness and documentation overhaul are archived and synced into main specs.
+- CI enforces backend tests, frontend tests, browser E2E, docs validation, and secret scanning.
 
-## Core Docs
+## Locked MVP Scope
 
-- Requirements baseline: `docs/requirements-matrix.md`
-- Lifecycle contract: `docs/state-machines.md`
-- Requirement traceability: `docs/traceability-matrix.md`
-- Feature documentation hub: `docs/features/README.md`
-- CI/CD and dependency automation: `docs/ci-cd.md`
-- Clean architecture refactor plan: `docs/clean-architecture-refactor-plan.md`
-- Alembic adoption plan: `docs/alembic-adoption-plan.md`
-- Auth-library adoption plan: `docs/auth-library-adoption-plan.md`
-- M3.6 modernization acceptance memo: `docs/m3.6-modernization-acceptance-memo.md`
-- Xaman signing contract: `docs/xaman-signing-contract.md`
-- Operations runbook: `docs/operations-runbook.md`
-- Operational flow: `docs/operational-flow.md`
-- Regression/performance gates: `docs/performance-regression-gates.md`
-- Testnet release readiness memo: `docs/testnet-release-readiness.md`
-- Frontend package guide: `frontend/README.md`
+| Area | Constraint |
+|---|---|
+| Network | XRPL Testnet only |
+| Auth | Email/password plus JWT only; no wallet login |
+| Money | XRP drops as integers |
+| Bout model | 1v1 with `show_a`, `show_b`, `bonus_a`, `bonus_b` escrows |
+| Custody | Platform controls bonus fulfillment; promoter controls signatures |
+| Signing | Xaman non-custodial signing; backend never stores promoter private keys |
+| Timing | `FinishAfter = event_datetime_utc + 2h`; bonus `CancelAfter = event_datetime_utc + 7d` |
+| Ledger truth | State transitions only after validated XRPL `tesSUCCESS` |
+| Frontend trust | Frontend is advisory; backend enforces invariants |
+
+## Lifecycle Overview
+
+```mermaid
+stateDiagram-v2
+    [*] --> draft
+    draft --> escrows_created: 4 EscrowCreate confirmations
+    escrows_created --> result_entered: admin winner entry
+    result_entered --> payouts_in_progress: first payout confirm
+    payouts_in_progress --> closed: all required payouts complete
+
+    draft --> draft: prepare/sign/reconcile no transition
+    result_entered --> result_entered: payout prepare/sign/reconcile no transition
+```
+
+## Maintainer Documentation Map
+
+Start at the README closest to the code you are changing. These module-local READMEs explain responsibility, flow, tests, and related contracts.
+
+### Backend
+
+| Module | README |
+|---|---|
+| Backend app overview | `backend/app/README.md` |
+| HTTP routes | `backend/app/api/README.md` |
+| Bout route modules | `backend/app/api/bouts_routes/README.md` |
+| Config and security | `backend/app/core/README.md` |
+| Crypto conditions | `backend/app/crypto_conditions/README.md` |
+| Database and Unit of Work | `backend/app/db/README.md` |
+| Pure domain rules | `backend/app/domain/README.md` |
+| External integrations | `backend/app/integrations/README.md` |
+| Middleware/request guards | `backend/app/middleware/README.md` |
+| Persistence models | `backend/app/models/README.md` |
+| Repositories | `backend/app/repositories/README.md` |
+| API schemas | `backend/app/schemas/README.md` |
+| Service layer | `backend/app/services/README.md` |
+| Backend tests | `backend/tests/README.md` |
+
+### Frontend
+
+| Module | README |
+|---|---|
+| Frontend source overview | `frontend/src/README.md` |
+| Typed API client | `frontend/src/api/README.md` |
+| App shell | `frontend/src/app/README.md` |
+| UI components | `frontend/src/components/README.md` |
+| Workflow hooks | `frontend/src/hooks/README.md` |
+
+## Canonical Reference Docs
+
+| Contract | Document |
+|---|---|
+| Requirements | `docs/requirements-matrix.md` |
+| API | `docs/api-spec.md` |
+| Lifecycle states | `docs/state-machines.md` |
+| Schema | `docs/schema-doc.md` |
+| Traceability | `docs/traceability-matrix.md` |
+| Operations | `docs/operations-runbook.md` |
+| Operator flow | `docs/operational-flow.md` |
+| Xaman signing | `docs/xaman-signing-contract.md` |
+| Testnet release | `docs/testnet-release-readiness.md` |
+| CI/CD | `docs/ci-cd.md` |
 
 ## Repository Layout
 
-- `backend/`: FastAPI service scaffold, domain modules, SQL schema, and initial test suite.
-- `frontend/`: React frontend package with typed API client and browser E2E contract coverage.
-- `docs/`: locked requirements, state machines, and implementation traceability.
-- `.github/`: CI/CD workflow and Dependabot automation.
+```mermaid
+flowchart LR
+    repo[RingLedger] --> backend[backend]
+    repo --> frontend[frontend]
+    repo --> docs[docs]
+    repo --> openspec[openspec]
+    backend --> app[backend/app]
+    backend --> tests[backend/tests]
+    frontend --> src[frontend/src]
+    docs --> contracts[reference and operations docs]
+    openspec --> specs[specs and archived changes]
+```
 
-## Implementation Roadmap (Current)
+## Local Verification
 
-1. M1: backend + database foundation (`R-02`, `R-03`, `R-04`, `R-07`) - complete.
-2. M2: escrow create prepare/confirm with XRPL validation + idempotency - complete.
-3. M3: result entry and payout prepare/confirm with bonus fulfillment logic - complete.
-4. M3.5 (mandatory): clean architecture hardening of persistence boundaries (Unit of Work + selective repositories) with behavior parity proof - complete.
-5. M3.6 (mandatory): migration/auth modernization (Alembic authority + proven auth library) with parity proof - complete.
-6. M4: hardening closeout (security, failure paths, regression/performance, operational readiness, MVP management endpoints) - complete for locked MVP/Testnet scope.
-7. Testnet release readiness: release evidence, live Xaman API smoke validation, XRPL Testnet confirmation smoke path, and bounded residual-risk documentation - active.
+```powershell
+.\venv\Scripts\python.exe -m ruff check backend
+.\venv\Scripts\python.exe -m ruff format --check backend docs
+.\venv\Scripts\python.exe -m pytest backend/tests -q
+cd frontend
+npm run typecheck
+npm run test
+npm run test:e2e
+```
 
 ## Delivery Rules
 
-- Implement in small vertical slices with atomic commits.
-- Every code/config/schema change must include matching tests and documentation updates.
-- Maintain traceability: requirement -> implementation -> tests -> docs.
-
-## Automation
-
-- CI/CD workflow enforces backend quality gates, frontend typecheck/unit/browser-e2e gates, and secret scanning.
-- Delivery artifact is generated on successful pushes to `main`/`master`.
-- Dependabot opens weekly PRs for GitHub Actions, Python, and frontend npm dependency updates.
+- Keep changes in small vertical slices.
+- Every code/config/schema change needs matching tests and docs.
+- Maintain requirement -> implementation -> tests -> docs traceability.
+- Preserve the locked MVP scope unless a new OpenSpec change explicitly changes it.
