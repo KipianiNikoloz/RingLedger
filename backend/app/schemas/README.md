@@ -28,6 +28,7 @@ flowchart TD
 ## Maintenance Notes
 
 - Schema changes are API contract changes unless strictly internal.
+- Public registration and confirmation requests forbid extra fields at the trust boundary.
 - Keep examples in `docs/api-spec.md` synchronized with schema changes.
 - Validate edge cases through contract tests.
 - Do not encode lifecycle authority in schemas; services validate state.

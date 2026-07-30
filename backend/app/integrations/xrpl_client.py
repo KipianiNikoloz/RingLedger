@@ -48,12 +48,7 @@ class XrplClient:
         self._client = http_client or httpx.Client(timeout=timeout_seconds)
 
     def fetch_validated_transaction(self, tx_hash: str) -> XrplTransactionEvidence:
-        server_info = self._request("server_info")
-        info = server_info.get("info")
-        if not isinstance(info, dict) or not isinstance(info.get("network_id"), int):
-            raise XrplInvalidResponse("xrpl_network_id_missing")
-        if info["network_id"] != self._expected_network_id:
-            raise XrplWrongNetwork("xrpl_wrong_network")
+        self.check_network()
 
         result = self._request("tx", {"transaction": tx_hash, "binary": False, "api_version": 2})
         if result.get("error") == "txnNotFound":
@@ -79,6 +74,14 @@ class XrplClient:
             tx_json=tx_json,
             close_time_ripple=close_time,
         )
+
+    def check_network(self) -> None:
+        server_info = self._request("server_info")
+        info = server_info.get("info")
+        if not isinstance(info, dict) or not isinstance(info.get("network_id"), int):
+            raise XrplInvalidResponse("xrpl_network_id_missing")
+        if info["network_id"] != self._expected_network_id:
+            raise XrplWrongNetwork("xrpl_wrong_network")
 
     def _request(self, method: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
         try:

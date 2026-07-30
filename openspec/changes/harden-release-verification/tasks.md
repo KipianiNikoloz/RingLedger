@@ -19,13 +19,13 @@
 
 ## 4. Runtime and Delivery
 
-- [ ] 4.1 Add failing tests for production configuration, CORS, liveness, database readiness, and XRPL Testnet readiness.
-- [ ] 4.2 Implement validated settings, CORS middleware, `/readyz`, and safe error translation.
-- [ ] 4.3 Add and verify non-root backend/frontend images, Nginx proxying, Compose migration ordering, persistent PostgreSQL, and `.env.example`.
-- [ ] 4.4 Align CI with locked backend, frontend build/test/E2E, migrations, OpenSpec, secret scan, and container gates.
+- [x] 4.1 Add failing tests for production configuration, CORS, liveness, database readiness, and XRPL Testnet readiness.
+- [x] 4.2 Implement validated settings, CORS middleware, `/readyz`, and safe error translation.
+- [x] 4.3 Add and verify non-root backend/frontend images, Nginx proxying, Compose migration ordering, persistent PostgreSQL, and `.env.example`.
+- [x] 4.4 Align CI with locked backend, frontend build/test/E2E, migrations, OpenSpec, secret scan, and container gates.
 
 ## 5. Documentation and Closeout
 
-- [ ] 5.1 Update API, schema, state-machine, operations, CI, module, release, and traceability documentation.
+- [x] 5.1 Update API, schema, state-machine, operations, CI, module, release, and traceability documentation.
 - [ ] 5.2 Run all clean-checkout and container verification gates and record fresh non-secret evidence.
 - [ ] 5.3 Complete the checklist and archive the OpenSpec change after every gate passes.

@@ -103,6 +103,6 @@ Last implementation sync: 2026-02-22
 - Signing declined: no transition; persisted `failure_code=signing_declined`; audited as retryable action.
 - Signing expired: no transition; persisted `failure_code=signing_expired`; retry requires new signing attempt.
 - `tec/tem`: no transition; persisted `failure_code=ledger_tec_tem`; manual or gated retry.
-- Confirmation timeout/unvalidated: no optimistic transition; persisted `failure_code=confirmation_timeout`; retry path remains.
+- Pending/unvalidated XRPL transaction: no optimistic transition and no terminal idempotency record; the same request remains retryable.
 - Invalid confirmation/field mismatch: reject, audit, and persist `failure_code=invalid_confirmation`.
 - Idempotency payload collision: reject with deterministic conflict response and no state transition.

@@ -8,6 +8,7 @@
 
 - `backend/app/api/router.py`: top-level API router composition.
 - `backend/app/api/auth.py`: register/login endpoints.
+- `backend/app/api/admin_users.py`: admin-only privileged account provisioning.
 - `backend/app/api/fighters.py`: fighter profile endpoint.
 - `backend/app/api/bouts.py`: `/bouts` router aggregation.
 - `backend/app/api/dependencies.py`: authenticated-user and role dependencies.
@@ -37,6 +38,7 @@ sequenceDiagram
 - Do not duplicate lifecycle logic in routes if a service owns it.
 - Protected lifecycle routes must keep backend role checks authoritative.
 - Confirm routes must enforce idempotency before service mutation.
+- Confirm routes accept only escrow kind and transaction hash; XRPL evidence is fetched server-side.
 
 ## Related Docs
 

@@ -21,8 +21,8 @@ flowchart TD
 ## Current Status
 
 - M1 through M4 functionality is implemented for the locked MVP/Testnet scope.
-- A 2026-07-30 release audit reopened backend-authoritative XRPL confirmation, privileged-role provisioning, reproducible setup, and container delivery before live Testnet validation.
-- Testnet release requirements are documented; live Xaman/XRPL smoke validation remains operator-run with environment-managed secrets after deterministic hardening completes.
+- The 2026-07-30 deterministic release-hardening work is implemented: backend-authoritative XRPL confirmation, secured privileged-role provisioning, locked setup, readiness gates, CI, and non-root container delivery.
+- Live Xaman/XRPL smoke validation remains an operator-run release gate because it requires environment-managed credentials, funded Testnet accounts, and external network access.
 - OpenSpec changes for release readiness and documentation overhaul are archived and synced into main specs.
 - CI enforces backend tests, frontend tests, browser E2E, docs validation, and secret scanning.
 
@@ -130,6 +130,17 @@ npm run typecheck
 npm run test
 npm run test:e2e
 ```
+
+## Container Release Stack
+
+Create `secrets/` files for `postgres_password.txt`, `database_url.txt`, `jwt_secret.txt`, `xaman_api_key.txt`, and `xaman_api_secret.txt`; the database URL must include the same PostgreSQL password. Then run:
+
+```powershell
+docker compose config
+docker compose up --build
+```
+
+The SPA is served at `http://localhost:8080`, with same-origin `/api` proxying to FastAPI. Compose starts PostgreSQL, runs Alembic exactly once, waits for API liveness, and then starts the non-root Nginx frontend.
 
 ## Delivery Rules
 

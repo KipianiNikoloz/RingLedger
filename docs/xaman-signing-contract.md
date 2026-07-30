@@ -64,7 +64,7 @@ Environment variables:
 1. Backend prepare endpoint returns unsigned tx plus `xaman_sign_request`.
 2. Promoter signs and submits in Xaman app.
 3. Backend optionally reconciles payload status through signing-reconcile endpoints to record declined/expired/signed outcomes.
-4. Client submits confirmation artifacts (`tx_hash`, validated result metadata) to backend confirm endpoint.
+4. Client submits only `escrow_kind` and `tx_hash`; the backend retrieves validated transaction metadata directly from XRPL Testnet.
 5. Backend validates ledger evidence and only then transitions escrow/bout state.
 
 ## Validation Coverage

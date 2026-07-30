@@ -64,7 +64,7 @@ This document captures the implemented API surface through the M4 management end
 
 ### `POST /auth/register`
 
-- Purpose: create user account with role.
+- Purpose: create a fighter account. The request accepts only `email` and `password`; a submitted `role` is rejected.
 - Response `201`:
 
 ```json
@@ -76,6 +76,18 @@ This document captures the implemented API surface through the M4 management end
 ```
 
 - Error `409`: email already exists.
+
+### `POST /admin/users`
+
+- Purpose: provision a promoter, management, or admin account.
+- Role: admin only.
+- Request body: `email`, `password`, and `role` (`promoter`, `management`, or `admin`).
+- Error `403`: caller is not an admin.
+- Error `409`: email already exists.
+
+### `GET /readyz`
+
+- Purpose: verify PostgreSQL and XRPL Testnet readiness. Dependency failures return `503`; `/healthz` remains a liveness-only probe.
 
 ### `POST /auth/login`
 
@@ -254,6 +266,7 @@ This document captures the implemented API surface through the M4 management end
 
 - Purpose: validate confirmed `EscrowCreate` result and apply `planned -> created`.
 - Required header: `Idempotency-Key: <client-generated-key>`
+- Request body: `{ "escrow_kind": "show_a", "tx_hash": "TX00000001" }`. All transaction evidence is fetched from XRPL; extra fields are rejected.
 - Response `200`:
 
 ```json
@@ -272,10 +285,10 @@ This document captures the implemented API surface through the M4 management end
 - Error `401`: missing/invalid bearer token.
 - Error `403`: caller role is not promoter.
 - Error `404`: bout or escrow not found.
-- Error `409`: state conflict, or idempotency key reused with different payload.
+- Error `409`: state conflict, idempotency collision, or transaction not yet validated. Pending responses are retryable and are not stored as terminal idempotency results.
+- Error `502`: XRPL returned malformed evidence or a non-Testnet network identity.
+- Error `503`: XRPL RPC is unavailable.
 - Error `422`: deterministic failure taxonomy without state transition:
-  - `Signing was declined; no state transition was applied.`
-  - `Confirmation timed out or remained unvalidated; no state transition was applied.`
   - `Ledger transaction was rejected with tec/tem; no state transition was applied.`
   - `Ledger confirmation failed validation.`
 
@@ -414,14 +427,7 @@ This document captures the implemented API surface through the M4 management end
 ```json
 {
   "escrow_kind": "bonus_a",
-  "tx_hash": "TXPAYOUT0003",
-  "validated": true,
-  "engine_result": "tesSUCCESS",
-  "transaction_type": "EscrowFinish",
-  "owner_address": "rPromoter...",
-  "offer_sequence": 6003,
-  "close_time_ripple": 823000100,
-  "fulfillment_hex": "A1B2..."
+  "tx_hash": "TXPAYOUT0003"
 }
 ```
 
@@ -442,10 +448,10 @@ This document captures the implemented API surface through the M4 management end
 - Error `401`: missing/invalid bearer token.
 - Error `403`: caller role is not promoter.
 - Error `404`: bout or escrow not found.
-- Error `409`: state conflict, or idempotency key reused with different payload.
+- Error `409`: state conflict, idempotency collision, or transaction not yet validated. Pending responses remain retryable.
+- Error `502`: XRPL evidence or network identity is invalid.
+- Error `503`: XRPL RPC is unavailable.
 - Error `422`: deterministic failure taxonomy without state transition:
-  - `Signing was declined; no state transition was applied.`
-  - `Confirmation timed out or remained unvalidated; no state transition was applied.`
   - `Ledger transaction was rejected with tec/tem; no state transition was applied.`
   - `Ledger confirmation failed validation.` for invariant mismatch (timing, tx type, offer sequence, fulfillment).
 

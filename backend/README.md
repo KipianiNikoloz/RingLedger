@@ -6,6 +6,7 @@
 - Health endpoint (`GET /healthz`)
 - Auth endpoints:
   - `POST /auth/register`
+  - `POST /admin/users`
   - `POST /auth/login`
 - Fighter profile endpoint:
   - `PUT /fighters/me`
@@ -27,7 +28,7 @@
 - crypto-condition preimage/condition/fulfillment helpers for bonus escrow control
 - XRPL transaction behavior:
   - unsigned `EscrowCreate`, `EscrowFinish`, and `EscrowCancel` payload generation
-  - validated-ledger confirmation checks (`tesSUCCESS` + invariant/timing/offer-sequence matching)
+  - authoritative XRPL Testnet JSON-RPC confirmation (`tesSUCCESS` + invariant/timing/offer-sequence matching)
 - Xaman signing integration behavior:
   - prepare endpoints return per-transaction sign-request metadata (`payload_id`, deep link, QR URL)
   - backend remains non-custodial and never stores promoter private keys
@@ -93,4 +94,7 @@ M4 hardening is complete for the locked MVP/Testnet scope. Residual risk remains
 - Frontend package and browser tests are under `frontend/` (`npm run test`, `npm run test:e2e`).
 - Xaman integration runtime mode is controlled by `XAMAN_MODE`:
   - `stub` (default): deterministic non-network sign-request envelopes for local/CI.
+  - production requires `api`, Xaman secret files, XRPL Testnet network ID `1`, explicit CORS origins, a strong JWT secret, and disabled startup migration.
+- Bootstrap the first administrator with `uv run ringledger bootstrap-admin --email admin@example.com`; omit `--password-file` for hidden interactive input.
+- `/healthz` is process liveness. `/readyz` verifies PostgreSQL and XRPL Testnet connectivity.
   - `api`: calls Xaman API using `XAMAN_API_KEY` and `XAMAN_API_SECRET`.

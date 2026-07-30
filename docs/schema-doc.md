@@ -76,6 +76,7 @@ Alembic baseline revision: `backend/alembic/versions/202602220000_baseline_schem
   - `offer_sequence INTEGER NULL`
   - `create_tx_hash VARCHAR(128) NULL`
   - `close_tx_hash VARCHAR(128) NULL`
+  - unique partial indexes enforce global one-use semantics for non-null `create_tx_hash` and `close_tx_hash`
 
 - Constraints:
   - one escrow per (`bout_id`, `kind`)

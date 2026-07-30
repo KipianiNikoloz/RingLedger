@@ -59,7 +59,7 @@ This flow reflects implemented endpoints and current state-machine constraints.
 
 ### Confirm Failure Branches
 
-- `confirmation_timeout`: no transition, retry with validated evidence.
+- Pending/unvalidated XRPL lookup: no transition and no terminal idempotency record; retry the same confirmation later.
 - `ledger_tec_tem`: no transition, investigate ledger rejection.
 - `invalid_confirmation`: reject payload, regenerate from canonical prepare output.
 - idempotency collision (`409`): reject replay with mismatched request body.

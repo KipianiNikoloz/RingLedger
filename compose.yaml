@@ -1,0 +1,76 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ringledger
+      POSTGRES_USER: ringledger
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets: [postgres_password]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ringledger -d ringledger"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    command: ["alembic", "upgrade", "head"]
+    environment: &api_environment
+      APP_ENV: production
+      DATABASE_URL_FILE: /run/secrets/database_url
+      DB_AUTO_MIGRATE_ON_STARTUP: "false"
+      JWT_SECRET_FILE: /run/secrets/jwt_secret
+      XAMAN_MODE: api
+      XAMAN_API_KEY_FILE: /run/secrets/xaman_api_key
+      XAMAN_API_SECRET_FILE: /run/secrets/xaman_api_secret
+      XRPL_RPC_URL: https://s.altnet.rippletest.net:51234
+      XRPL_EXPECTED_NETWORK_ID: "1"
+      CORS_ORIGINS: http://localhost:8080
+    secrets: [database_url, jwt_secret, xaman_api_key, xaman_api_secret]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    environment: *api_environment
+    secrets: [database_url, jwt_secret, xaman_api_key, xaman_api_secret]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz')"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports: ["8080:8080"]
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+
+secrets:
+  database_url:
+    file: ./secrets/database_url.txt
+  postgres_password:
+    file: ./secrets/postgres_password.txt
+  jwt_secret:
+    file: ./secrets/jwt_secret.txt
+  xaman_api_key:
+    file: ./secrets/xaman_api_key.txt
+  xaman_api_secret:
+    file: ./secrets/xaman_api_secret.txt

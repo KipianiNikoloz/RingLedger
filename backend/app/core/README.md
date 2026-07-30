@@ -25,6 +25,8 @@ flowchart LR
 ## Maintenance Notes
 
 - Non-local deployments must provide a strong `JWT_SECRET`.
+- Production rejects stub signing, wildcard CORS, startup migrations, non-Testnet XRPL identity, and missing/unsafe secrets.
+- Secrets may be supplied through matching `_FILE` variables for container secret mounts.
 - Do not add wallet-login or XRPL-address-login behavior here.
 - Security helper changes need auth unit, contract, and security tests.
 - Runtime settings should stay explicit and environment-driven.

@@ -6,7 +6,7 @@ Scope type: release evidence and operational readiness only
 
 ## Decision
 
-RingLedger is not yet ready to enter live XRPL Testnet release validation. The deterministic M4 baseline was green on 2026-05-15, but the 2026-07-30 release audit reopened backend-authoritative ledger confirmation, privileged-role provisioning, reproducible setup, and container delivery before live smoke execution.
+RingLedger is ready to enter operator-run XRPL Testnet release validation. The deterministic 2026-07-30 hardening gates are green; the remaining live smoke requires credentials, funded accounts, and external Testnet/Xaman availability.
 
 This memo does not expand MVP scope. It records the release boundary, required evidence, and residual risks for deploying the locked MVP to a Testnet environment.
 
@@ -51,7 +51,7 @@ The release candidate must have current evidence for:
 
 1. Boot the backend in the release environment with `XAMAN_MODE=api`.
 2. Confirm `GET /healthz` succeeds.
-3. Register or authenticate promoter and admin actors.
+3. Bootstrap/authenticate the first admin, provision the promoter through `POST /admin/users`, and register fighters publicly.
 4. Create or verify fighter profiles with funded XRPL Testnet addresses.
 5. Create a promoter bout draft and confirm the four-escrow plan.
 6. Prepare escrow signing and verify Xaman returns a sign-request payload identifier.
@@ -60,6 +60,23 @@ The release candidate must have current evidence for:
 9. Enter the bout result as an authorized admin.
 10. Prepare payout signing, complete/reconcile Xaman signing, and confirm payout only after validated XRPL Testnet evidence.
 11. Record non-secret evidence: environment mode, request paths, payload identifiers, transaction hashes, command summaries, and any deterministic failure codes encountered.
+
+## Current Deterministic Evidence
+
+Evidence captured on 2026-07-30 from the release-hardening branch:
+
+| Gate | Result |
+|---|---|
+| Locked Ruff lint | pass |
+| Locked backend suite | pass (`111 passed`, `34 subtests passed`) |
+| Frontend typecheck and production build | pass |
+| Vitest | pass (`10 passed`) |
+| Playwright Chromium | pass (`1 passed`) |
+| `npm audit` | pass (`0 vulnerabilities`) |
+| Compose configuration | pass |
+| Non-root backend and frontend image builds | pass |
+
+Live Xaman/XRPL transaction execution is intentionally not represented by these deterministic gates and remains the operator-run release validation step.
 
 ## Historical Verification Evidence
 
@@ -78,7 +95,7 @@ The following results are the 2026-05-15 baseline, not current completion eviden
 | `npm run build` (`frontend/`) | pass | Production build completed. |
 | `npm run test:e2e` (`frontend/`) | pass (`1 passed`) | Required installing the matching local Playwright Chromium runtime before rerun. |
 | `openspec validate prepare-testnet-release` | pass | Change is valid. |
-| Live Xaman/XRPL smoke validation | blocked on release hardening, then operator-run | Requires the deterministic hardening gates plus live credentials and funded Testnet accounts outside local CI. |
+| Live Xaman/XRPL smoke validation | operator-run | Requires live credentials and funded Testnet accounts outside local CI. |
 
 ## Residual Risks
 

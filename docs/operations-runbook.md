@@ -129,7 +129,7 @@ Do not record API secrets, JWT secrets, private keys, passwords, seed phrases, o
 2. Apply handling:
    - `signing_declined`: request new promoter signing action.
    - `signing_expired`: create a new signing attempt and reconcile again.
-   - `confirmation_timeout`: retry confirmation only with validated ledger evidence.
+   - XRPL confirmation pending (`409`): retry later with the same transaction hash and idempotency key.
    - `ledger_tec_tem`: stop automatic retries; investigate ledger rejection reason.
    - `invalid_confirmation`: reject payload and rebuild from canonical prepare contract.
 3. Confirm no unauthorized state transition occurred.

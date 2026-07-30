@@ -1,0 +1,8 @@
+.git
+.venv
+agents
+frontend/node_modules
+frontend/dist
+secrets
+__pycache__
+*.pyc
