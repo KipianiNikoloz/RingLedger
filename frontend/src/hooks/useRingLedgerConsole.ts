@@ -30,6 +30,9 @@ export interface RingLedgerConsoleModel {
   registerPassword: string;
   registerRole: UserRole;
   registerResult: unknown;
+  provisionEmail: string;
+  provisionPassword: string;
+  provisionRole: Exclude<UserRole, "fighter">;
   loginEmail: string;
   loginPassword: string;
   boutId: string;
@@ -74,6 +77,9 @@ export interface RingLedgerConsoleModel {
   setRegisterEmail: (value: string) => void;
   setRegisterPassword: (value: string) => void;
   setRegisterRole: (value: UserRole) => void;
+  setProvisionEmail: (value: string) => void;
+  setProvisionPassword: (value: string) => void;
+  setProvisionRole: (value: Exclude<UserRole, "fighter">) => void;
   setLoginEmail: (value: string) => void;
   setLoginPassword: (value: string) => void;
   setBoutId: (value: string) => void;
@@ -105,6 +111,7 @@ export interface RingLedgerConsoleModel {
   setPayoutConfirmEngineResult: (value: string) => void;
   setPayoutCloseTimeRipple: (value: string) => void;
   handleRegister: (event: FormEvent<HTMLFormElement>) => Promise<void>;
+  handleProvision: (event: FormEvent<HTMLFormElement>) => Promise<void>;
   handleLogin: (event: FormEvent<HTMLFormElement>) => Promise<void>;
   handleFighterProfileUpsert: (event: FormEvent<HTMLFormElement>) => Promise<void>;
   handleBoutCreate: (event: FormEvent<HTMLFormElement>) => Promise<void>;
@@ -158,6 +165,9 @@ export function useRingLedgerConsole(): RingLedgerConsoleModel {
     registerPassword: auth.registerPassword,
     registerRole: auth.registerRole,
     registerResult: auth.registerResult,
+    provisionEmail: auth.provisionEmail,
+    provisionPassword: auth.provisionPassword,
+    provisionRole: auth.provisionRole,
     loginEmail: auth.loginEmail,
     loginPassword: auth.loginPassword,
     boutId,
@@ -202,6 +212,9 @@ export function useRingLedgerConsole(): RingLedgerConsoleModel {
     setRegisterEmail: auth.setRegisterEmail,
     setRegisterPassword: auth.setRegisterPassword,
     setRegisterRole: auth.setRegisterRole,
+    setProvisionEmail: auth.setProvisionEmail,
+    setProvisionPassword: auth.setProvisionPassword,
+    setProvisionRole: auth.setProvisionRole,
     setLoginEmail: auth.setLoginEmail,
     setLoginPassword: auth.setLoginPassword,
     setBoutId,
@@ -233,6 +246,7 @@ export function useRingLedgerConsole(): RingLedgerConsoleModel {
     setPayoutConfirmEngineResult: resultPayout.setPayoutConfirmEngineResult,
     setPayoutCloseTimeRipple: resultPayout.setPayoutCloseTimeRipple,
     handleRegister: auth.handleRegister,
+    handleProvision: auth.handleProvision,
     handleLogin: auth.handleLogin,
     handleFighterProfileUpsert: management.handleFighterProfileUpsert,
     handleBoutCreate: management.handleBoutCreate,

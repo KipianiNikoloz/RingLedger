@@ -16,7 +16,7 @@ describe("api/client", () => {
         JSON.stringify({
           user_id: "6e688226-15ee-4c47-b0cd-8f1188ca7155",
           email: "promoter.frontend@example.com",
-          role: "promoter",
+          role: "fighter",
         }),
         { status: 201, headers: { "Content-Type": "application/json" } },
       ),
@@ -25,10 +25,9 @@ describe("api/client", () => {
     const result = await registerUser({
       email: "promoter.frontend@example.com",
       password: "PromoterPass123!",
-      role: "promoter",
     });
 
-    expect(result.role).toBe("promoter");
+    expect(result.role).toBe("fighter");
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const [url, init] = fetchMock.mock.calls[0];
     expect(init).toBeDefined();

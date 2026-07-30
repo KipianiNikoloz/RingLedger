@@ -36,6 +36,19 @@ class AuthService:
             return None
         return user
 
+    def bootstrap_first_admin(self, *, email: str, password: str) -> tuple[User, bool]:
+        normalized_email = email.strip().lower()
+        existing_admin = self.session.scalar(select(User).where(User.role == UserRole.ADMIN))
+        if existing_admin is not None:
+            if existing_admin.email == normalized_email:
+                return existing_admin, False
+            raise ValueError("admin_already_exists")
+
+        existing_identity = self.session.scalar(select(User).where(User.email == normalized_email))
+        if existing_identity is not None:
+            raise ValueError("email_already_exists")
+        return self.register_user(email=normalized_email, password=password, role=UserRole.ADMIN), True
+
     @staticmethod
     def issue_access_token(*, user_id: uuid.UUID, email: str, role: UserRole) -> str:
         return create_access_token(

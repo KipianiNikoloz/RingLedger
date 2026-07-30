@@ -1,7 +1,7 @@
 import type { FormEvent } from "react";
 import { useMemo, useState } from "react";
 
-import { loginUser, registerUser } from "../api/client";
+import { createPrivilegedUser, loginUser, registerUser } from "../api/client";
 import type { UserRole } from "../api/types";
 import { decodeRoleFromJwt } from "../auth";
 
@@ -15,6 +15,9 @@ export interface AuthWorkflowModel {
   registerPassword: string;
   registerRole: UserRole;
   registerResult: unknown;
+  provisionEmail: string;
+  provisionPassword: string;
+  provisionRole: Exclude<UserRole, "fighter">;
   loginEmail: string;
   loginPassword: string;
   currentRoleSummary: string;
@@ -24,9 +27,13 @@ export interface AuthWorkflowModel {
   setRegisterEmail: (value: string) => void;
   setRegisterPassword: (value: string) => void;
   setRegisterRole: (value: UserRole) => void;
+  setProvisionEmail: (value: string) => void;
+  setProvisionPassword: (value: string) => void;
+  setProvisionRole: (value: Exclude<UserRole, "fighter">) => void;
   setLoginEmail: (value: string) => void;
   setLoginPassword: (value: string) => void;
   handleRegister: (event: FormEvent<HTMLFormElement>) => Promise<void>;
+  handleProvision: (event: FormEvent<HTMLFormElement>) => Promise<void>;
   handleLogin: (event: FormEvent<HTMLFormElement>) => Promise<void>;
 }
 
@@ -35,6 +42,9 @@ export function useAuthWorkflow({ runAction, pushLog }: AuthWorkflowOptions): Au
   const [registerPassword, setRegisterPassword] = useState("PromoterPass123!");
   const [registerRole, setRegisterRole] = useState<UserRole>("promoter");
   const [registerResult, setRegisterResult] = useState<unknown>(null);
+  const [provisionEmail, setProvisionEmail] = useState("promoter.ops@example.com");
+  const [provisionPassword, setProvisionPassword] = useState("PromoterPass123!");
+  const [provisionRole, setProvisionRole] = useState<Exclude<UserRole, "fighter">>("promoter");
 
   const [loginEmail, setLoginEmail] = useState("promoter.frontend@example.com");
   const [loginPassword, setLoginPassword] = useState("PromoterPass123!");
@@ -55,7 +65,6 @@ export function useAuthWorkflow({ runAction, pushLog }: AuthWorkflowOptions): Au
       const response = await registerUser({
         email: registerEmail,
         password: registerPassword,
-        role: registerRole,
       });
       setRegisterResult(response);
     });
@@ -74,11 +83,30 @@ export function useAuthWorkflow({ runAction, pushLog }: AuthWorkflowOptions): Au
     });
   }
 
+  async function handleProvision(event: FormEvent<HTMLFormElement>): Promise<void> {
+    event.preventDefault();
+    const adminToken = tokensByRole.admin;
+    if (!adminToken) {
+      throw new Error("Log in as an admin before provisioning privileged users.");
+    }
+    await runAction("provision user", async () => {
+      const response = await createPrivilegedUser(adminToken, {
+        email: provisionEmail,
+        password: provisionPassword,
+        role: provisionRole,
+      });
+      setRegisterResult(response);
+    });
+  }
+
   return {
     registerEmail,
     registerPassword,
     registerRole,
     registerResult,
+    provisionEmail,
+    provisionPassword,
+    provisionRole,
     loginEmail,
     loginPassword,
     currentRoleSummary,
@@ -88,9 +116,13 @@ export function useAuthWorkflow({ runAction, pushLog }: AuthWorkflowOptions): Au
     setRegisterEmail,
     setRegisterPassword,
     setRegisterRole,
+    setProvisionEmail,
+    setProvisionPassword,
+    setProvisionRole,
     setLoginEmail,
     setLoginPassword,
     handleRegister,
+    handleProvision,
     handleLogin,
   };
 }

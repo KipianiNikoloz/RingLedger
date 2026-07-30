@@ -17,9 +17,10 @@ from app.db.session import get_session
 from app.integrations.xrpl_client import XrplTransactionEvidence
 from app.main import create_app
 from app.models.bout import Bout
-from app.models.enums import BoutStatus, EscrowKind, EscrowStatus
+from app.models.enums import BoutStatus, EscrowKind, EscrowStatus, UserRole
 from app.models.escrow import Escrow
 from app.models.user import User
+from app.services.auth_service import AuthService
 from app.services.bout_service import BoutService
 from tests.xrpl_stub import ledger_stub
 
@@ -304,15 +305,15 @@ class PromoterSigningFlowE2ETests(unittest.TestCase):
             self.assertEqual(escrow.failure_code, "signing_declined")
 
     def _register_and_login(self, *, email: str, password: str, role: str) -> tuple[uuid.UUID, str]:
-        register_response = self.client.post(
-            "/auth/register",
-            json={"email": email, "password": password, "role": role},
-        )
-        self.assertEqual(register_response.status_code, 201)
-        register_body = register_response.json()
-        self.assertEqual(register_body["email"], email)
-        self.assertEqual(register_body["role"], role)
-        user_id = uuid.UUID(register_body["user_id"])
+        if role == UserRole.FIGHTER.value:
+            register_response = self.client.post("/auth/register", json={"email": email, "password": password})
+            self.assertEqual(register_response.status_code, 201)
+            user_id = uuid.UUID(register_response.json()["user_id"])
+        else:
+            with Session(self.engine) as session:
+                user = AuthService(session).register_user(email=email, password=password, role=UserRole(role))
+                session.commit()
+                user_id = user.id
 
         login_response = self.client.post("/auth/login", json={"email": email, "password": password})
         self.assertEqual(login_response.status_code, 200)

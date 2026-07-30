@@ -251,15 +251,24 @@ function OperatorWorkspacePage() {
                 registerEmail={model.registerEmail}
                 registerPassword={model.registerPassword}
                 registerRole={model.registerRole}
+                provisionEmail={model.provisionEmail}
+                provisionPassword={model.provisionPassword}
+                provisionRole={model.provisionRole}
                 loginEmail={model.loginEmail}
                 loginPassword={model.loginPassword}
                 onRegisterEmailChange={model.setRegisterEmail}
                 onRegisterPasswordChange={model.setRegisterPassword}
                 onRegisterRoleChange={model.setRegisterRole}
+                onProvisionEmailChange={model.setProvisionEmail}
+                onProvisionPasswordChange={model.setProvisionPassword}
+                onProvisionRoleChange={model.setProvisionRole}
                 onLoginEmailChange={model.setLoginEmail}
                 onLoginPasswordChange={model.setLoginPassword}
                 onRegister={(event) => {
                   void model.handleRegister(event);
+                }}
+                onProvision={(event) => {
+                  void model.handleProvision(event);
                 }}
                 onLogin={(event) => {
                   void model.handleLogin(event);

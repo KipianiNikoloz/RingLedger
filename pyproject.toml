@@ -24,6 +24,9 @@ dev = [
   "ruff>=0.5.0",
 ]
 
+[project.scripts]
+ringledger = "app.cli:main"
+
 [build-system]
 requires = ["setuptools>=82.0.1"]
 build-backend = "setuptools.build_meta"

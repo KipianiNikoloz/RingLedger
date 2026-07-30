@@ -8,14 +8,21 @@ interface AuthPanelProps {
   registerEmail: string;
   registerPassword: string;
   registerRole: UserRole;
+  provisionEmail: string;
+  provisionPassword: string;
+  provisionRole: Exclude<UserRole, "fighter">;
   loginEmail: string;
   loginPassword: string;
   onRegisterEmailChange: (value: string) => void;
   onRegisterPasswordChange: (value: string) => void;
   onRegisterRoleChange: (value: UserRole) => void;
+  onProvisionEmailChange: (value: string) => void;
+  onProvisionPasswordChange: (value: string) => void;
+  onProvisionRoleChange: (value: Exclude<UserRole, "fighter">) => void;
   onLoginEmailChange: (value: string) => void;
   onLoginPasswordChange: (value: string) => void;
   onRegister: (event: FormEvent<HTMLFormElement>) => void;
+  onProvision: (event: FormEvent<HTMLFormElement>) => void;
   onLogin: (event: FormEvent<HTMLFormElement>) => void;
 }
 
@@ -25,14 +32,21 @@ export function AuthPanel({
   registerEmail,
   registerPassword,
   registerRole,
+  provisionEmail,
+  provisionPassword,
+  provisionRole,
   loginEmail,
   loginPassword,
   onRegisterEmailChange,
   onRegisterPasswordChange,
   onRegisterRoleChange,
+  onProvisionEmailChange,
+  onProvisionPasswordChange,
+  onProvisionRoleChange,
   onLoginEmailChange,
   onLoginPasswordChange,
   onRegister,
+  onProvision,
   onLogin,
 }: AuthPanelProps) {
   const tokenRoles = currentRoleSummary === "none" ? [] : currentRoleSummary.split(", ");
@@ -56,7 +70,7 @@ export function AuthPanel({
       </div>
       <div className="grid two-col">
         <form onSubmit={onRegister} className="form-panel">
-          <h3>Register</h3>
+          <h3>Register fighter</h3>
           <label>
             Email
             <input
@@ -79,18 +93,31 @@ export function AuthPanel({
               required
             />
           </label>
-          <label>
-            Role
-            <select value={registerRole} onChange={(event) => onRegisterRoleChange(event.target.value as UserRole)}>
-              <option value="promoter">promoter</option>
-              <option value="admin">admin</option>
-              <option value="fighter">fighter</option>
-              <option value="management">management</option>
-            </select>
-          </label>
+          <input type="hidden" value={registerRole} onChange={() => onRegisterRoleChange("fighter")} />
           <button type="submit" disabled={busy} data-testid="register-submit">
             Register
           </button>
+        </form>
+
+        <form onSubmit={onProvision} className="form-panel">
+          <h3>Provision privileged user</h3>
+          <label>
+            Email
+            <input type="email" value={provisionEmail} onChange={(event) => onProvisionEmailChange(event.target.value)} required />
+          </label>
+          <label>
+            Password
+            <input type="password" value={provisionPassword} onChange={(event) => onProvisionPasswordChange(event.target.value)} required />
+          </label>
+          <label>
+            Role
+            <select value={provisionRole} onChange={(event) => onProvisionRoleChange(event.target.value as Exclude<UserRole, "fighter">)}>
+              <option value="promoter">promoter</option>
+              <option value="management">management</option>
+              <option value="admin">admin</option>
+            </select>
+          </label>
+          <button type="submit" disabled={busy}>Provision with admin token</button>
         </form>
 
         <form onSubmit={onLogin} className="form-panel">

@@ -1,4 +1,5 @@
 import type {
+  AdminUserCreateRequest,
   BoutCreateRequest,
   BoutListResponse,
   BoutResultRequest,
@@ -80,6 +81,17 @@ async function readErrorDetail(response: Response): Promise<string> {
 export function registerUser(payload: RegisterRequest): Promise<RegisterResponse> {
   return requestJson<RegisterResponse>("/auth/register", {
     method: "POST",
+    body: payload,
+  });
+}
+
+export function createPrivilegedUser(
+  token: string,
+  payload: AdminUserCreateRequest,
+): Promise<RegisterResponse> {
+  return requestJson<RegisterResponse>("/admin/users", {
+    method: "POST",
+    token,
     body: payload,
   });
 }

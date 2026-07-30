@@ -13,9 +13,9 @@
 
 ## 3. Privileged Role Security
 
-- [ ] 3.1 Add failing tests for fighter-only public registration, admin provisioning, authorization, duplicates, and bootstrap replay.
-- [ ] 3.2 Implement the public/auth schema change, admin API/service flow, and secret-safe bootstrap command.
-- [ ] 3.3 Update the frontend registration contract and add the functional admin provisioning client/workflow surface.
+- [x] 3.1 Add failing tests for fighter-only public registration, admin provisioning, authorization, duplicates, and bootstrap replay.
+- [x] 3.2 Implement the public/auth schema change, admin API/service flow, and secret-safe bootstrap command.
+- [x] 3.3 Update the frontend registration contract and add the functional admin provisioning client/workflow surface.
 
 ## 4. Runtime and Delivery
 

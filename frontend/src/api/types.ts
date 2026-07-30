@@ -17,7 +17,6 @@ export type BoutWinner = "A" | "B";
 export interface RegisterRequest {
   email: string;
   password: string;
-  role: UserRole;
 }
 
 export interface RegisterResponse {
@@ -176,6 +175,12 @@ export interface PayoutPrepareResponse {
 export interface PayoutConfirmRequest {
   escrow_kind: EscrowKind;
   tx_hash: string;
+}
+
+export interface AdminUserCreateRequest {
+  email: string;
+  password: string;
+  role: Exclude<UserRole, "fighter">;
 }
 
 export interface PayoutConfirmResponse {
