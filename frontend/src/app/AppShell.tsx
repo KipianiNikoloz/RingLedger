@@ -8,6 +8,7 @@ import { PayoutFlowPanel } from "../components/PayoutFlowPanel";
 import { ResultEntryPanel } from "../components/ResultEntryPanel";
 import { StatusConsole } from "../components/StatusConsole";
 import { type RingLedgerConsoleModel, useRingLedgerConsole } from "../hooks/useRingLedgerConsole";
+import { HomePage as FocusedHomePage } from "./HomePage";
 import { usePathname } from "./usePathname";
 
 type StageState = "complete" | "in-progress" | "pending" | "failed";
@@ -250,7 +251,6 @@ function OperatorWorkspacePage() {
                 currentRoleSummary={model.currentRoleSummary}
                 registerEmail={model.registerEmail}
                 registerPassword={model.registerPassword}
-                registerRole={model.registerRole}
                 provisionEmail={model.provisionEmail}
                 provisionPassword={model.provisionPassword}
                 provisionRole={model.provisionRole}
@@ -258,7 +258,6 @@ function OperatorWorkspacePage() {
                 loginPassword={model.loginPassword}
                 onRegisterEmailChange={model.setRegisterEmail}
                 onRegisterPasswordChange={model.setRegisterPassword}
-                onRegisterRoleChange={model.setRegisterRole}
                 onProvisionEmailChange={model.setProvisionEmail}
                 onProvisionPasswordChange={model.setProvisionPassword}
                 onProvisionRoleChange={model.setProvisionRole}
@@ -564,7 +563,7 @@ export function AppShell() {
         </nav>
       </header>
 
-      {route === "/" ? <HomePage currentPath={pathname} onNavigate={navigate} /> : null}
+      {route === "/" ? <FocusedHomePage currentPath={pathname} onNavigate={navigate} /> : null}
       {route === "/app" ? <OperatorWorkspacePage /> : null}
       {route === "/404" ? <NotFoundPage currentPath={pathname} onNavigate={navigate} /> : null}
     </div>
@@ -805,9 +804,9 @@ function getLedgerEvidence(model: RingLedgerConsoleModel): EvidenceItem[] {
       tone: confirm ? "ledger" : "backend",
     },
     {
-      label: "Validated flag",
-      value: model.payoutConfirmValidated || model.escrowConfirmValidated ? "true" : "false",
-      tone: model.payoutConfirmValidated || model.escrowConfirmValidated ? "ledger" : "backend",
+      label: "Evidence authority",
+      value: "XRPL Testnet via backend",
+      tone: "ledger",
     },
   ];
 }

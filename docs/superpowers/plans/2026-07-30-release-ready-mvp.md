@@ -52,17 +52,17 @@
 
 **Produces:** A responsive, accessible, distinctive home and operator workspace without changing backend lifecycle authority.
 
-- [ ] Create `close-release-ready-mvp` OpenSpec artifacts on `feat/release-readiness-closeout`.
-- [ ] Add behavior tests for navigation, lifecycle stages, ledger retry, admin provisioning, evidence, and responsive access.
-- [ ] Split the application shell into focused page and workspace units.
-- [ ] Implement the approved typography, color, rhythm, clipped-frame, motion, and trust-boundary system.
-- [ ] Add keyboard, reduced-motion, automated accessibility, mobile/tablet, and no-overflow Playwright coverage.
+- [x] Create `close-release-ready-mvp` OpenSpec artifacts on `feat/release-readiness-closeout`.
+- [x] Add behavior tests for navigation, lifecycle stages, ledger retry, admin provisioning, evidence, and responsive access.
+- [x] Split the application shell into focused page and workspace units.
+- [x] Implement the approved typography, color, rhythm, clipped-frame, motion, and trust-boundary system.
+- [x] Add keyboard, reduced-motion, automated accessibility, mobile/tablet, and no-overflow Playwright coverage.
 
 ### Task 5: Release Closeout
 
 **Produces:** Clean-checkout evidence and archived capability contracts without overstating live release validation.
 
-- [ ] Run backend, frontend, migration, OpenSpec, secret, Docker, Compose, and artifact gates from a clean dependency installation.
-- [ ] Fix every discovered locked-scope defect through root-cause analysis and a failing regression test.
-- [ ] Synchronize API, schema, lifecycle, operations, CI, README, module, and traceability documents.
-- [ ] Record deterministic evidence, retain live Xaman/XRPL smoke as operator-pending, and archive the final change.
+- [x] Run backend, frontend, migration, OpenSpec, secret, Docker, Compose, and artifact gates from a clean dependency installation.
+- [x] Fix every discovered locked-scope defect through root-cause analysis and a failing regression test.
+- [x] Synchronize API, schema, lifecycle, operations, CI, README, module, and traceability documents.
+- [x] Record deterministic evidence, retain live Xaman/XRPL smoke as operator-pending, and archive the final change.

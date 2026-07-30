@@ -33,9 +33,6 @@ export interface ResultPayoutWorkflowModel {
   payoutReconcileResult: SigningReconcileResponse | null;
   payoutConfirmKind: EscrowKind;
   payoutConfirmTxHash: string;
-  payoutConfirmValidated: boolean;
-  payoutConfirmEngineResult: string;
-  payoutCloseTimeRipple: string;
   payoutConfirmResult: PayoutConfirmResponse | null;
   setWinner: (value: "A" | "B") => void;
   setPayoutReconcileKind: (value: EscrowKind) => void;
@@ -43,9 +40,6 @@ export interface ResultPayoutWorkflowModel {
   setPayoutReconcileTxHash: (value: string) => void;
   setPayoutConfirmKind: (value: EscrowKind) => void;
   setPayoutConfirmTxHash: (value: string) => void;
-  setPayoutConfirmValidated: (value: boolean) => void;
-  setPayoutConfirmEngineResult: (value: string) => void;
-  setPayoutCloseTimeRipple: (value: string) => void;
   handleResultEntry: () => Promise<void>;
   handlePayoutPrepare: () => Promise<void>;
   handlePayoutReconcile: () => Promise<void>;
@@ -70,9 +64,6 @@ export function useResultPayoutWorkflow({
 
   const [payoutConfirmKind, setPayoutConfirmKind] = useState<EscrowKind>("show_a");
   const [payoutConfirmTxHash, setPayoutConfirmTxHash] = useState("TXPAYOUTFRONTEND001");
-  const [payoutConfirmValidated, setPayoutConfirmValidated] = useState(true);
-  const [payoutConfirmEngineResult, setPayoutConfirmEngineResult] = useState("tesSUCCESS");
-  const [payoutCloseTimeRipple, setPayoutCloseTimeRipple] = useState("823000100");
   const [payoutConfirmResult, setPayoutConfirmResult] = useState<PayoutConfirmResponse | null>(null);
 
   async function handleResultEntry(): Promise<void> {
@@ -149,9 +140,6 @@ export function useResultPayoutWorkflow({
     payoutReconcileResult,
     payoutConfirmKind,
     payoutConfirmTxHash,
-    payoutConfirmValidated,
-    payoutConfirmEngineResult,
-    payoutCloseTimeRipple,
     payoutConfirmResult,
     setWinner,
     setPayoutReconcileKind,
@@ -159,9 +147,6 @@ export function useResultPayoutWorkflow({
     setPayoutReconcileTxHash,
     setPayoutConfirmKind,
     setPayoutConfirmTxHash,
-    setPayoutConfirmValidated,
-    setPayoutConfirmEngineResult,
-    setPayoutCloseTimeRipple,
     handleResultEntry,
     handlePayoutPrepare,
     handlePayoutReconcile,

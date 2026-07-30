@@ -28,7 +28,6 @@ export interface RingLedgerConsoleModel {
   currentRoleSummary: string;
   registerEmail: string;
   registerPassword: string;
-  registerRole: UserRole;
   registerResult: unknown;
   provisionEmail: string;
   provisionPassword: string;
@@ -57,9 +56,6 @@ export interface RingLedgerConsoleModel {
   escrowReconcileResult: SigningReconcileResponse | null;
   escrowConfirmKind: EscrowKind;
   escrowConfirmTxHash: string;
-  escrowConfirmOfferSequence: string;
-  escrowConfirmValidated: boolean;
-  escrowConfirmEngineResult: string;
   escrowConfirmResult: EscrowConfirmResponse | null;
   winner: "A" | "B";
   resultEntry: BoutResultResponse | null;
@@ -70,13 +66,9 @@ export interface RingLedgerConsoleModel {
   payoutReconcileResult: SigningReconcileResponse | null;
   payoutConfirmKind: EscrowKind;
   payoutConfirmTxHash: string;
-  payoutConfirmValidated: boolean;
-  payoutConfirmEngineResult: string;
-  payoutCloseTimeRipple: string;
   payoutConfirmResult: PayoutConfirmResponse | null;
   setRegisterEmail: (value: string) => void;
   setRegisterPassword: (value: string) => void;
-  setRegisterRole: (value: UserRole) => void;
   setProvisionEmail: (value: string) => void;
   setProvisionPassword: (value: string) => void;
   setProvisionRole: (value: Exclude<UserRole, "fighter">) => void;
@@ -98,18 +90,12 @@ export interface RingLedgerConsoleModel {
   setEscrowReconcileTxHash: (value: string) => void;
   setEscrowConfirmKind: (value: EscrowKind) => void;
   setEscrowConfirmTxHash: (value: string) => void;
-  setEscrowConfirmOfferSequence: (value: string) => void;
-  setEscrowConfirmValidated: (value: boolean) => void;
-  setEscrowConfirmEngineResult: (value: string) => void;
   setWinner: (value: "A" | "B") => void;
   setPayoutReconcileKind: (value: EscrowKind) => void;
   setPayoutReconcileStatus: (value: SigningStatus) => void;
   setPayoutReconcileTxHash: (value: string) => void;
   setPayoutConfirmKind: (value: EscrowKind) => void;
   setPayoutConfirmTxHash: (value: string) => void;
-  setPayoutConfirmValidated: (value: boolean) => void;
-  setPayoutConfirmEngineResult: (value: string) => void;
-  setPayoutCloseTimeRipple: (value: string) => void;
   handleRegister: (event: FormEvent<HTMLFormElement>) => Promise<void>;
   handleProvision: (event: FormEvent<HTMLFormElement>) => Promise<void>;
   handleLogin: (event: FormEvent<HTMLFormElement>) => Promise<void>;
@@ -163,7 +149,6 @@ export function useRingLedgerConsole(): RingLedgerConsoleModel {
     currentRoleSummary: auth.currentRoleSummary,
     registerEmail: auth.registerEmail,
     registerPassword: auth.registerPassword,
-    registerRole: auth.registerRole,
     registerResult: auth.registerResult,
     provisionEmail: auth.provisionEmail,
     provisionPassword: auth.provisionPassword,
@@ -192,9 +177,6 @@ export function useRingLedgerConsole(): RingLedgerConsoleModel {
     escrowReconcileResult: escrow.escrowReconcileResult,
     escrowConfirmKind: escrow.escrowConfirmKind,
     escrowConfirmTxHash: escrow.escrowConfirmTxHash,
-    escrowConfirmOfferSequence: escrow.escrowConfirmOfferSequence,
-    escrowConfirmValidated: escrow.escrowConfirmValidated,
-    escrowConfirmEngineResult: escrow.escrowConfirmEngineResult,
     escrowConfirmResult: escrow.escrowConfirmResult,
     winner: resultPayout.winner,
     resultEntry: resultPayout.resultEntry,
@@ -205,13 +187,9 @@ export function useRingLedgerConsole(): RingLedgerConsoleModel {
     payoutReconcileResult: resultPayout.payoutReconcileResult,
     payoutConfirmKind: resultPayout.payoutConfirmKind,
     payoutConfirmTxHash: resultPayout.payoutConfirmTxHash,
-    payoutConfirmValidated: resultPayout.payoutConfirmValidated,
-    payoutConfirmEngineResult: resultPayout.payoutConfirmEngineResult,
-    payoutCloseTimeRipple: resultPayout.payoutCloseTimeRipple,
     payoutConfirmResult: resultPayout.payoutConfirmResult,
     setRegisterEmail: auth.setRegisterEmail,
     setRegisterPassword: auth.setRegisterPassword,
-    setRegisterRole: auth.setRegisterRole,
     setProvisionEmail: auth.setProvisionEmail,
     setProvisionPassword: auth.setProvisionPassword,
     setProvisionRole: auth.setProvisionRole,
@@ -233,18 +211,12 @@ export function useRingLedgerConsole(): RingLedgerConsoleModel {
     setEscrowReconcileTxHash: escrow.setEscrowReconcileTxHash,
     setEscrowConfirmKind: escrow.setEscrowConfirmKind,
     setEscrowConfirmTxHash: escrow.setEscrowConfirmTxHash,
-    setEscrowConfirmOfferSequence: escrow.setEscrowConfirmOfferSequence,
-    setEscrowConfirmValidated: escrow.setEscrowConfirmValidated,
-    setEscrowConfirmEngineResult: escrow.setEscrowConfirmEngineResult,
     setWinner: resultPayout.setWinner,
     setPayoutReconcileKind: resultPayout.setPayoutReconcileKind,
     setPayoutReconcileStatus: resultPayout.setPayoutReconcileStatus,
     setPayoutReconcileTxHash: resultPayout.setPayoutReconcileTxHash,
     setPayoutConfirmKind: resultPayout.setPayoutConfirmKind,
     setPayoutConfirmTxHash: resultPayout.setPayoutConfirmTxHash,
-    setPayoutConfirmValidated: resultPayout.setPayoutConfirmValidated,
-    setPayoutConfirmEngineResult: resultPayout.setPayoutConfirmEngineResult,
-    setPayoutCloseTimeRipple: resultPayout.setPayoutCloseTimeRipple,
     handleRegister: auth.handleRegister,
     handleProvision: auth.handleProvision,
     handleLogin: auth.handleLogin,

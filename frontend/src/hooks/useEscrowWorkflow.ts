@@ -24,18 +24,12 @@ export interface EscrowWorkflowModel {
   escrowReconcileResult: SigningReconcileResponse | null;
   escrowConfirmKind: EscrowKind;
   escrowConfirmTxHash: string;
-  escrowConfirmOfferSequence: string;
-  escrowConfirmValidated: boolean;
-  escrowConfirmEngineResult: string;
   escrowConfirmResult: EscrowConfirmResponse | null;
   setEscrowReconcileKind: (value: EscrowKind) => void;
   setEscrowReconcileStatus: (value: SigningStatus) => void;
   setEscrowReconcileTxHash: (value: string) => void;
   setEscrowConfirmKind: (value: EscrowKind) => void;
   setEscrowConfirmTxHash: (value: string) => void;
-  setEscrowConfirmOfferSequence: (value: string) => void;
-  setEscrowConfirmValidated: (value: boolean) => void;
-  setEscrowConfirmEngineResult: (value: string) => void;
   handleEscrowPrepare: () => Promise<void>;
   handleEscrowReconcile: () => Promise<void>;
   handleEscrowConfirm: () => Promise<void>;
@@ -55,9 +49,6 @@ export function useEscrowWorkflow({
 
   const [escrowConfirmKind, setEscrowConfirmKind] = useState<EscrowKind>("show_a");
   const [escrowConfirmTxHash, setEscrowConfirmTxHash] = useState("TXESCROWFRONTEND001");
-  const [escrowConfirmOfferSequence, setEscrowConfirmOfferSequence] = useState("1001");
-  const [escrowConfirmValidated, setEscrowConfirmValidated] = useState(true);
-  const [escrowConfirmEngineResult, setEscrowConfirmEngineResult] = useState("tesSUCCESS");
   const [escrowConfirmResult, setEscrowConfirmResult] = useState<EscrowConfirmResponse | null>(null);
 
   async function handleEscrowPrepare(): Promise<void> {
@@ -121,18 +112,12 @@ export function useEscrowWorkflow({
     escrowReconcileResult,
     escrowConfirmKind,
     escrowConfirmTxHash,
-    escrowConfirmOfferSequence,
-    escrowConfirmValidated,
-    escrowConfirmEngineResult,
     escrowConfirmResult,
     setEscrowReconcileKind,
     setEscrowReconcileStatus,
     setEscrowReconcileTxHash,
     setEscrowConfirmKind,
     setEscrowConfirmTxHash,
-    setEscrowConfirmOfferSequence,
-    setEscrowConfirmValidated,
-    setEscrowConfirmEngineResult,
     handleEscrowPrepare,
     handleEscrowReconcile,
     handleEscrowConfirm,

@@ -70,8 +70,8 @@ Evidence captured on 2026-07-30 from the release-hardening branch:
 | Locked Ruff lint | pass |
 | Locked backend suite | pass (`111 passed`, `34 subtests passed`) |
 | Frontend typecheck and production build | pass |
-| Vitest | pass (`10 passed`) |
-| Playwright Chromium | pass (`1 passed`) |
+| Vitest | pass (`11 passed`) |
+| Playwright Chromium | pass (`2 passed`) |
 | `npm audit` | pass (`0 vulnerabilities`) |
 | Compose configuration | pass |
 | Non-root backend and frontend image builds | pass |

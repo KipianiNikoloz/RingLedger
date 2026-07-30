@@ -13,7 +13,6 @@ interface AuthWorkflowOptions {
 export interface AuthWorkflowModel {
   registerEmail: string;
   registerPassword: string;
-  registerRole: UserRole;
   registerResult: unknown;
   provisionEmail: string;
   provisionPassword: string;
@@ -26,7 +25,6 @@ export interface AuthWorkflowModel {
   adminToken: string | undefined;
   setRegisterEmail: (value: string) => void;
   setRegisterPassword: (value: string) => void;
-  setRegisterRole: (value: UserRole) => void;
   setProvisionEmail: (value: string) => void;
   setProvisionPassword: (value: string) => void;
   setProvisionRole: (value: Exclude<UserRole, "fighter">) => void;
@@ -40,7 +38,6 @@ export interface AuthWorkflowModel {
 export function useAuthWorkflow({ runAction, pushLog }: AuthWorkflowOptions): AuthWorkflowModel {
   const [registerEmail, setRegisterEmail] = useState("promoter.frontend@example.com");
   const [registerPassword, setRegisterPassword] = useState("PromoterPass123!");
-  const [registerRole, setRegisterRole] = useState<UserRole>("promoter");
   const [registerResult, setRegisterResult] = useState<unknown>(null);
   const [provisionEmail, setProvisionEmail] = useState("promoter.ops@example.com");
   const [provisionPassword, setProvisionPassword] = useState("PromoterPass123!");
@@ -85,11 +82,11 @@ export function useAuthWorkflow({ runAction, pushLog }: AuthWorkflowOptions): Au
 
   async function handleProvision(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
-    const adminToken = tokensByRole.admin;
-    if (!adminToken) {
-      throw new Error("Log in as an admin before provisioning privileged users.");
-    }
     await runAction("provision user", async () => {
+      const adminToken = tokensByRole.admin;
+      if (!adminToken) {
+        throw new Error("Log in as an admin before provisioning privileged users.");
+      }
       const response = await createPrivilegedUser(adminToken, {
         email: provisionEmail,
         password: provisionPassword,
@@ -102,7 +99,6 @@ export function useAuthWorkflow({ runAction, pushLog }: AuthWorkflowOptions): Au
   return {
     registerEmail,
     registerPassword,
-    registerRole,
     registerResult,
     provisionEmail,
     provisionPassword,
@@ -115,7 +111,6 @@ export function useAuthWorkflow({ runAction, pushLog }: AuthWorkflowOptions): Au
     adminToken: tokensByRole.admin,
     setRegisterEmail,
     setRegisterPassword,
-    setRegisterRole,
     setProvisionEmail,
     setProvisionPassword,
     setProvisionRole,

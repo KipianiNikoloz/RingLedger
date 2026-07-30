@@ -7,7 +7,6 @@ interface AuthPanelProps {
   currentRoleSummary: string;
   registerEmail: string;
   registerPassword: string;
-  registerRole: UserRole;
   provisionEmail: string;
   provisionPassword: string;
   provisionRole: Exclude<UserRole, "fighter">;
@@ -15,7 +14,6 @@ interface AuthPanelProps {
   loginPassword: string;
   onRegisterEmailChange: (value: string) => void;
   onRegisterPasswordChange: (value: string) => void;
-  onRegisterRoleChange: (value: UserRole) => void;
   onProvisionEmailChange: (value: string) => void;
   onProvisionPasswordChange: (value: string) => void;
   onProvisionRoleChange: (value: Exclude<UserRole, "fighter">) => void;
@@ -31,7 +29,6 @@ export function AuthPanel({
   currentRoleSummary,
   registerEmail,
   registerPassword,
-  registerRole,
   provisionEmail,
   provisionPassword,
   provisionRole,
@@ -39,7 +36,6 @@ export function AuthPanel({
   loginPassword,
   onRegisterEmailChange,
   onRegisterPasswordChange,
-  onRegisterRoleChange,
   onProvisionEmailChange,
   onProvisionPasswordChange,
   onProvisionRoleChange,
@@ -93,7 +89,6 @@ export function AuthPanel({
               required
             />
           </label>
-          <input type="hidden" value={registerRole} onChange={() => onRegisterRoleChange("fighter")} />
           <button type="submit" disabled={busy} data-testid="register-submit">
             Register
           </button>

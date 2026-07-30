@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import App from "./App";
@@ -152,6 +152,48 @@ describe("App", () => {
 
     await waitFor(() => {
       expect(screen.getAllByText("[401] Invalid credentials.").length).toBeGreaterThan(0);
+    });
+  });
+
+  it("keeps fighter signup separate from admin-only privileged provisioning", async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ access_token: buildJwtWithRole("admin"), token_type: "bearer" }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({ user_id: "promoter-2", email: "promoter.ops@example.com", role: "promoter" }),
+          { status: 201, headers: { "Content-Type": "application/json" } },
+        ),
+      );
+
+    window.history.pushState({}, "", "/app");
+    render(<App />);
+
+    const registration = screen.getByRole("heading", { name: "Register fighter" }).closest("form");
+    expect(registration).not.toBeNull();
+    expect(within(registration!).queryByRole("combobox")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Offer Sequence")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Engine Result")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Close Time Ripple")).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("Email", { selector: "input[name='login_email']" }), {
+      target: { value: "admin@example.com" },
+    });
+    fireEvent.click(screen.getByTestId("login-submit"));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+
+    fireEvent.click(screen.getByRole("button", { name: "Provision with admin token" }));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    const [url, init] = fetchMock.mock.calls[1];
+    expect(url).toContain("/admin/users");
+    expect(JSON.parse(String(init?.body))).toEqual({
+      email: "promoter.ops@example.com",
+      password: "PromoterPass123!",
+      role: "promoter",
     });
   });
 });

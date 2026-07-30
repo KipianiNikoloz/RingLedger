@@ -8,7 +8,7 @@
 
 - `frontend/src/hooks/useRingLedgerConsole.ts`: top-level workflow composition.
 - `frontend/src/hooks/useActionRunner.ts`: shared busy/error/status handling.
-- `frontend/src/hooks/useAuthWorkflow.ts`: register/login state and actions.
+- `frontend/src/hooks/useAuthWorkflow.ts`: fighter registration, login, and admin provisioning state/actions.
 - `frontend/src/hooks/useManagementWorkflow.ts`: fighter profile and bout workspace state.
 - `frontend/src/hooks/useEscrowWorkflow.ts`: escrow prepare/reconcile/confirm state.
 - `frontend/src/hooks/useResultPayoutWorkflow.ts`: admin result and payout flow state.
@@ -31,7 +31,7 @@ flowchart TD
 ## Maintenance Notes
 
 - Hooks orchestrate side effects; panels render and trigger actions.
-- Keep request payload derivation consistent with backend prepare responses.
+- Confirmation hooks send only escrow kind and transaction hash; they never derive ledger evidence from prepare payloads.
 - Backend remains authoritative for role, lifecycle, timing, and ledger checks.
 - Update hook tests through `frontend/src/App.test.tsx` when workflows change.
 

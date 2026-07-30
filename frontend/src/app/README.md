@@ -7,6 +7,7 @@
 ## Directory Map
 
 - `frontend/src/app/AppShell.tsx`: masthead, runtime summary, workspace layout, output region.
+- `frontend/src/app/HomePage.tsx`: focused public entry page and trust-boundary summary.
 - `frontend/src/app/usePathname.ts`: path utility for app-shell behavior.
 - `frontend/src/App.tsx`: minimal app entry component outside this folder.
 
@@ -15,6 +16,7 @@
 ```mermaid
 flowchart TD
     App[App.tsx] --> Shell[AppShell.tsx]
+    Shell --> Home[HomePage.tsx]
     Shell --> Auth[Auth panel]
     Shell --> Workspace[Bout workspace]
     Shell --> Escrow[Escrow flow]

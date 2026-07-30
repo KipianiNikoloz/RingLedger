@@ -253,6 +253,40 @@ test("promoter and admin browser journey covers escrow and payout contracts", as
   expect(seenPaths.has(`/bouts/${BOUT_ID}/payouts/confirm`)).toBe(true);
 });
 
+test("home and workspace remain accessible without horizontal overflow", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+
+  for (const viewport of [
+    { width: 390, height: 844 },
+    { width: 768, height: 1024 },
+    { width: 1440, height: 900 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.goto("/");
+    await expect(page.getByRole("main")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Enter operator workspace" })).toBeVisible();
+    await expectNoHorizontalOverflow(page);
+
+    await page.keyboard.press("Tab");
+    await expect(page.locator(":focus")).toBeVisible();
+
+    await page.getByRole("link", { name: "Enter operator workspace" }).click();
+    await expect(page.getByRole("heading", { name: "Settlement control room" })).toBeVisible();
+    await expect(page.getByRole("navigation")).toBeVisible();
+    await expect(page.getByLabel("RingLedger lifecycle stages")).toBeVisible();
+    await expect(page.getByLabel("Evidence and output")).toBeVisible();
+    await expectNoHorizontalOverflow(page);
+  }
+});
+
+async function expectNoHorizontalOverflow(page: Page): Promise<void> {
+  const geometry = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  expect(geometry.scrollWidth).toBeLessThanOrEqual(geometry.clientWidth + 1);
+}
+
 async function expectActionLog(page: Page, text: RegExp) {
   await expect(page.getByRole("listitem").filter({ hasText: text }).first()).toBeVisible();
 }
