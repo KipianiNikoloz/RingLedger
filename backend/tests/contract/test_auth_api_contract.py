@@ -9,10 +9,10 @@ class AuthApiContractTests(unittest.TestCase):
     def test_auth_routes_exist(self) -> None:
         from app.main import app
 
-        routes = {(route.path, tuple(route.methods)) for route in app.routes}
-        self.assertTrue(any(path == "/auth/register" and "POST" in methods for path, methods in routes))
-        self.assertTrue(any(path == "/auth/login" and "POST" in methods for path, methods in routes))
-        self.assertFalse(any(path == "/auth/wallet-login" for path, _ in routes))
+        paths = app.openapi()["paths"]
+        self.assertIn("post", paths["/auth/register"])
+        self.assertIn("post", paths["/auth/login"])
+        self.assertNotIn("/auth/wallet-login", paths)
 
 
 if __name__ == "__main__":

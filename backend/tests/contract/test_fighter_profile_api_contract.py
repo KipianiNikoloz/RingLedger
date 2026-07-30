@@ -9,8 +9,7 @@ class FighterProfileApiContractTests(unittest.TestCase):
     def test_fighter_profile_route_exists(self) -> None:
         from app.main import app
 
-        routes = {(route.path, tuple(route.methods)) for route in app.routes}
-        self.assertTrue(any(path == "/fighters/me" and "PUT" in methods for path, methods in routes))
+        self.assertIn("put", app.openapi()["paths"]["/fighters/me"])
 
 
 if __name__ == "__main__":

@@ -88,8 +88,8 @@ M4 hardening is complete for the locked MVP/Testnet scope. Residual risk remains
 
 ## Notes
 
-- Use the project virtual environment for local commands (`.\venv\Scripts\python.exe ...`) to ensure FastAPI/SQLAlchemy/dev tooling are available.
-- Current suite entrypoint: `python -m pytest backend/tests -q`.
+- Run `uv sync --locked --extra dev` from the repository root to create the locked project environment.
+- Current suite entrypoint: `uv run --locked --extra dev pytest backend/tests -q`.
 - Frontend package and browser tests are under `frontend/` (`npm run test`, `npm run test:e2e`).
 - Xaman integration runtime mode is controlled by `XAMAN_MODE`:
   - `stub` (default): deterministic non-network sign-request envelopes for local/CI.

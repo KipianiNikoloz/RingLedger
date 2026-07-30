@@ -9,7 +9,7 @@ class AuthModeContractTests(unittest.TestCase):
     def test_wallet_login_route_does_not_exist(self) -> None:
         from app.main import app
 
-        route_paths = [route.path for route in app.routes]
+        route_paths = app.openapi()["paths"]
         self.assertNotIn("/auth/wallet-login", route_paths)
         self.assertNotIn("/wallet/login", route_paths)
 

@@ -9,29 +9,20 @@ class BoutEscrowApiContractTests(unittest.TestCase):
     def test_bout_lifecycle_routes_exist(self) -> None:
         from app.main import app
 
-        routes = {(route.path, tuple(route.methods)) for route in app.routes}
-        self.assertTrue(any(path == "/bouts" and "POST" in methods for path, methods in routes))
-        self.assertTrue(any(path == "/bouts" and "GET" in methods for path, methods in routes))
-        self.assertTrue(any(path == "/bouts/{bout_id}" and "GET" in methods for path, methods in routes))
-        self.assertTrue(
-            any(path == "/bouts/{bout_id}/escrows/prepare" and "POST" in methods for path, methods in routes)
-        )
-        self.assertTrue(
-            any(path == "/bouts/{bout_id}/escrows/confirm" and "POST" in methods for path, methods in routes)
-        )
-        self.assertTrue(
-            any(path == "/bouts/{bout_id}/escrows/signing/reconcile" and "POST" in methods for path, methods in routes)
-        )
-        self.assertTrue(any(path == "/bouts/{bout_id}/result" and "POST" in methods for path, methods in routes))
-        self.assertTrue(
-            any(path == "/bouts/{bout_id}/payouts/prepare" and "POST" in methods for path, methods in routes)
-        )
-        self.assertTrue(
-            any(path == "/bouts/{bout_id}/payouts/confirm" and "POST" in methods for path, methods in routes)
-        )
-        self.assertTrue(
-            any(path == "/bouts/{bout_id}/payouts/signing/reconcile" and "POST" in methods for path, methods in routes)
-        )
+        paths = app.openapi()["paths"]
+        expected = {
+            "/bouts": {"get", "post"},
+            "/bouts/{bout_id}": {"get"},
+            "/bouts/{bout_id}/escrows/prepare": {"post"},
+            "/bouts/{bout_id}/escrows/confirm": {"post"},
+            "/bouts/{bout_id}/escrows/signing/reconcile": {"post"},
+            "/bouts/{bout_id}/result": {"post"},
+            "/bouts/{bout_id}/payouts/prepare": {"post"},
+            "/bouts/{bout_id}/payouts/confirm": {"post"},
+            "/bouts/{bout_id}/payouts/signing/reconcile": {"post"},
+        }
+        for path, methods in expected.items():
+            self.assertTrue(methods.issubset(paths[path]))
 
 
 if __name__ == "__main__":

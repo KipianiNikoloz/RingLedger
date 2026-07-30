@@ -120,10 +120,12 @@ flowchart LR
 ## Local Verification
 
 ```powershell
-.\venv\Scripts\python.exe -m ruff check backend
-.\venv\Scripts\python.exe -m ruff format --check backend docs
-.\venv\Scripts\python.exe -m pytest backend/tests -q
+uv sync --locked --extra dev
+uv run --locked --extra dev ruff check backend
+uv run --locked --extra dev ruff format --check backend docs
+uv run --locked --extra dev pytest backend/tests -q
 cd frontend
+npm ci
 npm run typecheck
 npm run test
 npm run test:e2e

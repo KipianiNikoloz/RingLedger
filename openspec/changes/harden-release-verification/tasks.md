@@ -1,7 +1,7 @@
 ## 1. Deterministic Tooling
 
-- [ ] 1.1 Commit `uv.lock`, document locked setup, and run backend commands through uv.
-- [ ] 1.2 Make Vitest collection and worker failures deterministic and align frontend package installation.
+- [x] 1.1 Commit `uv.lock`, document locked setup, and run backend commands through uv.
+- [x] 1.2 Make Vitest collection and worker failures deterministic and align frontend package installation.
 
 ## 2. XRPL Ledger Authority
 
