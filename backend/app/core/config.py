@@ -40,9 +40,7 @@ def get_settings() -> Settings:
     configured = Settings(
         app_name=os.getenv("APP_NAME", "FightPurse API"),
         app_env=app_env,
-        database_url=_secret(
-            "DATABASE_URL", "postgresql+psycopg://fightpurse:fightpurse@localhost:5432/fightpurse"
-        ),
+        database_url=_secret("DATABASE_URL", "postgresql+psycopg://fightpurse:fightpurse@localhost:5432/fightpurse"),
         db_auto_migrate_on_startup=_parse_bool(os.getenv("DB_AUTO_MIGRATE_ON_STARTUP", auto_migrate_default)),
         jwt_secret=_secret("JWT_SECRET", "change-me-in-production-min-32-chars"),
         jwt_exp_minutes=int(os.getenv("JWT_EXP_MINUTES", "60")),
@@ -54,7 +52,9 @@ def get_settings() -> Settings:
         xrpl_rpc_url=os.getenv("XRPL_RPC_URL", "https://s.altnet.rippletest.net:51234").strip(),
         xrpl_expected_network_id=int(os.getenv("XRPL_EXPECTED_NETWORK_ID", "1")),
         xrpl_timeout_seconds=int(os.getenv("XRPL_TIMEOUT_SECONDS", "10")),
-        cors_origins=tuple(origin.strip() for origin in os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",") if origin.strip()),
+        cors_origins=tuple(
+            origin.strip() for origin in os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",") if origin.strip()
+        ),
     )
     _validate_settings(configured)
     return configured

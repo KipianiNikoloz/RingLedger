@@ -22,31 +22,31 @@
 
 **Produces:** Root agent guidance, repaired canonical docs, validated module documentation, and archived `establish-documentation-governance` change.
 
-- [ ] Create and validate the OpenSpec proposal, design, specs, and tasks.
-- [ ] Add root `AGENTS.md` with the documentation directive before all other instructions.
-- [ ] Repair current OpenSpec purposes, configuration names, commands, links, dates, and traceability.
-- [ ] Run documentation and OpenSpec gates, commit cohesive increments, and archive the change.
+- [x] Create and validate the OpenSpec proposal, design, specs, and tasks.
+- [x] Add root `AGENTS.md` with the documentation directive before all other instructions.
+- [x] Repair current OpenSpec purposes, configuration names, commands, links, dates, and traceability.
+- [x] Run documentation and OpenSpec gates, commit cohesive increments, and archive the change.
 
 ### Task 2: Ledger and Authorization Hardening
 
 **Produces:** Backend-fetched XRPL confirmation, fighter-only registration, admin provisioning, safe runtime configuration, migrations, and compatible frontend requests.
 
-- [ ] Create `harden-release-verification` OpenSpec artifacts on `feat/release-verification-hardening`.
-- [ ] Add failing unit/contract/integration tests for XRPL API v2 evidence and retryable idempotency.
-- [ ] Implement the injected Testnet ledger client and two-field confirmation contracts.
-- [ ] Add failing auth tests, then implement fighter registration, admin user creation, and first-admin bootstrap.
-- [ ] Add reversible unique-transaction migration, readiness, CORS, and production configuration validation.
-- [ ] Update frontend types and workflows so the branch remains fully functional.
+- [x] Create `harden-release-verification` OpenSpec artifacts on `feat/release-verification-hardening`.
+- [x] Add failing unit/contract/integration tests for XRPL API v2 evidence and retryable idempotency.
+- [x] Implement the injected Testnet ledger client and two-field confirmation contracts.
+- [x] Add failing auth tests, then implement fighter registration, admin user creation, and first-admin bootstrap.
+- [x] Add reversible unique-transaction migration, readiness, CORS, and production configuration validation.
+- [x] Update frontend types and workflows so the branch remains fully functional.
 
 ### Task 3: Reproducible Delivery
 
 **Produces:** Locked Python dependencies, deterministic CI, production images, Compose orchestration, and release artifacts.
 
-- [ ] Commit `uv.lock` and convert local/CI commands to locked uv execution.
-- [ ] Make frontend tests fail on zero tests or unhandled errors and serialize test files.
-- [ ] Align CI with pytest, migrations, frontend build/E2E, OpenSpec, secret scan, and container validation.
-- [ ] Add non-root backend/frontend images, PostgreSQL health, one-shot migration, Nginx `/api` proxying, `.env.example`, and smoke verification.
-- [ ] Update operational documentation, pass all gates, and archive `harden-release-verification`.
+- [x] Commit `uv.lock` and convert local/CI commands to locked uv execution.
+- [x] Make frontend tests fail on zero tests or unhandled errors and serialize test files.
+- [x] Align CI with pytest, migrations, frontend build/E2E, OpenSpec, secret scan, and container validation.
+- [x] Add non-root backend/frontend images, PostgreSQL health, one-shot migration, Nginx `/api` proxying, `.env.example`, and smoke verification.
+- [x] Update operational documentation, pass all gates, and archive `harden-release-verification`.
 
 ### Task 4: Split Decision Frontend
 

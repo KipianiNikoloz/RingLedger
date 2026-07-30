@@ -27,5 +27,5 @@
 ## 5. Documentation and Closeout
 
 - [x] 5.1 Update API, schema, state-machine, operations, CI, module, release, and traceability documentation.
-- [ ] 5.2 Run all clean-checkout and container verification gates and record fresh non-secret evidence.
-- [ ] 5.3 Complete the checklist and archive the OpenSpec change after every gate passes.
+- [x] 5.2 Run all clean-checkout and container verification gates and record fresh non-secret evidence.
+- [x] 5.3 Complete the checklist and archive the OpenSpec change after every gate passes.

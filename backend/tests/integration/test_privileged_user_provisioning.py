@@ -104,7 +104,9 @@ def test_bootstrap_first_admin_is_repeat_safe() -> None:
         service = AuthService(session)
         first, created = service.bootstrap_first_admin(email="root@example.com", password="secure-passphrase")
         session.commit()
-        second, replay_created = service.bootstrap_first_admin(email="root@example.com", password="different-passphrase")
+        second, replay_created = service.bootstrap_first_admin(
+            email="root@example.com", password="different-passphrase"
+        )
         assert created is True
         assert replay_created is False
         assert first.id == second.id
