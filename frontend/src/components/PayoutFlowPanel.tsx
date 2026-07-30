@@ -9,17 +9,11 @@ interface PayoutFlowPanelProps {
   reconcileTxHash: string;
   confirmKind: EscrowKind;
   confirmTxHash: string;
-  confirmEngineResult: string;
-  confirmValidated: boolean;
-  closeTimeRipple: string;
   onReconcileKindChange: (kind: EscrowKind) => void;
   onReconcileStatusChange: (status: SigningStatus) => void;
   onReconcileTxHashChange: (value: string) => void;
   onConfirmKindChange: (kind: EscrowKind) => void;
   onConfirmTxHashChange: (value: string) => void;
-  onConfirmEngineResultChange: (value: string) => void;
-  onConfirmValidatedChange: (value: boolean) => void;
-  onCloseTimeRippleChange: (value: string) => void;
   onPrepare: () => void;
   onReconcile: () => void;
   onConfirm: () => void;
@@ -32,17 +26,11 @@ export function PayoutFlowPanel({
   reconcileTxHash,
   confirmKind,
   confirmTxHash,
-  confirmEngineResult,
-  confirmValidated,
-  closeTimeRipple,
   onReconcileKindChange,
   onReconcileStatusChange,
   onReconcileTxHashChange,
   onConfirmKindChange,
   onConfirmTxHashChange,
-  onConfirmEngineResultChange,
-  onConfirmValidatedChange,
-  onCloseTimeRippleChange,
   onPrepare,
   onReconcile,
   onConfirm,
@@ -51,7 +39,7 @@ export function PayoutFlowPanel({
     <section className="panel workflow-panel">
       <div className="panel-header">
         <h2>Promoter Payout Flow</h2>
-        <p className="panel-note">Drive finish/cancel transactions after result entry using validated confirmation artifacts.</p>
+        <p className="panel-note">Drive finish/cancel transactions while XRPL remains the authority for close evidence.</p>
       </div>
 
       <div className="flow-stage">
@@ -100,7 +88,7 @@ export function PayoutFlowPanel({
 
       <div className="flow-stage">
         <h3>3. Confirm Ledger Result</h3>
-        <div className="grid four-col compact-grid">
+        <div className="grid two-col compact-grid">
           <label>
             Confirm Kind
             <select value={confirmKind} onChange={(event) => onConfirmKindChange(event.target.value as EscrowKind)}>
@@ -114,18 +102,6 @@ export function PayoutFlowPanel({
           <label>
             Tx Hash
             <input value={confirmTxHash} onChange={(event) => onConfirmTxHashChange(event.target.value)} />
-          </label>
-          <label>
-            Engine Result
-            <input value={confirmEngineResult} onChange={(event) => onConfirmEngineResultChange(event.target.value)} />
-          </label>
-          <label>
-            Close Time Ripple
-            <input value={closeTimeRipple} onChange={(event) => onCloseTimeRippleChange(event.target.value)} inputMode="numeric" />
-          </label>
-          <label className="check-label">
-            <input type="checkbox" checked={confirmValidated} onChange={(event) => onConfirmValidatedChange(event.target.checked)} />
-            Validated
           </label>
         </div>
         <div className="actions-row">

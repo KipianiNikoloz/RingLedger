@@ -328,17 +328,11 @@ function OperatorWorkspacePage() {
                 reconcileTxHash={model.escrowReconcileTxHash}
                 confirmKind={model.escrowConfirmKind}
                 confirmTxHash={model.escrowConfirmTxHash}
-                confirmOfferSequence={model.escrowConfirmOfferSequence}
-                confirmEngineResult={model.escrowConfirmEngineResult}
-                confirmValidated={model.escrowConfirmValidated}
                 onReconcileKindChange={model.setEscrowReconcileKind}
                 onReconcileStatusChange={model.setEscrowReconcileStatus}
                 onReconcileTxHashChange={model.setEscrowReconcileTxHash}
                 onConfirmKindChange={model.setEscrowConfirmKind}
                 onConfirmTxHashChange={model.setEscrowConfirmTxHash}
-                onConfirmOfferSequenceChange={model.setEscrowConfirmOfferSequence}
-                onConfirmEngineResultChange={model.setEscrowConfirmEngineResult}
-                onConfirmValidatedChange={model.setEscrowConfirmValidated}
                 onPrepare={() => {
                   void model.handleEscrowPrepare();
                 }}
@@ -377,17 +371,11 @@ function OperatorWorkspacePage() {
                 reconcileTxHash={model.payoutReconcileTxHash}
                 confirmKind={model.payoutConfirmKind}
                 confirmTxHash={model.payoutConfirmTxHash}
-                confirmEngineResult={model.payoutConfirmEngineResult}
-                confirmValidated={model.payoutConfirmValidated}
-                closeTimeRipple={model.payoutCloseTimeRipple}
                 onReconcileKindChange={model.setPayoutReconcileKind}
                 onReconcileStatusChange={model.setPayoutReconcileStatus}
                 onReconcileTxHashChange={model.setPayoutReconcileTxHash}
                 onConfirmKindChange={model.setPayoutConfirmKind}
                 onConfirmTxHashChange={model.setPayoutConfirmTxHash}
-                onConfirmEngineResultChange={model.setPayoutConfirmEngineResult}
-                onConfirmValidatedChange={model.setPayoutConfirmValidated}
-                onCloseTimeRippleChange={model.setPayoutCloseTimeRipple}
                 onPrepare={() => {
                   void model.handlePayoutPrepare();
                 }}

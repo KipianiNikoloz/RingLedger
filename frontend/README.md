@@ -4,7 +4,8 @@
 
 This package implements the React frontend contract surface for M4 hardening:
 
-- Email/password login flow that stores JWTs by role (`promoter`, `admin`).
+- Fighter-only public registration, email/password login, and in-memory role-scoped JWT storage.
+- Admin-token provisioning for promoter, management, and additional admin accounts.
 - Fighter profile setup control:
   - `PUT /fighters/me`
 - Bout management controls:
@@ -34,14 +35,14 @@ No lifecycle or ledger invariant is enforced by frontend code; backend remains a
 - `src/hooks/useManagementWorkflow.ts`: fighter profile and bout create/list/detail workflow state.
 - `src/hooks/useEscrowWorkflow.ts`: promoter escrow workflow state/actions.
 - `src/hooks/useResultPayoutWorkflow.ts`: admin result and promoter payout workflow state/actions.
-- `src/components/AuthPanel.tsx`: register/login UI.
+- `src/components/AuthPanel.tsx`: fighter registration, login, and privileged-user provisioning UI.
 - `src/components/BoutWorkspacePanel.tsx`: profile setup, bout create/list/detail controls, and active bout context input.
 - `src/components/EscrowFlowPanel.tsx`: promoter escrow prepare/reconcile/confirm controls.
 - `src/components/ResultEntryPanel.tsx`: admin result entry controls.
 - `src/components/PayoutFlowPanel.tsx`: promoter payout prepare/reconcile/confirm controls.
 - `src/components/OutputPanel.tsx`: response rendering blocks.
 - `src/flow-utils.ts`: request payload extraction and validation helpers from prepare contracts.
-- `src/styles.css`: design tokens, responsive grid layout, and motion/accessibility styling for console ergonomics.
+- `src/styles.css`: responsive “Split Decision” control-room identity, trust-boundary colors, reduced-motion support, and razor-cut telemetry surfaces.
 
 Module-level maintainer documentation starts at `frontend/src/README.md`.
 
@@ -49,7 +50,7 @@ Module-level maintainer documentation starts at `frontend/src/README.md`.
 
 From `frontend/`:
 
-- `npm install`
+- `npm ci`
 - `npm run dev`
 - `npm run typecheck`
 - `npm run test`

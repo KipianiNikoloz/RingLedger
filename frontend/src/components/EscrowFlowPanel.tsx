@@ -9,17 +9,11 @@ interface EscrowFlowPanelProps {
   reconcileTxHash: string;
   confirmKind: EscrowKind;
   confirmTxHash: string;
-  confirmOfferSequence: string;
-  confirmEngineResult: string;
-  confirmValidated: boolean;
   onReconcileKindChange: (kind: EscrowKind) => void;
   onReconcileStatusChange: (status: SigningStatus) => void;
   onReconcileTxHashChange: (value: string) => void;
   onConfirmKindChange: (kind: EscrowKind) => void;
   onConfirmTxHashChange: (value: string) => void;
-  onConfirmOfferSequenceChange: (value: string) => void;
-  onConfirmEngineResultChange: (value: string) => void;
-  onConfirmValidatedChange: (value: boolean) => void;
   onPrepare: () => void;
   onReconcile: () => void;
   onConfirm: () => void;
@@ -32,17 +26,11 @@ export function EscrowFlowPanel({
   reconcileTxHash,
   confirmKind,
   confirmTxHash,
-  confirmOfferSequence,
-  confirmEngineResult,
-  confirmValidated,
   onReconcileKindChange,
   onReconcileStatusChange,
   onReconcileTxHashChange,
   onConfirmKindChange,
   onConfirmTxHashChange,
-  onConfirmOfferSequenceChange,
-  onConfirmEngineResultChange,
-  onConfirmValidatedChange,
   onPrepare,
   onReconcile,
   onConfirm,
@@ -51,7 +39,7 @@ export function EscrowFlowPanel({
     <section className="panel workflow-panel">
       <div className="panel-header">
         <h2>Promoter Escrow Flow</h2>
-        <p className="panel-note">Prepare, reconcile Xaman status, then confirm validated escrow-create transactions.</p>
+        <p className="panel-note">Submit only the transaction hash; the backend retrieves and verifies XRPL Testnet evidence.</p>
       </div>
 
       <div className="flow-stage">
@@ -100,7 +88,7 @@ export function EscrowFlowPanel({
 
       <div className="flow-stage">
         <h3>3. Confirm Ledger Result</h3>
-        <div className="grid four-col compact-grid">
+        <div className="grid two-col compact-grid">
           <label>
             Confirm Kind
             <select value={confirmKind} onChange={(event) => onConfirmKindChange(event.target.value as EscrowKind)}>
@@ -114,22 +102,6 @@ export function EscrowFlowPanel({
           <label>
             Tx Hash
             <input value={confirmTxHash} onChange={(event) => onConfirmTxHashChange(event.target.value)} />
-          </label>
-          <label>
-            Offer Sequence
-            <input
-              value={confirmOfferSequence}
-              onChange={(event) => onConfirmOfferSequenceChange(event.target.value)}
-              inputMode="numeric"
-            />
-          </label>
-          <label>
-            Engine Result
-            <input value={confirmEngineResult} onChange={(event) => onConfirmEngineResultChange(event.target.value)} />
-          </label>
-          <label className="check-label">
-            <input type="checkbox" checked={confirmValidated} onChange={(event) => onConfirmValidatedChange(event.target.checked)} />
-            Validated
           </label>
         </div>
         <div className="actions-row">
