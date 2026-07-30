@@ -1,7 +1,7 @@
 ## 1. Governance Baseline
 
 - [x] 1.1 Save the approved release-ready MVP design and implementation plan under `docs/superpowers/`.
-- [ ] 1.2 Add root `AGENTS.md` with the leading continuous-documentation directive and repository delivery rules.
+- [x] 1.2 Add root `AGENTS.md` with the leading continuous-documentation directive and repository delivery rules.
 
 ## 2. Documentation Alignment
 
