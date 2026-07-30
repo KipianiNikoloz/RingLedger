@@ -6,10 +6,17 @@ from fastapi import APIRouter, Depends, Header, HTTPException, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
-from app.api.dependencies import RequestActor, require_role
+from app.api.dependencies import RequestActor, get_xrpl_client, require_role
 from app.db.session import get_session
 from app.db.uow import SqlAlchemyUnitOfWork
 from app.integrations.xaman_service import XamanService
+from app.integrations.xrpl_client import (
+    XrplClient,
+    XrplInvalidResponse,
+    XrplRpcUnavailable,
+    XrplTransactionPending,
+    XrplWrongNetwork,
+)
 from app.models.enums import UserRole
 from app.schemas.payout import (
     BoutResultRequest,
@@ -20,7 +27,7 @@ from app.schemas.payout import (
     PayoutPrepareResponse,
 )
 from app.services.payout_service import PayoutService
-from app.services.xrpl_escrow_service import EscrowPayoutConfirmation
+from app.services.xrpl_escrow_service import XrplEscrowService, XrplEscrowValidationError
 
 from .confirm_flow import (
     persist_confirm_failure,
@@ -109,6 +116,7 @@ def confirm_payout(
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
     _actor: RequestActor = Depends(require_role(UserRole.PROMOTER)),
     session: Session = Depends(get_session),
+    xrpl_client: XrplClient = Depends(get_xrpl_client),
 ) -> PayoutConfirmResponse | JSONResponse:
     context, replay = prepare_confirm_flow(
         session=session,
@@ -120,18 +128,20 @@ def confirm_payout(
     if replay is not None:
         return replay
 
-    service = PayoutService(session=session)
-    confirmation = EscrowPayoutConfirmation(
-        tx_hash=payload.tx_hash,
-        validated=payload.validated,
-        engine_result=payload.engine_result,
-        transaction_type=payload.transaction_type,
-        owner_address=payload.owner_address,
-        offer_sequence=payload.offer_sequence,
-        close_time_ripple=payload.close_time_ripple,
-        fulfillment_hex=payload.fulfillment_hex,
-    )
+    try:
+        evidence = xrpl_client.fetch_validated_transaction(payload.tx_hash)
+        confirmation = XrplEscrowService.payout_confirmation_from_evidence(evidence)
+    except XrplTransactionPending as exc:
+        context.uow.rollback()
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Ledger confirmation is pending.") from exc
+    except XrplRpcUnavailable as exc:
+        context.uow.rollback()
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="XRPL is unavailable.") from exc
+    except (XrplInvalidResponse, XrplWrongNetwork, XrplEscrowValidationError) as exc:
+        context.uow.rollback()
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="XRPL returned invalid evidence.") from exc
 
+    service = PayoutService(session=session)
     try:
         bout, escrow = service.confirm_payout(
             bout_id=bout_id,

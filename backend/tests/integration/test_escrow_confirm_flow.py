@@ -10,11 +10,13 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 import app.models  # noqa: F401
+from app.api.dependencies import get_xrpl_client
 from app.core.config import settings
 from app.core.security import create_access_token
 from app.db.base import Base
 from app.db.session import get_session
 from app.integrations.xaman_service import XamanIntegrationError
+from app.integrations.xrpl_client import XrplTransactionEvidence
 from app.main import create_app
 from app.models.audit_log import AuditLog
 from app.models.bout import Bout
@@ -23,6 +25,7 @@ from app.models.escrow import Escrow
 from app.models.idempotency_key import IdempotencyKey
 from app.models.user import User
 from app.services.bout_service import BoutService
+from tests.xrpl_stub import ledger_stub
 
 
 class EscrowConfirmIntegrationTests(unittest.TestCase):
@@ -42,6 +45,7 @@ class EscrowConfirmIntegrationTests(unittest.TestCase):
         self.init_db_patcher.start()
         self.app = create_app()
         self.app.dependency_overrides[get_session] = self._override_get_session
+        self.app.dependency_overrides[get_xrpl_client] = lambda: ledger_stub
         self.client = TestClient(self.app)
         self.client.__enter__()
 
@@ -259,7 +263,7 @@ class EscrowConfirmIntegrationTests(unittest.TestCase):
             )
             self.assertEqual(stored_count, 1)
 
-    def test_confirm_rejects_invalid_confirmation_and_records_audit(self) -> None:
+    def test_unvalidated_transaction_remains_retryable_without_terminal_persistence(self) -> None:
         payload = self._build_confirm_payload(
             kind=EscrowKind.SHOW_B,
             tx_hash="TX00000021",
@@ -272,18 +276,15 @@ class EscrowConfirmIntegrationTests(unittest.TestCase):
             headers=self._promoter_headers({"Idempotency-Key": "invalid-confirm"}),
             json=payload,
         )
-        self.assertEqual(response.status_code, 422)
-        self.assertEqual(
-            response.json()["detail"],
-            "Confirmation timed out or remained unvalidated; no state transition was applied.",
-        )
+        self.assertEqual(response.status_code, 409)
+        self.assertEqual(response.json()["detail"], "Ledger confirmation is pending.")
 
         replay = self.client.post(
             f"/bouts/{self.bout_id}/escrows/confirm",
             headers=self._promoter_headers({"Idempotency-Key": "invalid-confirm"}),
             json=payload,
         )
-        self.assertEqual(replay.status_code, 422)
+        self.assertEqual(replay.status_code, 409)
         self.assertEqual(replay.json(), response.json())
 
         with Session(self.engine) as session:
@@ -292,7 +293,7 @@ class EscrowConfirmIntegrationTests(unittest.TestCase):
             )
             assert escrow is not None
             self.assertEqual(escrow.status, EscrowStatus.PLANNED)
-            self.assertEqual(escrow.failure_code, "confirmation_timeout")
+            self.assertIsNone(escrow.failure_code)
 
             audit = session.scalar(
                 select(AuditLog).where(
@@ -301,9 +302,9 @@ class EscrowConfirmIntegrationTests(unittest.TestCase):
                     AuditLog.outcome == "rejected",
                 )
             )
-            self.assertIsNotNone(audit)
+            self.assertIsNone(audit)
 
-    def test_confirm_rejects_declined_signing_with_explicit_failure_classification(self) -> None:
+    def test_unvalidated_declined_hint_cannot_override_ledger_pending_state(self) -> None:
         payload = self._build_confirm_payload(
             kind=EscrowKind.SHOW_A,
             tx_hash="TX00000031",
@@ -316,8 +317,8 @@ class EscrowConfirmIntegrationTests(unittest.TestCase):
             headers=self._promoter_headers({"Idempotency-Key": "declined-confirm"}),
             json=payload,
         )
-        self.assertEqual(response.status_code, 422)
-        self.assertEqual(response.json()["detail"], "Signing was declined; no state transition was applied.")
+        self.assertEqual(response.status_code, 409)
+        self.assertEqual(response.json()["detail"], "Ledger confirmation is pending.")
 
         with Session(self.engine) as session:
             escrow = session.scalar(
@@ -325,7 +326,7 @@ class EscrowConfirmIntegrationTests(unittest.TestCase):
             )
             assert escrow is not None
             self.assertEqual(escrow.status, EscrowStatus.PLANNED)
-            self.assertEqual(escrow.failure_code, "signing_declined")
+            self.assertIsNone(escrow.failure_code)
 
     def test_confirm_rejects_tec_tem_with_explicit_failure_classification(self) -> None:
         payload = self._build_confirm_payload(
@@ -409,19 +410,23 @@ class EscrowConfirmIntegrationTests(unittest.TestCase):
         with Session(self.engine) as session:
             escrow = session.scalar(select(Escrow).where(Escrow.bout_id == self.bout_id, Escrow.kind == kind))
             assert escrow is not None
-            return {
-                "escrow_kind": kind.value,
-                "tx_hash": tx_hash,
-                "offer_sequence": offer_sequence,
-                "validated": validated,
-                "engine_result": engine_result,
-                "owner_address": escrow.owner_address,
-                "destination_address": escrow.destination_address,
-                "amount_drops": escrow.amount_drops,
-                "finish_after_ripple": escrow.finish_after_ripple,
-                "cancel_after_ripple": escrow.cancel_after_ripple,
-                "condition_hex": escrow.condition_hex,
+            tx_json = {
+                "TransactionType": "EscrowCreate",
+                "Account": escrow.owner_address,
+                "Destination": escrow.destination_address,
+                "Amount": str(escrow.amount_drops),
+                "Sequence": offer_sequence,
+                "FinishAfter": escrow.finish_after_ripple,
             }
+            if escrow.cancel_after_ripple is not None:
+                tx_json["CancelAfter"] = escrow.cancel_after_ripple
+            if escrow.condition_hex is not None:
+                tx_json["Condition"] = escrow.condition_hex
+            ledger_stub.register(
+                XrplTransactionEvidence(tx_hash, engine_result, tx_json, escrow.finish_after_ripple),
+                validated=validated,
+            )
+            return {"escrow_kind": kind.value, "tx_hash": tx_hash}
 
     def _promoter_headers(self, extra: dict[str, str] | None = None) -> dict[str, str]:
         token = create_access_token(

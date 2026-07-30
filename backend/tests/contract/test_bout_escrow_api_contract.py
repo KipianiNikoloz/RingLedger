@@ -24,6 +24,16 @@ class BoutEscrowApiContractTests(unittest.TestCase):
         for path, methods in expected.items():
             self.assertTrue(methods.issubset(paths[path]))
 
+    @unittest.skipUnless(importlib.util.find_spec("fastapi") is not None, "fastapi is not installed")
+    def test_confirmation_requests_only_accept_kind_and_transaction_hash(self) -> None:
+        from app.main import app
+
+        schemas = app.openapi()["components"]["schemas"]
+        for schema_name in ("EscrowConfirmRequest", "PayoutConfirmRequest"):
+            schema = schemas[schema_name]
+            self.assertEqual(set(schema["properties"]), {"escrow_kind", "tx_hash"})
+            self.assertFalse(schema["additionalProperties"])
+
 
 if __name__ == "__main__":
     unittest.main()

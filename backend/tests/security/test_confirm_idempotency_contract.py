@@ -101,19 +101,7 @@ class ConfirmIdempotencySecurityTests(unittest.TestCase):
                 select(Escrow).where(Escrow.bout_id == self.bout_id, Escrow.kind == EscrowKind.SHOW_A)
             )
             assert escrow is not None
-            return {
-                "escrow_kind": EscrowKind.SHOW_A.value,
-                "tx_hash": "TXSECURITY001",
-                "offer_sequence": 8001,
-                "validated": True,
-                "engine_result": "tesSUCCESS",
-                "owner_address": escrow.owner_address,
-                "destination_address": escrow.destination_address,
-                "amount_drops": escrow.amount_drops,
-                "finish_after_ripple": escrow.finish_after_ripple,
-                "cancel_after_ripple": escrow.cancel_after_ripple,
-                "condition_hex": escrow.condition_hex,
-            }
+            return {"escrow_kind": EscrowKind.SHOW_A.value, "tx_hash": "TXSECURITY001"}
 
     def _promoter_headers(self) -> dict[str, str]:
         token = create_access_token(

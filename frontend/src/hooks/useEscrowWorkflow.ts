@@ -6,11 +6,6 @@ import { createIdempotencyKey } from "../auth";
 import type { SigningStatus } from "../constants";
 import {
   findEscrowPrepareItem,
-  parseRequiredInteger,
-  readOptionalNumber,
-  readOptionalString,
-  readRequiredNumber,
-  readRequiredString,
   requiredBoutId,
 } from "../flow-utils";
 
@@ -109,20 +104,10 @@ export function useEscrowWorkflow({
     }
 
     await runAction("escrow_confirm", async () => {
-      const selected = findEscrowPrepareItem(escrowPrepareResult.escrows, escrowConfirmKind);
-      const tx = selected.unsigned_tx;
+      findEscrowPrepareItem(escrowPrepareResult.escrows, escrowConfirmKind);
       const response = await confirmEscrowCreate(requiredBoutId(boutId), promoterToken, createIdempotencyKey("escrow-confirm"), {
         escrow_kind: escrowConfirmKind,
         tx_hash: escrowConfirmTxHash,
-        offer_sequence: parseRequiredInteger(escrowConfirmOfferSequence, "offer_sequence"),
-        validated: escrowConfirmValidated,
-        engine_result: escrowConfirmEngineResult,
-        owner_address: readRequiredString(tx, "Account"),
-        destination_address: readRequiredString(tx, "Destination"),
-        amount_drops: parseRequiredInteger(readRequiredString(tx, "Amount"), "Amount"),
-        finish_after_ripple: readRequiredNumber(tx, "FinishAfter"),
-        cancel_after_ripple: readOptionalNumber(tx, "CancelAfter"),
-        condition_hex: readOptionalString(tx, "Condition"),
       });
       setEscrowConfirmResult(response);
     });

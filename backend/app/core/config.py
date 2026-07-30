@@ -17,6 +17,9 @@ class Settings:
     xaman_api_key: str | None
     xaman_api_secret: str | None
     xaman_timeout_seconds: int
+    xrpl_rpc_url: str
+    xrpl_expected_network_id: int
+    xrpl_timeout_seconds: int
 
 
 def _parse_bool(value: str) -> bool:
@@ -44,6 +47,9 @@ def get_settings() -> Settings:
         xaman_api_key=os.getenv("XAMAN_API_KEY") or None,
         xaman_api_secret=os.getenv("XAMAN_API_SECRET") or None,
         xaman_timeout_seconds=int(os.getenv("XAMAN_TIMEOUT_SECONDS", "10")),
+        xrpl_rpc_url=os.getenv("XRPL_RPC_URL", "https://s.altnet.rippletest.net:51234").strip(),
+        xrpl_expected_network_id=int(os.getenv("XRPL_EXPECTED_NETWORK_ID", "1")),
+        xrpl_timeout_seconds=int(os.getenv("XRPL_TIMEOUT_SECONDS", "10")),
     )
 
 

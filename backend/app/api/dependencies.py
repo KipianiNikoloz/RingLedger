@@ -8,6 +8,7 @@ from fastapi import Depends, Header, HTTPException, status
 
 from app.core.config import settings
 from app.core.security import decode_access_token
+from app.integrations.xrpl_client import XrplClient
 from app.models.enums import UserRole
 
 
@@ -16,6 +17,14 @@ class RequestActor:
     user_id: uuid.UUID
     email: str
     role: UserRole
+
+
+def get_xrpl_client() -> XrplClient:
+    return XrplClient(
+        rpc_url=settings.xrpl_rpc_url,
+        expected_network_id=settings.xrpl_expected_network_id,
+        timeout_seconds=settings.xrpl_timeout_seconds,
+    )
 
 
 def get_current_actor(authorization: str | None = Header(default=None, alias="Authorization")) -> RequestActor:

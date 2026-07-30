@@ -3,6 +3,7 @@ from __future__ import annotations
 import unittest
 import uuid
 
+from app.integrations.xrpl_client import XrplTransactionEvidence
 from app.models.enums import EscrowKind, EscrowStatus
 from app.models.escrow import Escrow
 from app.services.xrpl_escrow_service import (
@@ -15,6 +16,40 @@ from app.services.xrpl_escrow_service import (
 
 
 class XrplEscrowServiceUnitTests(unittest.TestCase):
+    def test_create_confirmation_is_derived_from_ledger_evidence(self) -> None:
+        evidence = XrplTransactionEvidence(
+            tx_hash="ABC12345",
+            engine_result="tesSUCCESS",
+            tx_json={
+                "TransactionType": "EscrowCreate",
+                "Account": "rOwner",
+                "Destination": "rDestination",
+                "Amount": "5000",
+                "Sequence": 42,
+                "FinishAfter": 800,
+                "CancelAfter": 1200,
+                "Condition": "AA",
+            },
+            close_time_ripple=900,
+        )
+
+        confirmation = XrplEscrowService.create_confirmation_from_evidence(evidence)
+
+        self.assertEqual(confirmation.offer_sequence, 42)
+        self.assertEqual(confirmation.amount_drops, 5000)
+        self.assertEqual(confirmation.owner_address, "rOwner")
+
+    def test_payout_confirmation_requires_ledger_close_time(self) -> None:
+        evidence = XrplTransactionEvidence(
+            tx_hash="ABC12345",
+            engine_result="tesSUCCESS",
+            tx_json={"TransactionType": "EscrowFinish", "Owner": "rOwner", "OfferSequence": 42},
+            close_time_ripple=None,
+        )
+
+        with self.assertRaisesRegex(XrplEscrowValidationError, "ledger_close_time_missing"):
+            XrplEscrowService.payout_confirmation_from_evidence(evidence)
+
     def test_build_escrow_create_tx_contains_expected_fields(self) -> None:
         escrow = self._build_escrow(kind=EscrowKind.BONUS_A, cancel_after_ripple=900)
         tx = XrplEscrowService.build_escrow_create_tx(escrow)
@@ -30,6 +65,7 @@ class XrplEscrowServiceUnitTests(unittest.TestCase):
         escrow = self._build_escrow(kind=EscrowKind.SHOW_A, cancel_after_ripple=None)
         confirmation = EscrowCreateConfirmation(
             tx_hash="ABC123456789",
+            transaction_type="EscrowCreate",
             offer_sequence=111,
             validated=True,
             engine_result="tesSUCCESS",
@@ -47,6 +83,7 @@ class XrplEscrowServiceUnitTests(unittest.TestCase):
         escrow = self._build_escrow(kind=EscrowKind.SHOW_B, cancel_after_ripple=None)
         confirmation = EscrowCreateConfirmation(
             tx_hash="DEF123456789",
+            transaction_type="EscrowCreate",
             offer_sequence=222,
             validated=True,
             engine_result="tesSUCCESS",

@@ -11,11 +11,13 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 import app.models  # noqa: F401
+from app.api.dependencies import get_xrpl_client
 from app.core.config import settings
 from app.core.security import create_access_token
 from app.db.base import Base
 from app.db.session import get_session
 from app.integrations.xaman_service import XamanIntegrationError
+from app.integrations.xrpl_client import XrplTransactionEvidence
 from app.main import create_app
 from app.models.audit_log import AuditLog
 from app.models.bout import Bout
@@ -23,6 +25,7 @@ from app.models.enums import BoutStatus, EscrowKind, EscrowStatus, UserRole
 from app.models.escrow import Escrow
 from app.models.user import User
 from app.services.bout_service import BoutService
+from tests.xrpl_stub import ledger_stub
 
 
 class PayoutFlowIntegrationTests(unittest.TestCase):
@@ -43,6 +46,7 @@ class PayoutFlowIntegrationTests(unittest.TestCase):
         self.init_db_patcher.start()
         self.app = create_app()
         self.app.dependency_overrides[get_session] = self._override_get_session
+        self.app.dependency_overrides[get_xrpl_client] = lambda: ledger_stub
         self.client = TestClient(self.app)
         self.client.__enter__()
 
@@ -261,7 +265,7 @@ class PayoutFlowIntegrationTests(unittest.TestCase):
         self.assertEqual(confirm_response.status_code, 422)
         self.assertEqual(confirm_response.json()["detail"], "Ledger confirmation failed validation.")
 
-    def test_payout_confirm_rejects_declined_signing_with_failure_classification(self) -> None:
+    def test_unvalidated_payout_remains_retryable_without_terminal_failure(self) -> None:
         result_response = self.client.post(
             f"/bouts/{self.bout_id}/result",
             headers=self._auth_headers(self.admin_user_id, self.admin_email, UserRole.ADMIN),
@@ -286,8 +290,8 @@ class PayoutFlowIntegrationTests(unittest.TestCase):
             ),
             json=payload,
         )
-        self.assertEqual(response.status_code, 422)
-        self.assertEqual(response.json()["detail"], "Signing was declined; no state transition was applied.")
+        self.assertEqual(response.status_code, 409)
+        self.assertEqual(response.json()["detail"], "Ledger confirmation is pending.")
 
         with Session(self.engine) as session:
             escrow = session.scalar(
@@ -295,7 +299,7 @@ class PayoutFlowIntegrationTests(unittest.TestCase):
             )
             assert escrow is not None
             self.assertEqual(escrow.status, EscrowStatus.CREATED)
-            self.assertEqual(escrow.failure_code, "signing_declined")
+            self.assertIsNone(escrow.failure_code)
 
     def test_payout_confirm_rejects_tec_tem_with_failure_classification(self) -> None:
         result_response = self.client.post(
@@ -470,17 +474,18 @@ class PayoutFlowIntegrationTests(unittest.TestCase):
                 close_time_ripple = escrow.cancel_after_ripple + close_time_offset
             else:
                 close_time_ripple = escrow.finish_after_ripple + close_time_offset
-            return {
-                "escrow_kind": escrow.kind.value,
-                "tx_hash": tx_hash,
-                "validated": validated,
-                "engine_result": engine_result,
-                "transaction_type": transaction_type,
-                "owner_address": escrow.owner_address,
-                "offer_sequence": escrow.offer_sequence,
-                "close_time_ripple": close_time_ripple,
-                "fulfillment_hex": escrow.encrypted_preimage_hex if escrow.kind == EscrowKind.BONUS_A else None,
+            tx_json = {
+                "TransactionType": transaction_type,
+                "Owner": escrow.owner_address,
+                "OfferSequence": escrow.offer_sequence,
             }
+            if escrow.kind == EscrowKind.BONUS_A and escrow.encrypted_preimage_hex is not None:
+                tx_json["Fulfillment"] = escrow.encrypted_preimage_hex
+            ledger_stub.register(
+                XrplTransactionEvidence(tx_hash, engine_result, tx_json, close_time_ripple),
+                validated=validated,
+            )
+            return {"escrow_kind": escrow.kind.value, "tx_hash": tx_hash}
 
     def _override_get_session(self):
         session = self.SessionLocal()

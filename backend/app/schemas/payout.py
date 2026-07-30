@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.enums import BoutStatus, BoutWinner, EscrowCloseAction, EscrowKind, EscrowStatus
 from app.schemas.xaman import XamanSignRequestView
@@ -33,15 +33,10 @@ class PayoutPrepareResponse(BaseModel):
 
 
 class PayoutConfirmRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     escrow_kind: EscrowKind
     tx_hash: str = Field(min_length=8, max_length=128)
-    validated: bool
-    engine_result: str = Field(min_length=3, max_length=32)
-    transaction_type: str = Field(min_length=10, max_length=32)
-    owner_address: str = Field(min_length=3, max_length=64)
-    offer_sequence: int = Field(ge=1)
-    close_time_ripple: int = Field(ge=0)
-    fulfillment_hex: str | None = Field(default=None, max_length=4096)
 
 
 class PayoutConfirmResponse(BaseModel):

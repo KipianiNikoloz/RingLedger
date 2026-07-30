@@ -103,18 +103,7 @@ class BoutRoleGuardsSecurityTests(unittest.TestCase):
         with Session(self.engine) as session:
             escrow = session.scalar(select(Escrow).where(Escrow.bout_id == self.bout_id, Escrow.kind == escrow_kind))
             assert escrow is not None
-            offer_sequence = escrow.offer_sequence or 9001
-            return {
-                "escrow_kind": escrow_kind.value,
-                "tx_hash": "TXROLE0001",
-                "validated": True,
-                "engine_result": "tesSUCCESS",
-                "transaction_type": "EscrowFinish",
-                "owner_address": escrow.owner_address,
-                "offer_sequence": offer_sequence,
-                "close_time_ripple": escrow.finish_after_ripple,
-                "fulfillment_hex": None,
-            }
+            return {"escrow_kind": escrow_kind.value, "tx_hash": "TXROLE0001"}
 
     def _override_get_session(self):
         session = self.SessionLocal()

@@ -119,15 +119,6 @@ export interface EscrowPrepareResponse {
 export interface EscrowConfirmRequest {
   escrow_kind: EscrowKind;
   tx_hash: string;
-  offer_sequence: number;
-  validated: boolean;
-  engine_result: string;
-  owner_address: string;
-  destination_address: string;
-  amount_drops: number;
-  finish_after_ripple: number;
-  cancel_after_ripple: number | null;
-  condition_hex: string | null;
 }
 
 export interface EscrowConfirmResponse {
@@ -185,13 +176,6 @@ export interface PayoutPrepareResponse {
 export interface PayoutConfirmRequest {
   escrow_kind: EscrowKind;
   tx_hash: string;
-  validated: boolean;
-  engine_result: string;
-  transaction_type: "EscrowFinish" | "EscrowCancel";
-  owner_address: string;
-  offer_sequence: number;
-  close_time_ripple: number;
-  fulfillment_hex: string | null;
 }
 
 export interface PayoutConfirmResponse {

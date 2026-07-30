@@ -12,11 +12,6 @@ import { createIdempotencyKey } from "../auth";
 import type { SigningStatus } from "../constants";
 import {
   findPayoutPrepareItem,
-  parseRequiredInteger,
-  readOptionalString,
-  readRequiredNumber,
-  readRequiredPayoutType,
-  readRequiredString,
   requiredBoutId,
 } from "../flow-utils";
 
@@ -135,18 +130,10 @@ export function useResultPayoutWorkflow({
     }
 
     await runAction("payout_confirm", async () => {
-      const selected = findPayoutPrepareItem(payoutPrepareResult.escrows, payoutConfirmKind);
-      const tx = selected.unsigned_tx;
+      findPayoutPrepareItem(payoutPrepareResult.escrows, payoutConfirmKind);
       const response = await confirmPayout(requiredBoutId(boutId), promoterToken, createIdempotencyKey("payout-confirm"), {
         escrow_kind: payoutConfirmKind,
         tx_hash: payoutConfirmTxHash,
-        validated: payoutConfirmValidated,
-        engine_result: payoutConfirmEngineResult,
-        transaction_type: readRequiredPayoutType(tx, "TransactionType"),
-        owner_address: readRequiredString(tx, "Account"),
-        offer_sequence: readRequiredNumber(tx, "OfferSequence"),
-        close_time_ripple: parseRequiredInteger(payoutCloseTimeRipple, "close_time_ripple"),
-        fulfillment_hex: readOptionalString(tx, "Fulfillment"),
       });
       setPayoutConfirmResult(response);
     });

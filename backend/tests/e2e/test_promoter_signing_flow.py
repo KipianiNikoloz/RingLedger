@@ -11,14 +11,17 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 import app.models  # noqa: F401
+from app.api.dependencies import get_xrpl_client
 from app.db.base import Base
 from app.db.session import get_session
+from app.integrations.xrpl_client import XrplTransactionEvidence
 from app.main import create_app
 from app.models.bout import Bout
 from app.models.enums import BoutStatus, EscrowKind, EscrowStatus
 from app.models.escrow import Escrow
 from app.models.user import User
 from app.services.bout_service import BoutService
+from tests.xrpl_stub import ledger_stub
 
 
 class PromoterSigningFlowE2ETests(unittest.TestCase):
@@ -36,6 +39,7 @@ class PromoterSigningFlowE2ETests(unittest.TestCase):
         self.init_db_patcher.start()
         self.app = create_app()
         self.app.dependency_overrides[get_session] = self._override_get_session
+        self.app.dependency_overrides[get_xrpl_client] = lambda: ledger_stub
         self.client = TestClient(self.app)
         self.client.__enter__()
 
@@ -276,15 +280,15 @@ class PromoterSigningFlowE2ETests(unittest.TestCase):
             headers=self._auth_headers(self.promoter_token, extra={"Idempotency-Key": "e2e-declined-signing"}),
             json=declined_confirmation_payload,
         )
-        self.assertEqual(declined_response.status_code, 422)
-        self.assertEqual(declined_response.json()["detail"], "Signing was declined; no state transition was applied.")
+        self.assertEqual(declined_response.status_code, 409)
+        self.assertEqual(declined_response.json()["detail"], "Ledger confirmation is pending.")
 
         replay_response = self.client.post(
             f"/bouts/{self.bout_id}/escrows/confirm",
             headers=self._auth_headers(self.promoter_token, extra={"Idempotency-Key": "e2e-declined-signing"}),
             json=declined_confirmation_payload,
         )
-        self.assertEqual(replay_response.status_code, 422)
+        self.assertEqual(replay_response.status_code, 409)
         self.assertEqual(replay_response.json(), declined_response.json())
 
         with Session(self.engine) as session:
@@ -362,19 +366,23 @@ class PromoterSigningFlowE2ETests(unittest.TestCase):
                 )
             )
             assert escrow is not None
-            return {
-                "escrow_kind": escrow_kind.value,
-                "tx_hash": tx_hash,
-                "offer_sequence": offer_sequence,
-                "validated": validated,
-                "engine_result": engine_result,
-                "owner_address": escrow.owner_address,
-                "destination_address": escrow.destination_address,
-                "amount_drops": escrow.amount_drops,
-                "finish_after_ripple": escrow.finish_after_ripple,
-                "cancel_after_ripple": escrow.cancel_after_ripple,
-                "condition_hex": escrow.condition_hex,
+            tx_json = {
+                "TransactionType": "EscrowCreate",
+                "Account": escrow.owner_address,
+                "Destination": escrow.destination_address,
+                "Amount": str(escrow.amount_drops),
+                "Sequence": offer_sequence,
+                "FinishAfter": escrow.finish_after_ripple,
             }
+            if escrow.cancel_after_ripple is not None:
+                tx_json["CancelAfter"] = escrow.cancel_after_ripple
+            if escrow.condition_hex is not None:
+                tx_json["Condition"] = escrow.condition_hex
+            ledger_stub.register(
+                XrplTransactionEvidence(tx_hash, engine_result, tx_json, escrow.finish_after_ripple),
+                validated=validated,
+            )
+            return {"escrow_kind": escrow_kind.value, "tx_hash": tx_hash}
 
     def _build_payout_confirm_payload(
         self,
@@ -392,17 +400,17 @@ class PromoterSigningFlowE2ETests(unittest.TestCase):
             )
             assert escrow is not None
             assert escrow.offer_sequence is not None
-            return {
-                "escrow_kind": escrow_kind.value,
-                "tx_hash": tx_hash,
-                "validated": True,
-                "engine_result": "tesSUCCESS",
-                "transaction_type": transaction_type,
-                "owner_address": escrow.owner_address,
-                "offer_sequence": escrow.offer_sequence,
-                "close_time_ripple": escrow.finish_after_ripple + 1,
-                "fulfillment_hex": escrow.encrypted_preimage_hex if escrow_kind == EscrowKind.BONUS_A else None,
+            tx_json = {
+                "TransactionType": transaction_type,
+                "Owner": escrow.owner_address,
+                "OfferSequence": escrow.offer_sequence,
             }
+            if escrow_kind == EscrowKind.BONUS_A and escrow.encrypted_preimage_hex is not None:
+                tx_json["Fulfillment"] = escrow.encrypted_preimage_hex
+            ledger_stub.register(
+                XrplTransactionEvidence(tx_hash, "tesSUCCESS", tx_json, escrow.finish_after_ripple + 1)
+            )
+            return {"escrow_kind": escrow_kind.value, "tx_hash": tx_hash}
 
     def _assert_sign_request_shape(self, sign_request: dict[str, object]) -> None:
         self.assertIsInstance(sign_request.get("payload_id"), str)

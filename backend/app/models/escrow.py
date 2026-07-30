@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import BIGINT, DateTime, ForeignKey, Integer, String, UniqueConstraint, func
+from sqlalchemy import BIGINT, DateTime, ForeignKey, Index, Integer, String, UniqueConstraint, func, text
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
@@ -14,7 +14,23 @@ from app.models.enums import EscrowKind, EscrowStatus
 
 class Escrow(Base):
     __tablename__ = "escrows"
-    __table_args__ = (UniqueConstraint("bout_id", "kind", name="uq_escrow_bout_kind"),)
+    __table_args__ = (
+        UniqueConstraint("bout_id", "kind", name="uq_escrow_bout_kind"),
+        Index(
+            "uq_escrows_create_tx_hash_not_null",
+            "create_tx_hash",
+            unique=True,
+            postgresql_where=text("create_tx_hash IS NOT NULL"),
+            sqlite_where=text("create_tx_hash IS NOT NULL"),
+        ),
+        Index(
+            "uq_escrows_close_tx_hash_not_null",
+            "close_tx_hash",
+            unique=True,
+            postgresql_where=text("close_tx_hash IS NOT NULL"),
+            sqlite_where=text("close_tx_hash IS NOT NULL"),
+        ),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     bout_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("bouts.id"), nullable=False, index=True)

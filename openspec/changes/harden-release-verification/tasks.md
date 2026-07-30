@@ -5,11 +5,11 @@
 
 ## 2. XRPL Ledger Authority
 
-- [ ] 2.1 Add failing unit tests for Testnet identity, API v2 transaction parsing, pending evidence, malformed responses, and transport failures.
-- [ ] 2.2 Implement the injected XRPL JSON-RPC client and ledger-evidence models.
-- [ ] 2.3 Add failing API/service tests for two-field confirmation, extra-field rejection, retryable idempotency, and terminal replay.
-- [ ] 2.4 Integrate backend-fetched evidence into escrow and payout confirmation and update the frontend contract.
-- [ ] 2.5 Add and test a reversible migration enforcing unique non-null create and close transaction hashes.
+- [x] 2.1 Add failing unit tests for Testnet identity, API v2 transaction parsing, pending evidence, malformed responses, and transport failures.
+- [x] 2.2 Implement the injected XRPL JSON-RPC client and ledger-evidence models.
+- [x] 2.3 Add failing API/service tests for two-field confirmation, extra-field rejection, retryable idempotency, and terminal replay.
+- [x] 2.4 Integrate backend-fetched evidence into escrow and payout confirmation and update the frontend contract.
+- [x] 2.5 Add and test a reversible migration enforcing unique non-null create and close transaction hashes.
 
 ## 3. Privileged Role Security
 

@@ -55,15 +55,6 @@ describe("api/client", () => {
     await confirmEscrowCreate("bout-1", "jwt-token", "idem-1", {
       escrow_kind: "show_a",
       tx_hash: "TX1",
-      offer_sequence: 1001,
-      validated: true,
-      engine_result: "tesSUCCESS",
-      owner_address: "rPromoter",
-      destination_address: "rFighter",
-      amount_drops: 1000,
-      finish_after_ripple: 820000000,
-      cancel_after_ripple: null,
-      condition_hex: null,
     });
 
     const [, init] = fetchMock.mock.calls[0];

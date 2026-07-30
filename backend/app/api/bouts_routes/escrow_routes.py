@@ -6,9 +6,16 @@ from fastapi import APIRouter, Depends, Header, HTTPException, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
-from app.api.dependencies import RequestActor, require_role
+from app.api.dependencies import RequestActor, get_xrpl_client, require_role
 from app.db.session import get_session
 from app.integrations.xaman_service import XamanService
+from app.integrations.xrpl_client import (
+    XrplClient,
+    XrplInvalidResponse,
+    XrplRpcUnavailable,
+    XrplTransactionPending,
+    XrplWrongNetwork,
+)
 from app.models.enums import UserRole
 from app.schemas.escrow import (
     EscrowConfirmRequest,
@@ -17,7 +24,7 @@ from app.schemas.escrow import (
     EscrowPrepareResponse,
 )
 from app.services.escrow_service import EscrowService
-from app.services.xrpl_escrow_service import EscrowCreateConfirmation
+from app.services.xrpl_escrow_service import XrplEscrowService, XrplEscrowValidationError
 
 from .confirm_flow import (
     persist_confirm_failure,
@@ -79,6 +86,7 @@ def confirm_escrow_create(
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
     _actor: RequestActor = Depends(require_role(UserRole.PROMOTER)),
     session: Session = Depends(get_session),
+    xrpl_client: XrplClient = Depends(get_xrpl_client),
 ) -> EscrowConfirmResponse | JSONResponse:
     context, replay = prepare_confirm_flow(
         session=session,
@@ -90,20 +98,20 @@ def confirm_escrow_create(
     if replay is not None:
         return replay
 
-    service = EscrowService(session=session)
-    confirmation = EscrowCreateConfirmation(
-        tx_hash=payload.tx_hash,
-        offer_sequence=payload.offer_sequence,
-        validated=payload.validated,
-        engine_result=payload.engine_result,
-        owner_address=payload.owner_address,
-        destination_address=payload.destination_address,
-        amount_drops=payload.amount_drops,
-        finish_after_ripple=payload.finish_after_ripple,
-        cancel_after_ripple=payload.cancel_after_ripple,
-        condition_hex=payload.condition_hex,
-    )
+    try:
+        evidence = xrpl_client.fetch_validated_transaction(payload.tx_hash)
+        confirmation = XrplEscrowService.create_confirmation_from_evidence(evidence)
+    except XrplTransactionPending as exc:
+        context.uow.rollback()
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Ledger confirmation is pending.") from exc
+    except XrplRpcUnavailable as exc:
+        context.uow.rollback()
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="XRPL is unavailable.") from exc
+    except (XrplInvalidResponse, XrplWrongNetwork, XrplEscrowValidationError) as exc:
+        context.uow.rollback()
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="XRPL returned invalid evidence.") from exc
 
+    service = EscrowService(session=session)
     try:
         bout, escrow = service.confirm_escrow_create(
             bout_id=bout_id,
