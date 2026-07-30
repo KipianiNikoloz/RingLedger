@@ -242,6 +242,6 @@ Historical local evidence for this slice is recorded in `docs/testnet-release-re
 |---|---|---|
 | Continuous documentation directive and delivery workflow | `AGENTS.md` | done |
 | Approved release-ready MVP design and implementation plan | `docs/superpowers/specs/2026-07-30-release-ready-mvp-design.md`, `docs/superpowers/plans/2026-07-30-release-ready-mvp.md` | done |
-| OpenSpec governance contract | `openspec/changes/establish-documentation-governance/` | in_progress |
+| OpenSpec governance contract | `openspec/specs/documentation-governance/spec.md`, `openspec/changes/archive/2026-07-30-establish-documentation-governance/` | done |
 | Module README structural and link validation | `backend/tests/docs/test_module_readmes.py` | done |
 | 2026-07-30 governance verification | Documentation tests (`3 passed`), Ruff check/format, seven OpenSpec validations, placeholder/config-name scans, and `git diff --check` | done |

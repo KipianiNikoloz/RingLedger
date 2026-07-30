@@ -12,4 +12,4 @@
 ## 3. Verification
 
 - [x] 3.1 Run documentation tests, formatting checks, placeholder scans, and `openspec validate --all`.
-- [ ] 3.2 Record verified evidence, complete this checklist, and archive the OpenSpec change.
+- [x] 3.2 Record verified evidence, complete this checklist, and archive the OpenSpec change.
