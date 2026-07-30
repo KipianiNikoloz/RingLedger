@@ -4,15 +4,19 @@
 Define the deterministic and operator-run evidence required before the locked RingLedger MVP can be released to XRPL Testnet without exposing secrets or making CI depend on external services.
 ## Requirements
 ### Requirement: Testnet release evidence
-The system SHALL document Testnet release readiness only when local quality gates, frontend gates, OpenSpec validation, and release smoke evidence are current for the locked MVP scope.
+The system SHALL document Testnet release readiness only when locked clean-checkout backend/frontend gates, authoritative XRPL confirmation tests, privileged-role security tests, migration checks, OpenSpec validation, secret scanning, container build/Compose smoke checks, and the operator live-smoke boundary are current for the locked MVP scope.
 
 #### Scenario: Release evidence is current
 - **WHEN** project status documents mark the MVP ready for Testnet release
-- **THEN** the release evidence lists backend, frontend, browser E2E, regression, performance, migration, and OpenSpec validation results
+- **THEN** the release evidence lists backend, frontend, browser E2E, XRPL confirmation, auth security, regression, performance, migration, OpenSpec, secret-scan, image-build, and container-smoke results
 
 #### Scenario: Release evidence remains bounded
 - **WHEN** release readiness is documented
 - **THEN** the documentation keeps the release scope bounded to XRPL Testnet, Xaman non-custodial signing, and the locked MVP lifecycle
+
+#### Scenario: Deterministic hardening is incomplete
+- **WHEN** any required clean-checkout or container gate is missing or failing
+- **THEN** status documentation does not claim readiness for live Testnet validation
 
 ### Requirement: Live smoke validation is separated from deterministic gates
 The system SHALL keep deterministic local and CI validation separate from live Xaman API and XRPL Testnet smoke validation.
@@ -31,3 +35,4 @@ The system SHALL document secret-handling boundaries for Testnet release evidenc
 #### Scenario: Evidence excludes secrets
 - **WHEN** release evidence is captured
 - **THEN** it records non-secret operational identifiers such as payload IDs and transaction hashes while excluding API secrets, JWT secrets, private keys, and credentials
+
