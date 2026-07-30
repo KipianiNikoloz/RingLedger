@@ -12,4 +12,4 @@
 ## 3. Verification
 
 - [x] 3.1 Run clean frontend typecheck, unit tests, production build, dependency audit, and Playwright.
-- [ ] 3.2 Validate and archive the OpenSpec change after all gates pass.
+- [x] 3.2 Validate and archive the OpenSpec change after all gates pass.
