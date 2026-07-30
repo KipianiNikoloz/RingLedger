@@ -20,8 +20,9 @@ flowchart TD
 
 ## Current Status
 
-- M1 through M4 are complete for the locked MVP/Testnet scope.
-- Testnet release readiness is documented; live Xaman/XRPL smoke validation remains operator-run with environment-managed secrets.
+- M1 through M4 functionality is implemented for the locked MVP/Testnet scope.
+- A 2026-07-30 release audit reopened backend-authoritative XRPL confirmation, privileged-role provisioning, reproducible setup, and container delivery before live Testnet validation.
+- Testnet release requirements are documented; live Xaman/XRPL smoke validation remains operator-run with environment-managed secrets after deterministic hardening completes.
 - OpenSpec changes for release readiness and documentation overhaul are archived and synced into main specs.
 - CI enforces backend tests, frontend tests, browser E2E, docs validation, and secret scanning.
 
@@ -130,6 +131,7 @@ npm run test:e2e
 
 ## Delivery Rules
 
+- Read and follow `AGENTS.md`; its continuous-documentation directive applies to every repository change.
 - Keep changes in small vertical slices.
 - Every code/config/schema change needs matching tests and docs.
 - Maintain requirement -> implementation -> tests -> docs traceability.

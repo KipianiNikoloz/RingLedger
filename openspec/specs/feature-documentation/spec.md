@@ -1,7 +1,7 @@
 # feature-documentation Specification
 
 ## Purpose
-TBD - created by archiving change overhaul-feature-documentation. Update Purpose after archive.
+Define the maintainer documentation required at meaningful backend and frontend module boundaries, including its structure, diagrams, references, and automated validation.
 ## Requirements
 ### Requirement: Module-local documentation
 The repository SHALL provide maintainer-focused README files at meaningful backend and frontend module boundaries.

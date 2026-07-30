@@ -31,7 +31,7 @@ Not covered:
 - `XAMAN_MODE=stub` for deterministic local/CI behavior
 - `XAMAN_MODE=api` for live Xaman API integration
 - `XAMAN_API_KEY` and `XAMAN_API_SECRET` required when `XAMAN_MODE=api`
-- `JWT_SECRET_KEY` must be strong and environment-managed in non-local environments
+- `JWT_SECRET` must be strong and environment-managed in non-local environments
 
 Reference:
 
@@ -70,7 +70,7 @@ Use this checklist before marking the locked MVP ready for XRPL Testnet release:
 2. Confirm required non-local secrets are present in the deployment environment, not repository files:
    - `XAMAN_API_KEY`
    - `XAMAN_API_SECRET`
-   - strong `JWT_SECRET_KEY`
+   - strong `JWT_SECRET`
 3. Confirm runtime mode and endpoints:
    - `XAMAN_MODE=api`
    - backend points at XRPL Testnet infrastructure

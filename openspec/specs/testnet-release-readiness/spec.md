@@ -1,7 +1,7 @@
 # testnet-release-readiness Specification
 
 ## Purpose
-TBD - created by archiving change prepare-testnet-release. Update Purpose after archive.
+Define the deterministic and operator-run evidence required before the locked RingLedger MVP can be released to XRPL Testnet without exposing secrets or making CI depend on external services.
 ## Requirements
 ### Requirement: Testnet release evidence
 The system SHALL document Testnet release readiness only when local quality gates, frontend gates, OpenSpec validation, and release smoke evidence are current for the locked MVP scope.
@@ -31,4 +31,3 @@ The system SHALL document secret-handling boundaries for Testnet release evidenc
 #### Scenario: Evidence excludes secrets
 - **WHEN** release evidence is captured
 - **THEN** it records non-secret operational identifiers such as payload IDs and transaction hashes while excluding API secrets, JWT secrets, private keys, and credentials
-

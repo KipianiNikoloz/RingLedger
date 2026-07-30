@@ -1,7 +1,7 @@
 # RingLedger MVP Traceability Matrix
 
 Date initialized: 2026-02-16  
-Last updated: 2026-05-15
+Last updated: 2026-07-30
 Purpose: enforce requirement -> implementation -> tests -> docs linkage from first increment.
 
 ## Status Legend
@@ -14,16 +14,16 @@ Purpose: enforce requirement -> implementation -> tests -> docs linkage from fir
 
 | Req ID | Requirement Summary | Planned Implementation Targets | Planned Test Targets | Documentation Targets | Status |
 |---|---|---|---|---|---|
-| R-01 | Fixed stack and integration boundaries | `backend/app/main.py`, `backend/app/api/router.py`, `backend/app/db/session.py`, `.github/workflows/ci-cd.yml`, `frontend/src/App.tsx`, `frontend/src/api/client.ts`, XRPL/Xaman integrations, management endpoints (`backend/app/api/fighters.py`, `backend/app/api/bouts_routes/management_routes.py`) | `backend/tests/integration/test_stack_bootstrap.py`, `backend/tests/e2e/test_promoter_signing_flow.py`, `backend/tests/integration/test_management_endpoints.py`, `frontend/src/App.test.tsx`, `frontend/e2e/promoter-flow.spec.ts` | `docs/requirements-matrix.md`, `docs/state-machines.md`, `backend/README.md`, `docs/ci-cd.md`, `frontend/README.md` | done |
+| R-01 | Fixed stack and integration boundaries | `backend/app/main.py`, `backend/app/api/router.py`, `backend/app/db/session.py`, `.github/workflows/ci-cd.yml`, `frontend/src/App.tsx`, `frontend/src/api/client.ts`, XRPL/Xaman integrations, management endpoints (`backend/app/api/fighters.py`, `backend/app/api/bouts_routes/management_routes.py`) | `backend/tests/integration/test_stack_bootstrap.py`, `backend/tests/e2e/test_promoter_signing_flow.py`, `backend/tests/integration/test_management_endpoints.py`, `frontend/src/App.test.tsx`, `frontend/e2e/promoter-flow.spec.ts` | `docs/requirements-matrix.md`, `docs/state-machines.md`, `backend/README.md`, `docs/ci-cd.md`, `frontend/README.md` | in_progress |
 | R-02 | Email/password + JWT auth only | `backend/app/api/auth.py`, `backend/app/services/auth_service.py`, `backend/app/models/user.py`, `backend/app/core/security.py` | `backend/tests/unit/test_security.py`, `backend/tests/contract/test_auth_api_contract.py`, `backend/tests/security/test_auth_mode_contract.py` | `docs/requirements-matrix.md`, `docs/api-spec.md` | done |
 | R-03 | Drops integer-only money model | `backend/app/domain/money.py`, `backend/app/models/bout.py`, `backend/app/models/escrow.py`, `backend/sql/001_init_schema.sql` | `backend/tests/unit/test_money.py`, `backend/tests/property/test_money_properties.py`, `backend/tests/migration/test_schema_sql_contract.py` | `docs/schema-doc.md`, `docs/requirements-matrix.md` | done |
 | R-04 | 1v1 with 4 escrow model | `backend/app/models/escrow.py`, `backend/app/services/bout_service.py`, `backend/app/models/bout.py` | `backend/tests/unit/test_bout_escrow_planning.py`, `backend/tests/integration/test_bout_create_flow.py` | `docs/state-machines.md`, `docs/schema-doc.md` | done |
 | R-05 | Platform controls bonus fulfillment | `backend/app/crypto_conditions/fulfillment.py`, `backend/app/services/bout_service.py`, `backend/app/services/payout_service.py` | `backend/tests/unit/test_crypto_conditions.py`, `backend/tests/unit/test_xrpl_escrow_service.py`, `backend/tests/integration/test_payout_flow.py` | `docs/state-machines.md`, `docs/api-spec.md`, `docs/schema-doc.md` | done |
 | R-06 | Promoter signs via Xaman only | backend Xaman sign-request plus payload-status reconciliation integration (`backend/app/integrations/xaman_service.py`, `backend/app/services/signing_reconciliation_service.py`, `backend/app/api/bouts.py`, `backend/app/api/bouts_routes/*.py`) + frontend signing UX modules (`frontend/src/App.tsx`) | `backend/tests/unit/test_xaman_service.py`, `backend/tests/contract/test_bout_escrow_api_contract.py`, `backend/tests/integration/test_escrow_confirm_flow.py`, `backend/tests/integration/test_payout_flow.py`, `backend/tests/e2e/test_promoter_signing_flow.py`, `frontend/e2e/promoter-flow.spec.ts` | `docs/xaman-signing-contract.md`, `docs/api-spec.md`, `docs/state-machines.md`, `frontend/README.md`, `docs/operations-runbook.md`, `docs/operational-flow.md` | done |
 | R-07 | Fixed finish/cancel timing rules | `backend/app/domain/time_rules.py`, `backend/app/services/bout_service.py` | `backend/tests/unit/test_time_rules.py`, `backend/tests/property/test_time_rules_properties.py`, `backend/tests/integration/test_timing_guards.py` | `docs/state-machines.md` | done |
-| R-08 | Ledger-validated transitions only | `backend/app/api/bouts.py`, `backend/app/services/escrow_service.py`, `backend/app/services/payout_service.py`, `backend/app/services/xrpl_escrow_service.py` | `backend/tests/unit/test_xrpl_escrow_service.py`, `backend/tests/integration/test_escrow_confirm_flow.py`, `backend/tests/integration/test_payout_flow.py` | `docs/state-machines.md`, `docs/api-spec.md` | done |
+| R-08 | Ledger-validated transitions only | `backend/app/api/bouts.py`, `backend/app/services/escrow_service.py`, `backend/app/services/payout_service.py`, `backend/app/services/xrpl_escrow_service.py`; backend XRPL transaction lookup is required by the active release-hardening plan | `backend/tests/unit/test_xrpl_escrow_service.py`, `backend/tests/integration/test_escrow_confirm_flow.py`, `backend/tests/integration/test_payout_flow.py` | `docs/state-machines.md`, `docs/api-spec.md` | in_progress |
 | R-09 | Confirm endpoint idempotency | `backend/app/middleware/idempotency.py`, `backend/app/services/idempotency_service.py`, `backend/app/models/idempotency_key.py`, `backend/app/api/bouts.py` | `backend/tests/unit/test_idempotency_service.py`, `backend/tests/integration/test_escrow_confirm_flow.py`, `backend/tests/integration/test_payout_flow.py`, `backend/tests/security/test_confirm_idempotency_contract.py` | `docs/api-spec.md`, `docs/traceability-matrix.md` | done |
-| R-10 | Backend enforces invariants (frontend untrusted) | role-gated `backend/app/api/bouts.py` + modular route handlers in `backend/app/api/bouts_routes/*.py` + lifecycle/ledger validation services + role-scoped management endpoints + frontend client contract layer (`frontend/src/api/client.ts`) + CI secret scan gate | `backend/tests/security/test_bout_role_guards.py`, `backend/tests/security/test_confirm_idempotency_contract.py`, `backend/tests/integration/test_management_endpoints.py`, `backend/tests/e2e/test_promoter_signing_flow.py`, `frontend/src/api/client.test.ts`, `frontend/e2e/promoter-flow.spec.ts`, CI gitleaks job | `docs/api-spec.md`, `docs/ci-cd.md`, `frontend/README.md` | done |
+| R-10 | Backend enforces invariants (frontend untrusted) | role-gated `backend/app/api/bouts.py` + modular route handlers in `backend/app/api/bouts_routes/*.py` + lifecycle/ledger validation services + role-scoped management endpoints + frontend client contract layer (`frontend/src/api/client.ts`) + CI secret scan gate; client-asserted ledger evidence and public privileged-role registration are reopened by the active release-hardening plan | `backend/tests/security/test_bout_role_guards.py`, `backend/tests/security/test_confirm_idempotency_contract.py`, `backend/tests/integration/test_management_endpoints.py`, `backend/tests/e2e/test_promoter_signing_flow.py`, `frontend/src/api/client.test.ts`, `frontend/e2e/promoter-flow.spec.ts`, CI gitleaks job | `docs/api-spec.md`, `docs/ci-cd.md`, `frontend/README.md` | in_progress |
 | R-11 | Explicit lifecycle state machines | transition guards in `backend/app/services/escrow_service.py` and `backend/app/services/payout_service.py` | `backend/tests/integration/test_escrow_confirm_flow.py`, `backend/tests/integration/test_payout_flow.py`, `backend/tests/contract/test_bout_escrow_api_contract.py` | `docs/state-machines.md`, `docs/api-spec.md` | done |
 | R-12 | Explicit failure handling | `backend/app/services/failure_taxonomy.py`, `backend/app/services/escrow_service.py`, `backend/app/services/payout_service.py`, `backend/app/services/signing_reconciliation_service.py` (audited failure classification for `signing_declined`, `signing_expired`, `confirmation_timeout`, `ledger_tec_tem`, `invalid_confirmation`) | `backend/tests/integration/test_escrow_confirm_flow.py`, `backend/tests/integration/test_payout_flow.py`, `backend/tests/contract/test_bout_escrow_api_contract.py` | `docs/state-machines.md`, `docs/api-spec.md`, `docs/xaman-signing-contract.md` | done |
 
@@ -195,7 +195,9 @@ Goal: enforce Alembic migration authority and proven auth-library adoption witho
 | Browser journey remains focused on the operator workspace flow | `frontend/e2e/promoter-flow.spec.ts` |
 | Slice H documentation alignment | `frontend/README.md`, `docs/traceability-matrix.md` |
 
-## Test Evidence (Current)
+## Test Evidence (Historical M4 Baseline)
+
+These results were recorded on 2026-05-15. The 2026-07-30 audit found that the checked-in ignored virtual environment points to a removed Python installation, so fresh backend suite evidence remains pending reproducible-environment hardening.
 
 | Command | Result | Notes |
 |---|---|---|
@@ -219,7 +221,7 @@ M4 hardening is complete for the locked MVP/Testnet scope. Current evidence cove
 
 Residual risk is limited to deployment operations and external XRPL/Xaman service availability; those remain outside the local MVP verification environment.
 
-## Testnet Release Readiness (Active)
+## Testnet Release Readiness (Reopened)
 
 Goal: convert completed M4 hardening into deployable XRPL Testnet release readiness without expanding locked MVP scope.
 
@@ -232,4 +234,14 @@ Goal: convert completed M4 hardening into deployable XRPL Testnet release readin
 
 Release readiness remains bounded to XRPL Testnet, Xaman non-custodial signing, and the locked MVP lifecycle. Live Xaman API and XRPL Testnet smoke evidence is operator-run and must not require committing secrets or making CI depend on external services.
 
-Current local evidence for this slice is recorded in `docs/testnet-release-readiness.md`: backend compile/lint/format/full-test/regression/performance/migration gates pass, frontend typecheck/test/build/browser E2E gates pass, and `openspec validate prepare-testnet-release` passes. Live Xaman/XRPL smoke validation remains pending until an operator runs it with environment-managed credentials and funded Testnet accounts.
+Historical local evidence for this slice is recorded in `docs/testnet-release-readiness.md`. The 2026-07-30 audit reopened deterministic release hardening; live Xaman/XRPL smoke validation remains pending until those gates pass and an operator runs it with environment-managed credentials and funded Testnet accounts.
+
+## Repository Documentation Governance
+
+| Item | Evidence | Status |
+|---|---|---|
+| Continuous documentation directive and delivery workflow | `AGENTS.md` | done |
+| Approved release-ready MVP design and implementation plan | `docs/superpowers/specs/2026-07-30-release-ready-mvp-design.md`, `docs/superpowers/plans/2026-07-30-release-ready-mvp.md` | done |
+| OpenSpec governance contract | `openspec/changes/establish-documentation-governance/` | in_progress |
+| Module README structural and link validation | `backend/tests/docs/test_module_readmes.py` | done |
+| 2026-07-30 governance verification | Documentation tests (`3 passed`), Ruff check/format, seven OpenSpec validations, placeholder/config-name scans, and `git diff --check` | done |

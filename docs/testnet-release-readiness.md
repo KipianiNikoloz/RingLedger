@@ -6,7 +6,7 @@ Scope type: release evidence and operational readiness only
 
 ## Decision
 
-RingLedger is ready to enter XRPL Testnet release validation once the deterministic local/CI gates are green and an operator completes the live Xaman/XRPL smoke checklist with environment-managed secrets.
+RingLedger is not yet ready to enter live XRPL Testnet release validation. The deterministic M4 baseline was green on 2026-05-15, but the 2026-07-30 release audit reopened backend-authoritative ledger confirmation, privileged-role provisioning, reproducible setup, and container delivery before live smoke execution.
 
 This memo does not expand MVP scope. It records the release boundary, required evidence, and residual risks for deploying the locked MVP to a Testnet environment.
 
@@ -32,7 +32,7 @@ Secrets and credentials:
 
 - `XAMAN_API_KEY`
 - `XAMAN_API_SECRET`
-- strong environment-managed `JWT_SECRET_KEY`
+- strong environment-managed `JWT_SECRET`
 - funded Testnet accounts and signing access controlled outside the repository
 
 Secrets must never be committed, pasted into release notes, or captured in evidence. Release evidence may include non-secret payload identifiers, transaction hashes, request paths, status codes, and summarized command results.
@@ -61,7 +61,9 @@ The release candidate must have current evidence for:
 10. Prepare payout signing, complete/reconcile Xaman signing, and confirm payout only after validated XRPL Testnet evidence.
 11. Record non-secret evidence: environment mode, request paths, payload identifiers, transaction hashes, command summaries, and any deterministic failure codes encountered.
 
-## Current Verification Evidence
+## Historical Verification Evidence
+
+The following results are the 2026-05-15 baseline, not current completion evidence. They must be replaced by a clean-checkout verification run after release hardening.
 
 | Gate | Result | Notes |
 |---|---|---|
@@ -76,7 +78,7 @@ The release candidate must have current evidence for:
 | `npm run build` (`frontend/`) | pass | Production build completed. |
 | `npm run test:e2e` (`frontend/`) | pass (`1 passed`) | Required installing the matching local Playwright Chromium runtime before rerun. |
 | `openspec validate prepare-testnet-release` | pass | Change is valid. |
-| Live Xaman/XRPL smoke validation | operator-run pending | Requires live credentials and funded Testnet accounts outside local CI. |
+| Live Xaman/XRPL smoke validation | blocked on release hardening, then operator-run | Requires the deterministic hardening gates plus live credentials and funded Testnet accounts outside local CI. |
 
 ## Residual Risks
 

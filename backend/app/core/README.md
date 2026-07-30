@@ -24,7 +24,7 @@ flowchart LR
 
 ## Maintenance Notes
 
-- Non-local deployments must provide a strong `JWT_SECRET_KEY`.
+- Non-local deployments must provide a strong `JWT_SECRET`.
 - Do not add wallet-login or XRPL-address-login behavior here.
 - Security helper changes need auth unit, contract, and security tests.
 - Runtime settings should stay explicit and environment-driven.

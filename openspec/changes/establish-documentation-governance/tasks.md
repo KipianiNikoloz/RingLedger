@@ -5,11 +5,11 @@
 
 ## 2. Documentation Alignment
 
-- [ ] 2.1 Replace generated purpose placeholders in current OpenSpec capabilities.
-- [ ] 2.2 Align canonical and module documentation with actual commands, paths, configuration names, and the locked release boundary.
-- [ ] 2.3 Update traceability to include repository documentation governance.
+- [x] 2.1 Replace generated purpose placeholders in current OpenSpec capabilities.
+- [x] 2.2 Align canonical and module documentation with actual commands, paths, configuration names, and the locked release boundary.
+- [x] 2.3 Update traceability to include repository documentation governance.
 
 ## 3. Verification
 
-- [ ] 3.1 Run documentation tests, formatting checks, placeholder scans, and `openspec validate --all`.
+- [x] 3.1 Run documentation tests, formatting checks, placeholder scans, and `openspec validate --all`.
 - [ ] 3.2 Record verified evidence, complete this checklist, and archive the OpenSpec change.
